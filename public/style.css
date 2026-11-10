@@ -75,8 +75,8 @@ body{margin:0;background:#fff}
 /* section headings: ring icon, gray rules, lowercase head */
 .sec{padding:30px 0 8px;border-bottom:1px dotted #9aa8b8}
 .sec:last-child{border-bottom:0}
-.sech{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;border-top:2px solid #c9ced4;border-bottom:2px solid #c9ced4;padding:7px 0 7px 62px;margin:0 0 18px;min-height:46px}
-.sech::before{content:"";position:absolute;left:2px;top:24px;width:46px;height:46px;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,var(--c) 0 7px,#fff 8px);border:4px solid var(--orange)}
+.sech{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;border-top:2px solid #c9ced4;border-bottom:2px solid #c9ced4;padding:7px 0 7px 58px;margin:0 0 18px;min-height:50px}
+.sech::before{content:"";position:absolute;left:4px;top:50%;width:41px;height:41px;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,var(--c) 0 6px,#fff 7px);border:4px solid var(--orange)}
 .sech h2{font:800 26px var(--logo);text-transform:lowercase;color:var(--c)}
 .sech .more{margin-left:auto;font-weight:700;font-size:13px;color:var(--c)}
 .sech .d{color:var(--gray);font-size:13px}
@@ -199,7 +199,7 @@ body{margin:0;background:#fff}
 .subnav{justify-content:center}
 .subnav .search{margin:6px 0 0;width:100%}
 .subnav .search input{flex:1;width:auto}
-.sech{padding-left:54px}
+.sech{padding-left:50px}
 .sech h2{font-size:21px}
 }
 
@@ -307,8 +307,8 @@ body{margin:0;background:#fff}
 @media(max-width:700px){
 .tabs{display:grid!important;grid-template-columns:repeat(4,1fr);gap:3px;overflow:visible!important}
 .tabs a{flex:none!important;width:auto!important;margin:0!important;padding:11px 2px!important;font-size:13px!important;text-align:center}
-.sech{padding-left:44px;min-height:38px;align-items:center}
-.sech::before{width:30px;height:30px;top:50%;left:2px;border-width:3px;background:radial-gradient(circle,var(--c) 0 5px,#fff 6px)}
+.sech{padding-left:42px;min-height:40px;align-items:center}
+.sech::before{width:27px;height:27px;top:50%;left:4px;border-width:3px;background:radial-gradient(circle,var(--c) 0 4px,#fff 5px)}
 .sech h2{font-size:22px;line-height:1}
 .sech .d{display:none}
 .sh{width:36px;height:36px}.sh svg{width:18px;height:18px}
