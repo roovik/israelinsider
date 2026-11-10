@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import worker, { runIngest, nlItems } from '../worker.js';
+import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
 import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
@@ -56,3 +56,21 @@ console.log('all tests passed');
 
 { const o = nlItems([{ t: 'A', u: 'https://x.org/a', src: 'S', d: '2026-11-09T10:00:00Z' }, { t: 'B', k: 'k1', s: 'src', d: '2026-11-10T10:00:00Z' }, { t: 'no date', u: 'https://x.org/c' }, { t: 'bad', u: 'javascript:1', d: '2026-11-10T10:00:00Z' }]); assert.equal(o.length, 2); assert.equal(o[0].t, 'B'); assert.match(o[0].u, /^https:\/\/israelnowlej.com\/news\/item\/k1\//); }
 console.log('nowlej ok');
+
+{
+  assert.ok(cleanEntry({ type: 'act', kind: 'event', title: 'T', url: 'https://x.org/e', date: '2999-01-01' }).rec);
+  assert.ok(cleanEntry({ type: 'act', kind: 'event', title: 'T', url: 'http://x.org/e' }).error);
+  assert.ok(cleanEntry({ type: 'monitor', kind: 'factcheck', title: 'T', url: 'https://x.org/e' }).error);
+  assert.ok(cleanEntry({ type: 'monitor', kind: 'petition', title: 'T', url: 'https://x.org/e', date: '2026-01-01' }).error);
+  const ok = { type: 'monitor', kind: 'factcheck', title: 'Claim X checked', url: 'https://x.org/s', date: '2026-11-01', email: 'a@b.co', consent: true };
+  assert.equal((await call('/api/propose', { method: 'POST', body: JSON.stringify(ok) }, false)).status, 422);
+  assert.equal((await call('/api/propose', { method: 'POST', body: JSON.stringify({ ...ok, scope_ok: true }) }, false)).status, 201);
+  assert.equal((await (await call('/api/admin/proposals', {}, true)).json()).proposals.length, 1);
+  const mk = b => call('/api/admin/entry', { method: 'POST', body: JSON.stringify(b) }, true);
+  assert.equal((await mk({ type: 'act', kind: 'event', title: 'Future rally', url: 'https://x.org/f', date: '2999-05-01' })).status, 200);
+  assert.equal((await mk({ type: 'act', kind: 'event', title: 'Old rally', url: 'https://x.org/o', date: '2000-05-01' })).status, 200);
+  assert.equal((await mk({ type: 'act', kind: 'petition', title: 'Sign this', url: 'https://x.org/p' })).status, 200);
+  const en = (await (await call('/api/entries?type=act', {}, false)).json()).entries; assert.deepEqual(en.map(e => e.title).sort(), ['Future rally', 'Sign this']);
+  assert.equal((await (await call('/api/entries?type=monitor', {}, false)).json()).entries.length, 0);
+}
+console.log('entries ok');

@@ -15,6 +15,7 @@ await call('/api/admin/voice', { name: 'Sample Show', short_bio: 'Placeholder sh
 await call('/api/admin/feed', { voice_id: 'sample-writer', kind: 'blog', url: 'https://t/blog' });
 await call('/api/admin/feed', { voice_id: 'sample-show', kind: 'podcast', url: 'https://t/pod' });
 await call('/api/admin/feed', { voice_id: 'sample-show', kind: 'youtube', external_id: 'UC1' });
+for (const e of [{ type: 'act', kind: 'event', title: 'Sample rally for Israel', url: 'https://example.org/e1', org: 'Sample Org', summary: 'Placeholder event.', date: '2026-12-02', location: 'New York' }, { type: 'act', kind: 'petition', title: 'Sample petition text', url: 'https://example.org/p1', org: 'Sample Org', summary: 'Placeholder petition.', date: '2026-12-20' }, { type: 'monitor', kind: 'factcheck', title: 'Sample fact-check of a viral claim', url: 'https://example.org/f1', org: 'Sample Outlet', summary: 'Placeholder fact-check.', date: '2026-11-05' }]) await call('/api/admin/entry', e);
 await runIngest(env, async u => new Response(u.includes('pod') ? pod : u.includes('youtube') ? yt : blog));
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');

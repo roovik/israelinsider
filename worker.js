@@ -65,6 +65,17 @@ const publicItem = (i, v) => ({ ...i, full_text: undefined, voice: v ? { slug: v
 
 function admin(req, env) { return env.ADMIN_KEY && req.headers.get('authorization') === `Bearer ${env.ADMIN_KEY}`; }
 
+const ACT_KINDS = ['petition', 'event', 'donate', 'campus', 'volunteer'], MON_KINDS = ['factcheck', 'correction', 'tracker'];
+export function cleanEntry(b) {
+  const type = b.type === 'monitor' ? 'monitor' : b.type === 'act' ? 'act' : '';
+  if (!type) return { error: 'type must be act or monitor' };
+  const kind = String(b.kind || ''); if (!(type === 'act' ? ACT_KINDS : MON_KINDS).includes(kind)) return { error: 'unknown kind for ' + type };
+  const title = String(b.title || '').trim().slice(0, 200); if (!title) return { error: 'title is required' };
+  const url = String(b.url || '').trim(); if (!/^https:\/\/\S+$/i.test(url) || url.length > 500) return { error: 'a https link is required' };
+  const date = String(b.date || '').trim(); if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: 'date must be YYYY-MM-DD' };
+  if (type === 'monitor' && !date) return { error: 'monitor entries need the date of the source' };
+  return { rec: { type, kind, title, url, org: String(b.org || '').trim().slice(0, 120), summary: String(b.summary || '').trim().slice(0, 300), date, location: String(b.location || '').trim().slice(0, 120), topics: (Array.isArray(b.topics) ? b.topics : String(b.topics || '').split(',')).map(s => String(s).trim().toLowerCase()).filter(Boolean).slice(0, 6) } };
+}
 export function nlItems(list) {
   return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d }))
     .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
@@ -101,6 +112,21 @@ export default {
       const [news, views] = await Promise.all([get('/api/news?v=2'), get('/api/news?views=1&v=2')]);
       return J({ news, views }, 200, { 'cache-control': 'public, max-age=600' });
     }
+    if (p === '/api/entries') {
+      const type = u.searchParams.get('type'), kind = u.searchParams.get('kind'), lim = Math.min(+u.searchParams.get('limit') || 30, 100), today = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+      let e = (await getJson(env, 'entries', [])).filter(x => !x.hidden && (!type || x.type === type) && (!kind || x.kind === kind) && !(x.kind === 'event' && x.date && x.date < today));
+      e = e.sort((a, b) => a.kind === 'event' && b.kind === 'event' ? (a.date || '9').localeCompare(b.date || '9') : b.created.localeCompare(a.created));
+      return J({ entries: e.slice(0, lim) }, 200, { 'cache-control': 'public, max-age=120' });
+    }
+    if (p === '/api/propose' && req.method === 'POST') {
+      let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
+      const c = cleanEntry(b); if (c.error) return J({ error: c.error }, 422);
+      if (!/^\S+@\S+\.\S+$/.test(b.email || '') || !b.consent) return J({ error: 'A valid contact email and consent are required' }, 422);
+      if (c.rec.type === 'monitor' && !b.scope_ok) return J({ error: 'Monitor entries must concern a public organization, outlet, statement or campaign, not a private individual' }, 422);
+      const s = await getJson(env, 'proposals', []); if (s.length > 500) return J({ error: 'queue full' }, 429);
+      s.push({ id: crypto.randomUUID(), at: new Date().toISOString(), email: String(b.email).slice(0, 200), ...c.rec }); await putJson(env, 'proposals', s);
+      return J({ ok: true }, 201, { 'cache-control': 'no-store' });
+    }
     if (p === '/api/subscribe' && req.method === 'POST') {
       let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
       const em = String(b.email || '').trim().toLowerCase();
@@ -119,6 +145,16 @@ export default {
       if (p === '/api/admin/feed/delete' && req.method === 'POST') { const b = await req.json(); const feeds = (await listFeeds(env)).filter(f => f.id !== b.id); await putJson(env, 'feeds', feeds); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/voice/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'voices', voices.filter(v => v.id !== b.id)); await putJson(env, 'feeds', (await listFeeds(env)).filter(f => f.voice_id !== b.id)); await putJson(env, 'items', (await getJson(env, 'items', [])).filter(i => i.voice_id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/submission/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'submissions', (await getJson(env, 'submissions', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/entries') return J({ entries: await getJson(env, 'entries', []) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/proposals') return J({ proposals: await getJson(env, 'proposals', []) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/entry' && req.method === 'POST') {
+        const b = await req.json(); const c = cleanEntry(b); if (c.error) return J({ error: c.error }, 422);
+        const all = await getJson(env, 'entries', []); const old = b.id && all.find(x => x.id === b.id);
+        if (old) Object.assign(old, c.rec, { hidden: b.hidden === true }); else all.unshift({ id: crypto.randomUUID(), created: new Date().toISOString(), hidden: false, ...c.rec });
+        await putJson(env, 'entries', all.slice(0, 2000)); return J({ ok: true }, 200, { 'cache-control': 'no-store' });
+      }
+      if (p === '/api/admin/entry/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'entries', (await getJson(env, 'entries', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/proposal/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'proposals', (await getJson(env, 'proposals', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/subscribers') return J({ subscribers: await getJson(env, 'subscribers', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/submissions') return J({ submissions: await getJson(env, 'submissions', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voice' && req.method === 'POST') {
