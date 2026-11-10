@@ -83,6 +83,7 @@ body{margin:0;background:#fff}
 .read{--c:var(--read)}.listen{--c:var(--listen)}.watch{--c:var(--watch)}.social{--c:var(--social)}
 /* six-unit grid: units match the six main tabs (3px gutters, same as the tab gaps) */
 .grid{display:grid;gap:18px 3px;grid-template-columns:repeat(6,minmax(0,1fr))}
+.grid>*{grid-column:1/-1}
 .g1>*{grid-column:span 6}
 .g2>*{grid-column:span 3}
 .g3>*{grid-column:span 2}
