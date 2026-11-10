@@ -138,7 +138,7 @@
   var td = document.getElementById('today'); if (td) td.textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   var TOPICS = ['security', 'politics', 'diplomacy', 'culture', 'history', 'faith', 'campus'];
   var NL = [['News', '/'], ['Views', '/views/'], ['Media', '/media/'], ['NOWlej', '/glossary/'], ['Sources', '/sources/']];
-  var SUBCOL = { read: 'var(--read)', listen: 'var(--listen)', watch: 'var(--watch)', social: 'var(--social)', voices: 'var(--voices)', nowlej: '#3a4a63' };
+  var SUBCOL = { read: 'var(--read)', listen: 'var(--listen)', watch: 'var(--watch)', social: 'var(--social)', voices: 'var(--voices)', nowlej: 'var(--bluedk)' };
   function renderSub(name, topic) {
     var n = name === 'voice' ? 'voices' : name, L;
     if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
