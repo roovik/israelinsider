@@ -57,6 +57,10 @@ export async function runIngest(env, fetcher = fetch) {
 }
 
 const PER_VOICE = 3;
+// A feed address is for machines. Anything shown to readers as "the site" must be a human page.
+export function humanUrl(u) {
+  try { const x = new URL(u); if (/(^|\/)(feed|feeds|rss|atom)(\/|\.|$)|\.(xml|rss|atom)$|posts\/default|videos\.xml/i.test(x.pathname + x.search)) return x.origin; return u; } catch { return u || ''; }
+}
 function filter(items, q, voicesById) {
   let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed' && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
   if (!q.get('voice')) { const n = {}; out = out.filter(i => (n[i.voice_id] = (n[i.voice_id] || 0) + 1) <= PER_VOICE); } // diversity: newest 3 per source, except on a voice's own page
@@ -162,13 +166,19 @@ export default {
       for (const f of fs) { const s = sectionOf(f); if (s) (sec[f.voice_id] = sec[f.voice_id] || new Set()).add(s); }
       const its = (await getJson(env, 'items', [])).filter(i => !i.hidden && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
       for (const i of its) { const l = (last[i.voice_id] = last[i.voice_id] || []); if (l.length < 2) l.push({ t: i.title, u: i.url, d: i.published_at }); }
-      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, sections: SECTIONS.filter(s => sec[v.id]?.has(s)), latest: last[v.id] || [] })) });
+      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, website: humanUrl(v.website), sections: SECTIONS.filter(s => sec[v.id]?.has(s)), latest: last[v.id] || [] })) });
     }
     if (p.startsWith('/api/voice/')) {
       const v = voices.find(x => x.slug === p.slice(11) && x.status === 'listed'); if (!v) return J({ error: 'not found' }, 404);
-      const feeds = (await listFeeds(env)).filter(f => f.voice_id === v.id).map(f => ({ kind: f.kind, url: f.url, format: f.format }));
+      const feeds = (await listFeeds(env)).filter(f => f.voice_id === v.id).map(f => {
+        // Link people to the readable page. The raw feed address is offered separately as RSS.
+        const yt = f.external_id ? 'https://www.youtube.com/channel/' + f.external_id : '';
+        let page = humanUrl(f.site || '') || yt;
+        if (!page && f.url) { try { page = new URL(f.url).origin; } catch { /* none */ } }
+        return { kind: f.kind, section: sectionOf(f), url: page || humanUrl(v.website) || humanUrl(f.url), feed: f.url && !yt ? f.url : '', format: f.format };
+      });
       const items = filter(await itemsC(env, vb), new URLSearchParams({ voice: v.slug, limit: '60' }), vb);
-      const { consent, ...pub } = v; return J({ voice: pub, feeds, items: items.map(i => publicItem(i, v)) });
+      const { consent, ...pub0 } = v, pub = { ...pub0, website: humanUrl(pub0.website) }; return J({ voice: pub, feeds, items: items.map(i => publicItem(i, v)) });
     }
     if (p === '/api/rss') {
       const items = filter(await itemsC(env, vb), u.searchParams, vb);
@@ -273,7 +283,7 @@ export default {
         const b = await req.json(); const feeds = await listFeeds(env); let nv = 0, nf = 0;
         for (const x of (b.voices || []).slice(0, 200)) {
           if (!x.name) continue; const id = slug(x.name); const i = voices.findIndex(v => v.id === id);
-          const rec = { id, slug: id, name: String(x.name).slice(0, 120), short_bio: String(x.short_bio || '').slice(0, 300), avatar: '', website: x.website || '', topics: x.topics || [], position_tag: x.position_tag || '', status: i >= 0 ? voices[i].status : 'pending', listed_on: i >= 0 ? voices[i].listed_on : '', consent: i >= 0 ? voices[i].consent : { excerpt_ok: true, full_text_ok: false, date: '', note: 'Candidate. Not contacted yet.' } };
+          const rec = { id, slug: id, name: String(x.name).slice(0, 120), short_bio: String(x.short_bio || '').slice(0, 300), avatar: '', website: humanUrl(x.website || ''), topics: x.topics || [], position_tag: x.position_tag || '', status: i >= 0 ? voices[i].status : 'pending', listed_on: i >= 0 ? voices[i].listed_on : '', consent: i >= 0 ? voices[i].consent : { excerpt_ok: true, full_text_ok: false, date: '', note: 'Candidate. Not contacted yet.' } };
           if (i >= 0) voices[i] = { ...voices[i], ...rec }; else { voices.push(rec); nv++; }
           for (const c of (x.channels || [])) {
             const fid = slug(id + '-' + c.section + '-' + (c.feed || c.external_id || c.site || '').slice(-14));

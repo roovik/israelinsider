@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import worker, { runIngest, nlItems, cleanEntry, avatarBatch, discoverBatch } from '../worker.js';
+import worker, { runIngest, nlItems, cleanEntry, avatarBatch, discoverBatch, humanUrl } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
 import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT, channelImage, ogImage, firstImg } from '../lib.js';
 
@@ -209,4 +209,24 @@ console.log('taxonomy ok');
   const pub = await (await call('/api/voices', {}, false)).json(); const dv = pub.voices.find(v => v.id === 'div-a');
   assert.ok(dv.latest.length === 2 && dv.latest[0].d >= dv.latest[1].d && /Israel/.test(dv.latest[0].t), 'voices carry their two latest relevant posts');
   console.log('latest ok');
+}
+
+{
+  await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Link Test', website: 'https://lt.test', channels: [{ section: 'blog', feed: 'https://lt.test/feeds/posts/default' }, { section: 'vlog', external_id: 'UCabcdefghijklmnopqrstuv' }] }] }) });
+  await call('/api/admin/listall', { method: 'POST', body: '{}' });
+  const v = await (await call('/api/voice/link-test', {}, false)).json();
+  assert.strictEqual(v.feeds[0].url, 'https://lt.test'); assert.strictEqual(v.feeds[0].feed, 'https://lt.test/feeds/posts/default');
+  assert.strictEqual(v.feeds[1].url, 'https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv'); assert.strictEqual(v.feeds[1].feed, '');
+  console.log('links ok');
+}
+
+{
+  for (const f of ['https://elderofziyon.blogspot.com/feeds/posts/default', 'https://x.test/feed/', 'https://x.test/rss.xml', 'https://x.test/a/atom.xml', 'https://www.youtube.com/feeds/videos.xml?channel_id=UC1']) assert.ok(!/feed|rss|atom|xml/.test(humanUrl(f).replace(/^https:\/\/[^/]+/, '')), f);
+  assert.strictEqual(humanUrl('https://x.test/about'), 'https://x.test/about'); assert.strictEqual(humanUrl('https://elderofziyon.blogspot.com'), 'https://elderofziyon.blogspot.com');
+  await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Feed Site', website: 'https://fs.test/feeds/posts/default', channels: [{ section: 'blog', feed: 'https://fs.test/feeds/posts/default' }] }] }) });
+  await call('/api/admin/listall', { method: 'POST', body: '{}' });
+  const d = await (await call('/api/voice/feed-site', {}, false)).json();
+  assert.strictEqual(d.voice.website, 'https://fs.test'); assert.strictEqual(d.feeds[0].url, 'https://fs.test');
+  const all = (await (await call('/api/voices', {}, false)).json()).voices; assert.ok(all.every(v => !/\/feeds?\/|\.xml$/.test(v.website || '')));
+  console.log('human links ok');
 }

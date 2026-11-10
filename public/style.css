@@ -397,3 +397,5 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .lpl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
 .lpl li{align-items:flex-start}
 @media(max-width:700px){.lpl{grid-template-columns:minmax(0,1fr)}}
+
+.panel .rw a.rss{font-size:11px;font-weight:700;color:var(--gray);border:1px solid var(--line);padding:0 6px;margin-left:6px}
