@@ -81,7 +81,7 @@
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
-        '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit your feed</a></div>' +
+        '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit Channel</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
@@ -103,7 +103,7 @@
       return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; })]).then(function (a) {
         var all = a[0], voices = a[1].voices, nl = a[2];
         if (!all.length && !voices.length) {
-          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit your feed</a></section>' + nlBlock(nl);
+          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Channel</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 8).map(voiceTile).join('') + '</div></section>' : '';
@@ -145,7 +145,7 @@
       });
     },
     submit: function () {
-      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink)">' + sech('', 'Submit your feed', 'For writers, podcasters, video creators and public voices') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to your own site, channel or feed. You choose your excerpt, you can edit your profile, and you can opt out any time.</p><div id="subok"></div>' +
+      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink)">' + sech('', 'Submit Channel', 'For writers, podcasters, video creators and public voices') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to your own site, channel or feed. You choose your excerpt, you can edit your profile, and you can opt out any time.</p><div id="subok"></div>' +
         '<form class="frm" id="subf" novalidate><div class="fld"><label for="nm">Name of the voice, show or channel</label><input id="nm" name="name" required></div><div class="fld"><label for="em">Contact email</label><input id="em" name="email" type="email" required><small>Used only to reach you about your listing.</small></div><div class="fld"><label for="wb">Website</label><input id="wb" name="website" type="url" placeholder="https://"></div><div class="fld"><label for="rss">Feeds: blog or newsletter, podcast RSS, YouTube channel, Substack</label><textarea id="rss" name="feeds" placeholder="One address per line"></textarea></div><div class="fld"><label for="xh">Social accounts</label><input id="xh" name="social" placeholder="X, Bluesky, Threads handles"></div><div class="fld"><label for="fm">Formats you publish</label><select id="fm" name="formats"><option>Writing</option><option>Audio podcast</option><option>Video podcast or vlog</option><option>More than one</option></select></div><div class="fld"><label for="bio">Short bio, two lines</label><textarea id="bio" name="bio" maxlength="500"></textarea></div><div class="fld"><label for="tp">Main topics</label><input id="tp" name="topics" placeholder="Security, diplomacy, campus, culture"></div><label class="chk" for="c2"><input id="c2" name="consent_excerpt" type="checkbox">Israel Insider may show my headlines, short excerpts and thumbnails with links to my own pages.</label><label class="chk" for="c3"><input id="c3" name="consent_full_text" type="checkbox">Optional: I give permission to show full text of my posts on Israel Insider.</label><div><button class="btn" type="submit">Send for review</button></div></form></section></div>');
     }
   };
@@ -162,9 +162,9 @@
   function renderSub(name, topic) {
     var n = name === 'voice' ? 'voices' : name, L;
     if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
-    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit your feed', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit Channel', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (TYPES[n]) L = [['', 'All ' + n]].concat(TOPICS.map(function (t) { return [t, t.charAt(0).toUpperCase() + t.slice(1)]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?topic=' + x[0] : '') + '">' + x[1] + '</a>'; });
-    else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit your feed'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit Channel'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     var el = document.getElementById('sublinks'); el.innerHTML = L.join('');
     el.parentNode.style.setProperty('--sc', SUBCOL[n] || 'var(--blue)');
   }

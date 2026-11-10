@@ -219,3 +219,9 @@ body{margin:0;background:#fff}
 .nlist li{font-size:14px;line-height:1.4}
 .nlist a{color:var(--bluedk);font-weight:700}
 .nlist .meta{display:block;margin-top:2px}
+.mast .topr{width:320px;align-items:stretch}
+.mast .today{text-align:right}
+.topb{width:100%;flex-wrap:nowrap;gap:10px}
+.topb .btn{flex:1 1 0;padding:0 8px;white-space:nowrap}
+@media(max-width:700px){.mast .topr{width:100%}}
+.topb .btn{flex:0 0 calc(50% - 5px);width:calc(50% - 5px);min-width:0}
