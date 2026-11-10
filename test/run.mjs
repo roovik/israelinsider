@@ -131,3 +131,10 @@ console.log('taxonomy ok');
   assert.ok(fs.every(f => !f.etag), 'check must not leave etags behind');
   console.log('check ok');
 }
+
+{
+  const r = await (await call('/api/admin/listall', { method: 'POST', body: '{}' })).json(); assert.ok(r.listed >= 1);
+  const pub = await (await call('/api/voices', {}, false)).json(); assert.ok(pub.voices.some(v => v.id === 'act-test'));
+  const r2 = await (await call('/api/admin/listall', { method: 'POST', body: '{}' })).json(); assert.strictEqual(r2.listed, 0);
+  console.log('listall ok');
+}

