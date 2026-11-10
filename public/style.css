@@ -225,3 +225,18 @@ body{margin:0;background:#fff}
 .topb .btn{flex:1 1 0;padding:0 8px;white-space:nowrap}
 @media(max-width:700px){.mast .topr{width:100%}}
 .topb .btn{flex:0 0 calc(50% - 5px);width:calc(50% - 5px);min-width:0}
+
+.share{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:8px 14px 10px;border-top:1px dotted #9aa8b8}
+.ep .share{flex:1 1 100%;padding:8px 0 0;margin-top:6px}
+.share .sl{font:700 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin-right:2px}
+.sh{width:26px;height:26px;border-radius:50%;border:0;background:var(--bluedk);color:#fff;font:700 11px var(--sans);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.pg a.sh,.pg .sh{color:#fff;text-decoration:none}
+.sh:hover{filter:brightness(1.15);text-decoration:none}
+.sh.x{background:#111}.sh.facebook{background:#1877f2}.sh.whatsapp{background:#25a244}.sh.telegram{background:#2a9fd8}.sh.linkedin{background:#0a66c2}.sh.bluesky{background:#1185fe}.sh.threads{background:#333}.sh.reddit{background:#e0501b}.sh.email{background:#6b7785}.sh.copy,.sh.nat{background:var(--ink2)}
+.share.big{padding:0;border:0;gap:8px}
+.share.big .sl{display:none}
+.share.big .sh{width:auto;height:38px;border-radius:2px;padding:0 14px 0 0;gap:8px;font-size:13px;font-weight:700}
+.share.big .sh b{width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;background:rgba(0,0,0,.18);font-size:13px}
+.panel .pb .share{padding:0;border:0}
+.card .share{margin-top:auto}
+.pg .sh b,.panel .pb .sh b{color:#fff}
