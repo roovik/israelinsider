@@ -1,0 +1,54 @@
+ISRAEL INSIDER VOICES, BATCH 2 (DRAFT FOR REVIEW)
+
+Sources mined: the Israel NOWlej video and Who's Who lists, the JNS Top 40 global advocates page, the Top 50 Pro-Israel Influencers site, the Masa Israel list of pro-Israel influencers, and Substack listings. Entries below were not in batch 1.
+
+Status: not yet public. Press Publish batch in admin to import, list and fetch. Bios are one-line role descriptions drawn from those lists and are unverified. Feed addresses marked guess are found by the feed finder and may fail. Many individuals have no feed yet and will show as directory entries until one is found.
+
+Please review: government and military channels (IDF, Foreign Ministry), entertainers, and any name you would rather leave out.
+
+Israel Defense Forces | Official channel of the Israel Defense Forces. | channels: vlog | from: NOWlej lists
+Israel Ministry of Foreign Affairs | Official channel of Israel's foreign ministry. | channels: vlog | from: NOWlej lists
+AIPAC | American Israel Public Affairs Committee, a US pro-Israel advocacy group. | channels: vlog | from: NOWlej lists
+i24NEWS English | English channel of the Israeli international news network i24NEWS. | channels: vlog | from: NOWlej lists
+The Times of Israel (YouTube) | Video from The Times of Israel. | channels: vlog | from: NOWlej lists
+The Jerusalem Post (YouTube) | Video from The Jerusalem Post. | channels: vlog | from: NOWlej lists
+JNS (YouTube) | Video from Jewish News Syndicate. | channels: vlog | from: NOWlej lists
+HonestReporting (YouTube) | Video from HonestReporting, a media watchdog on coverage of Israel. | channels: vlog | from: NOWlej lists
+American Jewish Committee | Jewish advocacy organization founded in 1906. Hosts the People of the Pod podcast. | channels: editorial, vlog | from: NOWlej lists
+Anti-Defamation League | Civil rights and antisemitism-monitoring organization. | channels: editorial, vlog | from: NOWlej lists
+JINSA | Think tank on US and Israeli security cooperation. | channels: editorial, vlog | from: NOWlej lists
+Christians United for Israel | US Christian pro-Israel advocacy organization. | channels: editorial, vlog | from: NOWlej lists
+Tikvah Fund | Jewish and Zionist education and ideas institution. | channels: editorial, vlog | from: NOWlej lists
+MEMRI | Media monitoring institute that translates Arabic, Persian and Turkish media. | channels: editorial, vlog | from: NOWlej lists
+Hananya Naftali | Israeli social media creator and former spokesman. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Rudy Rochman | Jewish rights advocate and speaker. | channels: vlog | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Shai Davidai | Columbia Business School professor and advocate for Jewish students. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Adela Cojab | Activist, author and podcast co-host who works against antisemitism. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Adam Milstein | Philanthropist and pro-Israel advocate. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Liora Rez | Founder of StopAntisemitism, which calls out antisemitism online and offline. | channels: editorial | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Nitsana Darshan-Leitner | Israeli attorney and president of Shurat HaDin. | channels: editorial | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Jordyn Tilchen | Journalist who writes against antisemitism on social media. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Mikey Greenblatt | Stand-up comedian and pro-Israel creator. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Yoav Davis | Digital media consultant who speaks on fighting antisemitism online. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Aliza Licht | Marketer and author who speaks out for Israel. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Tracy-Ann Oberman | British actor and campaigner against antisemitism. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Ben Cohen | JNS senior columnist. | channels: oped | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Yaakov Lappin | Israeli military and security affairs analyst, JNS columnist. | channels: oped | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Alex Traiman | CEO of Jewish News Syndicate. | channels: oped | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Amir Avivi | Retired Israeli brigadier general and defense analyst. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Jeremy Gimpel | Host and commentator on Israel and Christian Zionism. | channels: no feed yet | from: JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists
+Natasha Hausdorff | British barrister and legal advocate on Israel. | channels: no feed yet | from: NOWlej lists
+Daniel Hagari | Former IDF spokesperson. | channels: no feed yet | from: NOWlej lists
+Nadav Shoshani | IDF international spokesperson. | channels: no feed yet | from: NOWlej lists
+Peter Lerner | Former IDF international spokesperson. | channels: no feed yet | from: NOWlej lists
+Doron Spielman | Israel advocate and former IDF spokesperson. | channels: no feed yet | from: NOWlej lists
+Dan Schueftan | Israeli academic on security and strategy. | channels: no feed yet | from: NOWlej lists
+Hillel Fuld | Tech adviser and Israel advocate. | channels: no feed yet | from: NOWlej lists
+John Spencer | Urban warfare scholar and retired US Army officer. | channels: no feed yet | from: NOWlej lists
+Yossi Klein Halevi | Author and senior fellow at the Shalom Hartman Institute. | channels: no feed yet | from: NOWlej lists
+Elliot Kaufman | Wall Street Journal editorial writer. | channels: no feed yet | from: NOWlej lists
+Hussein Aboubakr Mansour | Writer and former Egyptian Islamist turned Israel advocate. | channels: no feed yet | from: NOWlej lists
+Khaled Abu Toameh | Palestinian-Israeli journalist writing on Palestinian affairs. | channels: no feed yet | from: NOWlej lists
+Miriam H. Elman | Political scientist on Israel and antisemitism. | channels: no feed yet | from: NOWlej lists
+Richard Kemp | Retired British Army colonel and commentator on Israel. | channels: no feed yet | from: NOWlej lists
+Clarity with Michael Oren | Substack newsletter by Michael Oren. | channels: substack | from: Substack listing (reletter.com)

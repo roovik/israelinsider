@@ -1,0 +1,688 @@
+{
+ "voices": [
+  {
+   "name": "Israel Defense Forces",
+   "short_bio": "Official channel of the Israel Defense Forces.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "official",
+   "website": "https://www.idf.il/en/",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCawNWlihdgaycQpO3zi-jYg",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Israel Ministry of Foreign Affairs",
+   "short_bio": "Official channel of Israel's foreign ministry.",
+   "topics": [
+    "diplomacy"
+   ],
+   "position_tag": "official",
+   "website": "https://www.gov.il/en/departments/ministry_of_foreign_affairs",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UC6zZ6ROUfiMqSRrsMQamlhA",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "AIPAC",
+   "short_bio": "American Israel Public Affairs Committee, a US pro-Israel advocacy group.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.aipac.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCxG28n8wj0thZukIZ56-9uQ",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "i24NEWS English",
+   "short_bio": "English channel of the Israeli international news network i24NEWS.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center",
+   "website": "https://www.i24news.tv/en",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCvHDpsWKADrDia0c99X37vg",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "The Times of Israel (YouTube)",
+   "short_bio": "Video from The Times of Israel.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center",
+   "website": "https://www.timesofisrael.com",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCKM3VQFIITaRegPDkLlLeKA",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "The Jerusalem Post (YouTube)",
+   "short_bio": "Video from The Jerusalem Post.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCLLLdCANnMAdMyrXdYbSlxg",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "JNS (YouTube)",
+   "short_bio": "Video from Jewish News Syndicate.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UC24cdDLzkNJf2_CNNzdI-UQ",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "HonestReporting (YouTube)",
+   "short_bio": "Video from HonestReporting, a media watchdog on coverage of Israel.",
+   "topics": [
+    "media"
+   ],
+   "position_tag": "center-right",
+   "website": "https://honestreporting.com",
+   "channels": [
+    {
+     "section": "vlog",
+     "kind": "youtube",
+     "external_id": "UCxb2M5GmklFJxkRbH3pGM4Q",
+     "site": "",
+     "guess": false
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "American Jewish Committee",
+   "short_bio": "Jewish advocacy organization founded in 1906. Hosts the People of the Pod podcast.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.ajc.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@AJCGlobal",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://www.ajc.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Anti-Defamation League",
+   "short_bio": "Civil rights and antisemitism-monitoring organization.",
+   "topics": [
+    "antisemitism"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.adl.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@ADLNational",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://www.adl.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "JINSA",
+   "short_bio": "Think tank on US and Israeli security cooperation.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://jinsa.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@JINSAorg",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://jinsa.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Christians United for Israel",
+   "short_bio": "US Christian pro-Israel advocacy organization.",
+   "topics": [
+    "advocacy",
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "https://cufi.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@CUFI",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://cufi.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Tikvah Fund",
+   "short_bio": "Jewish and Zionist education and ideas institution.",
+   "topics": [
+    "ideas"
+   ],
+   "position_tag": "center-right",
+   "website": "https://tikvahfund.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@TikvahFund",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://tikvahfund.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "MEMRI",
+   "short_bio": "Media monitoring institute that translates Arabic, Persian and Turkish media.",
+   "topics": [
+    "media"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.memri.org",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@MEMRITV",
+     "guess": true
+    },
+    {
+     "section": "editorial",
+     "site": "https://www.memri.org",
+     "guess": true
+    }
+   ],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Hananya Naftali",
+   "short_bio": "Israeli social media creator and former spokesman.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://x.com/HananyaNaftali",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Rudy Rochman",
+   "short_bio": "Jewish rights advocate and speaker.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.youtube.com/@RudyRochman",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@RudyRochman",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Shai Davidai",
+   "short_bio": "Columbia Business School professor and advocate for Jewish students.",
+   "topics": [
+    "advocacy",
+    "campus"
+   ],
+   "position_tag": "center-right",
+   "website": "https://x.com/ShaiDavidai",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Adela Cojab",
+   "short_bio": "Activist, author and podcast co-host who works against antisemitism.",
+   "topics": [
+    "antisemitism"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.instagram.com/adelacojab",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Adam Milstein",
+   "short_bio": "Philanthropist and pro-Israel advocate.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://x.com/adammilstein",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Liora Rez",
+   "short_bio": "Founder of StopAntisemitism, which calls out antisemitism online and offline.",
+   "topics": [
+    "antisemitism"
+   ],
+   "position_tag": "center-right",
+   "website": "https://stopantisemitism.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://stopantisemitism.org",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Nitsana Darshan-Leitner",
+   "short_bio": "Israeli attorney and president of Shurat HaDin.",
+   "topics": [
+    "law"
+   ],
+   "position_tag": "center-right",
+   "website": "https://israellawcenter.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://israellawcenter.org",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Jordyn Tilchen",
+   "short_bio": "Journalist who writes against antisemitism on social media.",
+   "topics": [
+    "antisemitism"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.instagram.com/jordyntilchen",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Mikey Greenblatt",
+   "short_bio": "Stand-up comedian and pro-Israel creator.",
+   "topics": [
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.instagram.com/jewishvibes",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Yoav Davis",
+   "short_bio": "Digital media consultant who speaks on fighting antisemitism online.",
+   "topics": [
+    "media"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.instagram.com/yoavdavis",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Aliza Licht",
+   "short_bio": "Marketer and author who speaks out for Israel.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.instagram.com/alizalichtxo",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Tracy-Ann Oberman",
+   "short_bio": "British actor and campaigner against antisemitism.",
+   "topics": [
+    "antisemitism",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://x.com/TracyAnnOberman",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Ben Cohen",
+   "short_bio": "JNS senior columnist.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/author/ben-cohen/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jns.org/author/ben-cohen/",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Yaakov Lappin",
+   "short_bio": "Israeli military and security affairs analyst, JNS columnist.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/author/yaakov-lappin/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jns.org/author/yaakov-lappin/",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Alex Traiman",
+   "short_bio": "CEO of Jewish News Syndicate.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/author/alex-traiman/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jns.org/author/alex-traiman/",
+     "guess": true
+    }
+   ],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Amir Avivi",
+   "short_bio": "Retired Israeli brigadier general and defense analyst.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Jeremy Gimpel",
+   "short_bio": "Host and commentator on Israel and Christian Zionism.",
+   "topics": [
+    "politics",
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/author/jeremy-gimpel/",
+   "channels": [],
+   "source": "JNS Top 40 / Top 50 Pro-Israel Influencers / Masa Israel lists"
+  },
+  {
+   "name": "Natasha Hausdorff",
+   "short_bio": "British barrister and legal advocate on Israel.",
+   "topics": [
+    "law"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Daniel Hagari",
+   "short_bio": "Former IDF spokesperson.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "official",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Nadav Shoshani",
+   "short_bio": "IDF international spokesperson.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "official",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Peter Lerner",
+   "short_bio": "Former IDF international spokesperson.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "official",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Doron Spielman",
+   "short_bio": "Israel advocate and former IDF spokesperson.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Dan Schueftan",
+   "short_bio": "Israeli academic on security and strategy.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Hillel Fuld",
+   "short_bio": "Tech adviser and Israel advocate.",
+   "topics": [
+    "tech",
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "John Spencer",
+   "short_bio": "Urban warfare scholar and retired US Army officer.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Yossi Klein Halevi",
+   "short_bio": "Author and senior fellow at the Shalom Hartman Institute.",
+   "topics": [
+    "ideas"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Elliot Kaufman",
+   "short_bio": "Wall Street Journal editorial writer.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Hussein Aboubakr Mansour",
+   "short_bio": "Writer and former Egyptian Islamist turned Israel advocate.",
+   "topics": [
+    "ideas"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Khaled Abu Toameh",
+   "short_bio": "Palestinian-Israeli journalist writing on Palestinian affairs.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Miriam H. Elman",
+   "short_bio": "Political scientist on Israel and antisemitism.",
+   "topics": [
+    "campus"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Richard Kemp",
+   "short_bio": "Retired British Army colonel and commentator on Israel.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "NOWlej lists"
+  },
+  {
+   "name": "Clarity with Michael Oren",
+   "short_bio": "Substack newsletter by Michael Oren.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://michaeloren.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://michaeloren.substack.com",
+     "guess": true
+    }
+   ],
+   "source": "Substack listing (reletter.com)"
+  }
+ ]
+}

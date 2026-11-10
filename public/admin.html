@@ -36,7 +36,7 @@ $('#nav').onclick=function(e){var t=e.target.dataset.t;if(!t)return;tab=t;docume
 $('#all').onclick=function(){
 if(!confirm('Import the batch, find feeds, list every voice publicly and fetch their items?'))return;
 var miss=0,found=0;say('1/4 Importing voices...',true);
-fetch('/seed/batch1.json').then(function(r){return r.json()}).then(function(b){return api('import',b)})
+fetch('/seed/batch1.json').then(function(r){return r.json()}).then(function(b){return api('import',b)}).then(function(){return fetch('/seed/batch2.json').then(function(r){return r.json()}).then(function(b){return api('import',b)})})
 .then(function(){say('2/4 Making them public...',true);return api('listall',{})})
 .then(function(r){var n=r.listed;return(function step(){return api('resolve',{}).then(function(x){found+=x.found;miss+=x.missed.length;say('3/4 Finding feeds... '+found+' found, '+x.remaining+' to go',true);return x.remaining>0?step():0})})().then(function(){return n})})
 .then(function(n){say('4/4 Fetching items...',true);return ingAll(0,0).then(function(r){load();say('Done. '+n+' voices public, '+found+' feeds found, '+miss+' not found, '+r.added+' items fetched. Use Check activity in Voices to see who has gone quiet.',true)})})
