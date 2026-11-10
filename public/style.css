@@ -260,3 +260,6 @@ body{margin:0;background:#fff}
 .sitepop .ph{font-size:12px;color:var(--ink2);margin-top:10px}
 .sh.ig{background:#c13584}.sh.tt{background:#111}
 @media(max-width:700px){.sitepop{left:0!important}}
+
+.sh svg{width:14px;height:14px;fill:#fff;flex:none}
+.share.big .sh b svg{width:19px;height:19px}
