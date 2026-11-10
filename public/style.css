@@ -361,3 +361,12 @@ body[data-route=home] .sec .grid>*{flex:0 0 82%;scroll-snap-align:start}
 .poster .face img{width:100%;height:100%;object-fit:cover;display:block}
 .poster .pn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:78px}
 @media(max-width:700px){.posters{margin:0 -20px 4px;padding-left:20px;padding-right:20px;scrollbar-width:none}}
+
+.rvc{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);padding:12px 14px;min-width:0}
+.rvc .face{flex:none;width:48px;height:48px;border-radius:50%;background:var(--bluedk);color:#fff;display:flex;align-items:center;justify-content:center;font:800 16px var(--head);overflow:hidden}
+.rvc .face:hover{text-decoration:none}
+.rvc .face img{width:100%;height:100%;object-fit:cover;display:block}
+.rvc .rb{display:flex;flex-direction:column;gap:2px;min-width:0}
+.rvc .rn{font:800 15px var(--head);color:var(--bluedk)}
+.rvc .rt{font-size:14px;line-height:1.3;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rvc .rt:hover{color:var(--bluedk)}
