@@ -39,9 +39,12 @@ export async function runIngest(env, fetcher = fetch) {
   const existing = await getJson(env, 'items', []);
   const seen = new Map(existing.map(i => [i.id, i]));
   let added = 0;
+  // Free plans allow about 50 subrequests per call: take the feeds checked longest ago, 35 at a time.
+  const due = feeds.filter(f => byId[f.voice_id] && f.status !== 'paused' && f.kind !== 'x' && (f.url || f.external_id)).sort((a, b) => String(a.last_checked || '').localeCompare(String(b.last_checked || '')));
+  const batch = new Set(due.slice(0, 35).map(f => f.id));
   for (const f of feeds) {
     const v = byId[f.voice_id];
-    if (!v || f.status === 'paused' || f.kind === 'x' || (!f.url && !f.external_id)) continue; // X handled by embeds and a separate job
+    if (!batch.has(f.id)) continue;
     try {
       for (const it of await ingestFeed(env, f, v, fetcher)) {
         const old = seen.get(it.id);
@@ -53,7 +56,7 @@ export async function runIngest(env, fetcher = fetch) {
   const all = [...seen.values()].sort((a, b) => b.published_at.localeCompare(a.published_at)).slice(0, MAX_ITEMS);
   await putJson(env, 'items', all);
   await putJson(env, 'feeds', feeds);
-  return { added, total: all.length };
+  return { added, total: all.length, remaining: Math.max(0, due.length - batch.size) };
 }
 
 const PER_VOICE = 3;
