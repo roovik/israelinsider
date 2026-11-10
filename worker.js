@@ -1,5 +1,5 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
-import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss } from './lib.js';
+import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
@@ -19,7 +19,7 @@ export async function ingestFeed(env, feed, voice, fetcher = fetch) {
   const headers = { 'user-agent': 'IsraelInsiderBot/1.0 (+https://israelinsider.org/bot)', accept: 'application/rss+xml, application/atom+xml, text/xml, */*' };
   if (feed.etag) headers['if-none-match'] = feed.etag;
   if (feed.last_modified) headers['if-modified-since'] = feed.last_modified;
-  const url = feed.kind === 'youtube' && feed.external_id && !feed.url ? youtubeFeedUrl(feed.external_id) : feed.url;
+  const url = (feed.kind === 'youtube' || feed.kind === 'vlog') && feed.external_id && !feed.url ? youtubeFeedUrl(feed.external_id) : feed.url;
   const res = await fetcher(url, { headers });
   feed.last_checked = new Date().toISOString();
   if (res.status === 304) { feed.error_count = 0; return []; }
@@ -41,7 +41,7 @@ export async function runIngest(env, fetcher = fetch) {
   let added = 0;
   for (const f of feeds) {
     const v = byId[f.voice_id];
-    if (!v || f.status === 'paused' || f.kind === 'x') continue; // X handled by embeds and a separate job
+    if (!v || f.status === 'paused' || f.kind === 'x' || (!f.url && !f.external_id)) continue; // X handled by embeds and a separate job
     try {
       for (const it of await ingestFeed(env, f, v, fetcher)) {
         const old = seen.get(it.id);
@@ -59,6 +59,7 @@ export async function runIngest(env, fetcher = fetch) {
 function filter(items, q, voicesById) {
   let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed');
   if (q.get('format')) out = out.filter(i => i.format === q.get('format'));
+  if (q.get('section')) out = out.filter(i => i.section === q.get('section'));
   if (q.get('voice')) out = out.filter(i => voicesById[i.voice_id]?.slug === q.get('voice'));
   if (q.get('cat')) out = out.filter(i => (i.cats || []).includes(q.get('cat')) || (i.subs || []).includes(q.get('cat')));
   if (q.get('tag')) out = out.filter(i => (i.tags || []).includes(q.get('tag')));
@@ -83,7 +84,7 @@ export function cleanEntry(b) {
   return { rec: { type, kind, title, url, org: String(b.org || '').trim().slice(0, 120), summary: String(b.summary || '').trim().slice(0, 300), date, location: String(b.location || '').trim().slice(0, 120), topics: (Array.isArray(b.topics) ? b.topics : String(b.topics || '').split(',')).map(s => String(s).trim().toLowerCase()).filter(Boolean).slice(0, 6) } };
 }
 export function nlItems(list) {
-  return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d }))
+  return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d, i: /^https:\/\//.test(i.i || '') ? String(i.i).slice(0, 500) : '' }))
     .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
 }
 export default {
@@ -94,7 +95,11 @@ export default {
     const voices = await listVoices(env); const vb = Object.fromEntries(voices.map(v => [v.id, v]));
 
     if (p === '/api/items') { const items = filter(await itemsC(env, vb), u.searchParams, vb); return J({ items: items.map(i => publicItem(i, vb[i.voice_id])) }); }
-    if (p === '/api/voices') return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => v) });
+    if (p === '/api/voices') {
+      const fs = await listFeeds(env), sec = {};
+      for (const f of fs) { const s = sectionOf(f); if (s) (sec[f.voice_id] = sec[f.voice_id] || new Set()).add(s); }
+      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, sections: SECTIONS.filter(s => sec[v.id]?.has(s)) })) });
+    }
     if (p.startsWith('/api/voice/')) {
       const v = voices.find(x => x.slug === p.slice(11) && x.status === 'listed'); if (!v) return J({ error: 'not found' }, 404);
       const feeds = (await listFeeds(env)).filter(f => f.voice_id === v.id).map(f => ({ kind: f.kind, url: f.url, format: f.format }));
@@ -151,8 +156,10 @@ export default {
       if (!/^\S+@\S+\.\S+$/.test(em) || em.length > 200 || !b.consent) return J({ error: 'A valid email and your consent are required' }, 422);
       const s = await getJson(env, 'subscribers', []);
       if (s.length > 20000) return J({ error: 'list full' }, 429);
-      if (!s.some(x => x.email === em)) { s.push({ email: em, at: new Date().toISOString() }); await putJson(env, 'subscribers', s); }
-      return J({ ok: true }, 201, { 'cache-control': 'no-store' });
+      const name = String(b.name || '').replace(/[<>\n\r]/g, '').trim().slice(0, 40), had = s.find(x => x.email === em);
+      if (!had) { s.push({ email: em, name, at: new Date().toISOString() }); await putJson(env, 'subscribers', s); }
+      else if (name && !had.name) { had.name = name; await putJson(env, 'subscribers', s); }
+      return J({ ok: true, name: name || (had && had.name) || '', returning: !!had }, 201, { 'cache-control': 'no-store' });
     }
     // Admin routes
     if (p.startsWith('/api/admin/')) {
@@ -190,9 +197,36 @@ export default {
         if (i >= 0) voices[i] = { ...voices[i], ...rec }; else voices.push(rec);
         await putJson(env, 'voices', voices); return J({ ok: true, voice: rec }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/import' && req.method === 'POST') {
+        const b = await req.json(); const feeds = await listFeeds(env); let nv = 0, nf = 0;
+        for (const x of (b.voices || []).slice(0, 200)) {
+          if (!x.name) continue; const id = slug(x.name); const i = voices.findIndex(v => v.id === id);
+          const rec = { id, slug: id, name: String(x.name).slice(0, 120), short_bio: String(x.short_bio || '').slice(0, 300), avatar: '', website: x.website || '', topics: x.topics || [], position_tag: x.position_tag || '', status: i >= 0 ? voices[i].status : 'pending', listed_on: i >= 0 ? voices[i].listed_on : '', consent: i >= 0 ? voices[i].consent : { excerpt_ok: true, full_text_ok: false, date: '', note: 'Candidate. Not contacted yet.' } };
+          if (i >= 0) voices[i] = { ...voices[i], ...rec }; else { voices.push(rec); nv++; }
+          for (const c of (x.channels || [])) {
+            const fid = slug(id + '-' + c.section + '-' + (c.feed || c.external_id || c.site || '').slice(-14));
+            if (feeds.some(f => f.id === fid)) continue;
+            const kind = c.kind || ({ substack: 'newsletter', blog: 'blog', oped: 'oped', editorial: 'editorial', podcast: 'podcast', vlog: 'vlog' }[c.section] || 'blog');
+            feeds.push({ id: fid, voice_id: id, kind, section: c.section, url: c.feed || '', external_id: c.external_id || '', site: c.site || '', format: feedFormat(kind), status: 'active', error_count: 0, unverified: true }); nf++;
+          }
+        }
+        await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); return J({ ok: true, voices_added: nv, feeds_added: nf }, 200, { 'cache-control': 'no-store' });
+      }
+      if (p === '/api/admin/resolve' && req.method === 'POST') {
+        const feeds = await listFeeds(env); let found = 0, missed = [];
+        for (const f of feeds) {
+          if (f.url || f.external_id || !f.site) continue;
+          try {
+            const r = await fetch(f.site, { headers: { 'user-agent': 'IsraelInsiderBot/1.0 (+https://israelinsider.org/bot)' }, redirect: 'follow' });
+            const d = r.ok ? discoverFeed(await r.text(), f.site) : null;
+            if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
+          } catch { missed.push(f.id); }
+        }
+        await putJson(env, 'feeds', feeds); return J({ ok: true, found, missed }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/feed' && req.method === 'POST') {
         const b = await req.json(); const feeds = await listFeeds(env);
-        const f = { id: b.id || slug(b.voice_id + '-' + b.kind + '-' + (b.external_id || b.url || '').slice(-12)), voice_id: b.voice_id, kind: b.kind, url: b.url || '', external_id: b.external_id || '', format: feedFormat(b.kind), status: 'active', error_count: 0 };
+        const f = { id: b.id || slug(b.voice_id + '-' + b.kind + '-' + (b.external_id || b.url || '').slice(-12)), voice_id: b.voice_id, kind: b.kind, url: b.url || '', external_id: b.external_id || '', format: feedFormat(b.kind), section: SECTIONS.includes(b.section) ? b.section : '', site: b.site || '', status: 'active', error_count: 0 };
         const i = feeds.findIndex(x => x.id === f.id); if (i >= 0) feeds[i] = { ...feeds[i], ...f }; else feeds.push(f);
         await putJson(env, 'feeds', feeds); return J({ ok: true, feed: f }, 200, { 'cache-control': 'no-store' });
       }

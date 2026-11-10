@@ -82,8 +82,20 @@
   function houseAd(slot, size) {
     return '<a class="adbox" data-slot="' + slot + '" style="' + size + '" href="https://israelinmaps.com" target="_blank" rel="noopener sponsored"><small>Advertisement</small><b>Israel\'s Story in Maps</b><span>Preview the book</span></a>';
   }
+  var SUBKEY = 'ii_sub';
+  function subMe() { try { return JSON.parse(localStorage.getItem(SUBKEY) || 'null'); } catch (e) { return null; } }
+  function subSave(o) { try { localStorage.setItem(SUBKEY, JSON.stringify(o)); } catch (e) { /* private mode */ } }
+  function welcomeHtml(name, fresh) {
+    var hi = name ? 'Welcome' + (fresh ? '' : ' back') + ', ' + esc(name) + '.' : (fresh ? 'Welcome aboard.' : 'Welcome back.');
+    return '<div class="welcome" role="status"><b>' + hi + '</b><p>' + (fresh ? 'You are on the list for the Israel Insider digest. Here is where to start.' : 'You are subscribed. Pick up where you left off.') + '</p><ul><li><a href="#/voices">Browse the voices directory</a></li><li><a href="#/listen">Find something to listen to</a></li><li><a href="#/share">Tell a friend about the site</a></li></ul></div>';
+  }
+  function topGreet() {
+    var m = subMe(), b = document.querySelector('.topb .btn.line'); if (!b) return;
+    if (m) { b.textContent = m.name ? 'Hi, ' + m.name : 'Subscribed'; b.setAttribute('href', '#/subscribe'); b.classList.add('is-sub'); }
+  }
   function subForm(id) {
-    return '<form class="subf" novalidate><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
+    var me = subMe(); if (me) return welcomeHtml(me.name, false);
+    return '<form class="subf" novalidate><input type="text" name="name" maxlength="40" autocomplete="given-name" aria-label="First name (optional)" placeholder="First name (optional)"><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
   }
   function browsePanel() {
     var cats = (TAXIDX.raw && TAXIDX.raw.cats) || [];
@@ -145,6 +157,10 @@
     var ks = type === 'monitor' ? MONK : ACTK;
     return '<div style="max-width:760px"><section class="sec ' + type + '" style="padding-top:26px">' + sech(type, 'Submit an item', type === 'monitor' ? 'For Monitor' : 'For Act') + '<form class="frm" id="pf" novalidate><input type="hidden" name="type" value="' + type + '"><div class="fld"><label for="pk">Kind</label><select id="pk" name="kind">' + ks.map(function (k) { return '<option value="' + k + '">' + esc(KIND[k]) + '</option>'; }).join('') + '</select></div><div class="fld"><label for="pt">Title</label><input id="pt" name="title" required maxlength="200"></div><div class="fld"><label for="pu">Link (https)' + (type === 'monitor' ? ', the source' : '') + '</label><input id="pu" name="url" type="url" required placeholder="https://"></div><div class="fld"><label for="po">Organization' + (type === 'monitor' ? ' or outlet' : '') + '</label><input id="po" name="org"></div><div class="fld"><label for="ps">Summary, 300 characters</label><textarea id="ps" name="summary" maxlength="300"></textarea></div><div class="fld"><label for="pd">Date' + (type === 'monitor' ? ' of the source' : ': event date or petition deadline') + '</label><input id="pd" name="date" type="date"' + (type === 'monitor' ? ' required' : '') + '></div><div class="fld"><label for="pl">Location</label><input id="pl" name="location"></div><div class="fld"><label for="pe">Your contact email</label><input id="pe" name="email" type="email" required></div>' + (type === 'monitor' ? '<label class="chk" for="psc"><input id="psc" type="checkbox" name="scope_ok" value="1">This item concerns a public organization, outlet, statement or campaign, not a private individual.</label>' : '') + '<label class="chk" for="pc"><input id="pc" type="checkbox" name="consent" value="1">Israel Insider may publish this item with a link to the page above. An editor reviews every submission.</label><div><button class="btn big" type="submit">Send for review</button></div><div id="pmsg" role="status"></div></form></section></div>';
   }
+  var SECT = { read: ['blog', 'substack', 'oped', 'editorial'], listen: ['podcast'], watch: ['vlog'] };
+  var SL = { blog: 'Blogs', substack: 'Substack', oped: 'Op-eds', editorial: 'Editorials', podcast: 'Podcasts', vlog: 'Vlogs' };
+  var SLONE = { blog: 'Blog', substack: 'Substack', oped: 'Op-ed', editorial: 'Editorial', podcast: 'Podcast', vlog: 'Vlog' };
+  var SDESC = { blog: 'Independent and institutional blogs', substack: 'Writers publishing on Substack and by newsletter', oped: 'Columnists and commentators', editorial: 'Outlets, editorial pages and policy institutes', podcast: 'Shows to play here or in your app', vlog: 'Video channels and vloggers' };
   var TAXP = null, TAXIDX = { cats: {}, subs: {}, tags: {} }, LASTSUB = null;
   var DEFCATS = [['security', 'Security'], ['politics', 'Politics'], ['history', 'History'], ['culture', 'Society'], ['faith', 'Faith'], ['business', 'Business'], ['advocacy', 'Antisemitism'], ['diaspora', 'Diaspora']];
   function taxData() {
@@ -152,7 +168,7 @@
       TAXIDX = { cats: {}, subs: {}, tags: {}, raw: t };
       t.cats.forEach(function (c) { TAXIDX.cats[c.slug] = c; c.subs.forEach(function (s) { TAXIDX.subs[s.slug] = { slug: s.slug, name: s.name, count: s.count, parent: c.slug }; }); });
       t.tags.forEach(function (g) { TAXIDX.tags[g.slug] = g; });
-      if (LASTSUB) renderSub(LASTSUB[0], LASTSUB[1]);
+      if (LASTSUB) renderSub(LASTSUB[0], LASTSUB[1], LASTSUB[2]);
       return t;
     }).catch(function () { return { cats: [], tags: [] }; });
     return TAXP;
@@ -214,7 +230,7 @@
     return '<section class="sec prose" style="padding-top:26px">' + sech('', s[1], '') + s[2] + '</section>';
   }
   function nlList(title, list, more) {
-    return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, 5).map(function (i) { return '<li><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
+    return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, 5).map(function (i, k) { return '<li' + (i.i ? ' class="hasimg' + (k === 0 ? ' lead' : '') + '"' : '') + '>' + (i.i ? '<a class="nth" tabindex="-1" aria-hidden="true" href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener"><img src="' + esc(i.i) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></a>' : '') + '<div><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></div></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
   }
   function nlBlock(nl) {
     return '<section class="sec">' + sech('', 'From Israel NOWlej', 'The latest news and views, from israelnowlej.com', ['#/nowlej', 'All sections']) + '<div class="nlcols">' + nlList('news', nl.news || [], '/news/') + nlList('views', nl.views || [], '/views/') + '</div></section>';
@@ -247,7 +263,7 @@
     tag: function () { return tagPage(CURARG); },
     topics: function () { return topicsPage(); },
     nowlej: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Israel NOWlej', 'News, views, media, the NOWlej glossary and sources') + '<p class="ex" style="max-width:62ch">Israel Insider is the opinion cousin of Israel NOWlej. For news, reference and sources, use the main sections of Israel NOWlej.</p><div class="nl">' + NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener"><b>' + x[0] + '</b><span class="ex">israelnowlej.com' + x[1] + '</span></a>'; }).join('') + '</div></section>'); },
-    read: function (q) { return items('format=read&limit=60' + q).then(function (l) { return '<section class="sec read" style="padding-top:26px">' + sech('read', 'Read', 'Essays, columns, Substack and blog posts') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>'; }); },
+    read: function (q) { var sc = secParam(q); return Promise.all([items('format=read&limit=60' + q), voiceStrip('read', sc)]).then(function (a) { var l = a[0]; return '<section class="sec read" style="padding-top:26px">' + sech('read', sc ? SL[sc] : 'Read', sc ? SDESC[sc] : 'Blogs, Substack, op-eds and editorials') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>' + a[1]; }); },
     share: function (q) {
       return Promise.all([items('limit=60'), items('format=social&limit=12' + q)]).then(function (a) {
         var mix = a[0].filter(function (i) { return i.format !== 'social'; }).slice(0, 6), posts = a[1];
@@ -258,23 +274,34 @@
       });
     },
     listen: function (q) {
-      return items('format=listen&limit=60' + q).then(function (l) {
+      return Promise.all([items('format=listen&limit=60' + q), voiceStrip('listen', secParam(q))]).then(function (a) {
+        var l = a[0], VS = a[1];
         var rows = l.map(function (i) {
           var v = i.voice || {};
           return '<article class="ep listen"><div class="cvr">' + esc(initials(v.name)) + '</div><div class="tx"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '<span>Audio</span></div><div class="acts"><button class="btn sm" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play</button><button class="btn line sm" type="button" data-queue="' + esc(i.id) + '">Add to queue</button><a class="btn line sm" href="#/voice/' + esc(v.slug) + '">Show page</a></div>' + shareRow(i.url, i.title) + '</div></article>';
         }).join('');
-        return '<section class="sec listen" style="padding-top:26px">' + sech('listen', 'Listen', 'Audio-only podcasts. Press play and keep browsing, the player stays at the bottom.', ['/api/rss?format=listen', 'RSS']) + (l.length ? '<div class="grid" style="gap:14px">' + rows + '</div>' : empty('Nothing here yet.')) + '</section>';
+        return '<section class="sec listen" style="padding-top:26px">' + sech('listen', 'Listen', 'Audio-only podcasts. Press play and keep browsing, the player stays at the bottom.', ['/api/rss?format=listen', 'RSS']) + (l.length ? '<div class="grid" style="gap:14px">' + rows + '</div>' : empty('Nothing here yet.')) + '</section>' + VS;
       });
     },
     watch: function (q) {
-      return items('format=watch&limit=60' + q).then(function (l) {
-        var first = l[0];
+      return Promise.all([items('format=watch&limit=60' + q), voiceStrip('watch', secParam(q))]).then(function (a) {
+        var l = a[0], VS = a[1], first = l[0];
         var theater = first ? '<div class="feat" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)"><article class="big watch"><div class="art theater" id="theater" data-vid="' + esc(first.embed_id) + '">' + thumb(first) + '<button class="pl" type="button" data-watch="' + esc(first.id) + '" aria-label="Play">' + PLAY + '</button></div><div class="bd"><span class="kick" style="color:var(--watch)">Now in theater view</span><h2 id="ttitle">' + esc(first.title) + '</h2><div class="meta" id="tmeta">' + byline(first) + '<span>' + ago(first.published_at) + '</span><a href="https://www.youtube.com/watch?v=' + esc(first.embed_id) + '" target="_blank" rel="noopener">Watch on YouTube</a></div></div></article><div class="list">' + l.slice(1, 4).map(function (i) { return '<div class="it" style="--c:var(--watch)"><span class="ty">' + ICON.watch + '</span><div><span class="kick">Up next</span><h4><a href="#" data-watch="' + esc(i.id) + '">' + esc(i.title) + '</a></h4><span class="meta">' + esc((i.voice || {}).name) + ' · ' + dur(i.duration_seconds) + '</span></div></div>'; }).join('') + '</div></div>' : '';
-        return theater + '<section class="sec watch">' + sech('watch', 'Watch', 'Video podcasts, vlogs, talks and explainers') + (l.length ? grid(l, 'g3') : empty('Nothing here yet.')) + '</section>';
+        return theater + '<section class="sec watch">' + sech('watch', 'Watch', 'Video podcasts, vlogs, talks and explainers') + (l.length ? grid(l, 'g3') : empty('Nothing here yet.')) + '</section>' + VS;
       });
     },
     voices: function () {
-      return api('/api/voices').then(function (r) { return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Every listed writer, show and channel') + (r.voices.length ? '<div class="voices">' + r.voices.map(voiceTile).join('') + '</div>' : empty('No voices listed yet.')) + '</section>'; });
+      var only = secParam(CURQ);
+      return api('/api/voices').then(function (r) {
+        var order = ['blog', 'substack', 'oped', 'editorial', 'podcast', 'vlog'], TY = { blog: 'read', substack: 'read', oped: 'read', editorial: 'read', podcast: 'listen', vlog: 'watch' };
+        if (!r.voices.length) return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Every listed writer, show and channel') + empty('No voices listed yet.') + '</section>';
+        var jump = '<nav class="jump" aria-label="Directory sections"><a' + (only ? '' : ' class="on"') + ' href="#/voices">All</a>' + order.map(function (s) { var n = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).length; return n ? '<a' + (only === s ? ' class="on"' : '') + ' href="#/voices?section=' + s + '">' + SL[s] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>';
+        var blocks = order.filter(function (s) { return !only || only === s; }).map(function (s) {
+          var l = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).sort(function (x, y) { return x.name.localeCompare(y.name); });
+          return l.length ? '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + '<div class="grid g3 vdir">' + l.map(vcard).join('') + '</div></section>' : '';
+        }).join('');
+        return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'A directory of writers, shows and channels') + jump + '</section>' + blocks;
+      });
     },
     voice: function (slug) {
       return api('/api/voice/' + encodeURIComponent(slug)).then(function (r) {
@@ -301,6 +328,18 @@
         '<form class="frm" id="subf" novalidate><div class="fld"><label for="nm">Name of the voice, show or channel</label><input id="nm" name="name" required></div><div class="fld"><label for="em">Contact email</label><input id="em" name="email" type="email" required><small>Used only to reach you about your listing.</small></div><div class="fld"><label for="wb">Website</label><input id="wb" name="website" type="url" placeholder="https://"></div><div class="fld"><label for="rss">Feeds: blog or newsletter, podcast RSS, YouTube channel, Substack</label><textarea id="rss" name="feeds" placeholder="One address per line"></textarea></div><div class="fld"><label for="xh">Social accounts</label><input id="xh" name="social" placeholder="X, Bluesky, Threads handles"></div><div class="fld"><label for="fm">Formats you publish</label><select id="fm" name="formats"><option>Writing</option><option>Audio podcast</option><option>Video podcast or vlog</option><option>More than one</option></select></div><div class="fld"><label for="bio">Short bio, two lines</label><textarea id="bio" name="bio" maxlength="500"></textarea></div><div class="fld"><label for="tp">Main topics</label><input id="tp" name="topics" placeholder="Security, diplomacy, campus, culture"></div><label class="chk" for="c2"><input id="c2" name="consent_excerpt" type="checkbox">Israel Insider may show my headlines, short excerpts and thumbnails with links to my own pages.</label><label class="chk" for="c3"><input id="c3" name="consent_full_text" type="checkbox">Optional: I give permission to show full text of my posts on Israel Insider.</label><div><button class="btn" type="submit">Send for review</button></div></form></section></div>');
     }
   };
+  function vcard(v) {
+    return '<a class="vcard" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span class="vb"><b>' + esc(v.name) + '</b><span class="vs">' + esc(v.short_bio || '') + '</span>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' · ') + '</span>' : '') + '</span></a>';
+  }
+  function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
+  // a strip of voices that belong to a tab, shown on the tab page
+  function voiceStrip(type, sec) {
+    return api('/api/voices').then(function (r) {
+      var keep = sec ? [sec] : SECT[type], list = r.voices.filter(function (v) { return (v.sections || []).some(function (s) { return keep.indexOf(s) > -1; }); });
+      if (!list.length) return '';
+      return '<section class="sec vstrip ' + type + '">' + sech(type, sec ? SL[sec] + ' voices' : 'Voices', sec ? SDESC[sec] : 'Writers, shows and channels in this tab', ['#/voices?section=' + keep[0], 'Directory']) + '<div class="vrow">' + list.slice(0, 12).map(function (v) { return '<a class="vchip" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span>' + esc(v.name) + '</span></a>'; }).join('') + '</div></section>';
+    }).catch(function () { return ''; });
+  }
   function voiceTile(v) {
     return '<a class="vo" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span class="nm">' + esc(v.name) + '</span></a>';
   }
@@ -328,14 +367,15 @@
     pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
   }
   function closeSitePop() { var pop = document.getElementById('sitepop'), b = document.getElementById('sharesite'); if (pop) pop.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
-  function renderSub(name, topic) {
-    LASTSUB = [name, topic];
+  function renderSub(name, topic, sec) {
+    LASTSUB = [name, topic, sec];
     var n = name === 'voice' ? 'voices' : name, L;
     if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
-    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit Content', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices' && !sec]].concat(['blog', 'substack', 'oped', 'editorial', 'podcast', 'vlog'].map(function (s) { return ['#/voices?section=' + s, SL[s], n === 'voices' && sec === s]; })).concat([ ['#/submit', 'Submit Content', n === 'submit'], ['/api/rss', 'RSS']]).map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (n === 'act' || n === 'monitor') { var ks = n === 'act' ? ACTK : MONK; L = [['', 'All ' + n]].concat(ks.map(function (k) { return [k, KPLURAL[k]]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?kind=' + x[0] : '') + '">' + x[1] + '</a>'; }); L.push('<a href="#/propose?type=' + n + '">Submit an item</a>'); }
     else if (n === 'propose') L = [['#/act', 'Act'], ['#/monitor', 'Monitor']].map(function (x) { return '<a href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (n === 'share') L = [['#/share', 'Share the site', 1], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (SECT[n]) { L = [['', 'All ' + n]].concat(SECT[n].map(function (s) { return [s, SL[s]]; })).map(function (x) { return '<a' + (x[0] === (sec || '') ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?section=' + x[0] : '') + '">' + x[1] + '</a>'; }); L.push('<a href="#/voices?section=' + SECT[n][0] + '">Voices</a>'); }
     else if (TYPES[n]) { var cl = (TAXIDX.raw && TAXIDX.raw.cats.length) ? TAXIDX.raw.cats.map(function (c) { return [c.slug, c.name.split(' & ')[0]]; }) : DEFCATS; L = [['', 'All ' + n]].concat(cl).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?cat=' + x[0] : '') + '">' + x[1] + '</a>'; }); }
     else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit Content'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     L.push('<button class="sharesite" id="sharesite" type="button" aria-expanded="false" aria-controls="sitepop">Share Site</button>');
@@ -346,13 +386,13 @@
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('?')[0].split('/');
     var name = parts[0] || 'home', arg = parts[1] ? decodeURIComponent(parts[1]) : '';
-    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), cm = /[?&]cat=([^&]*)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '') + (cm ? '&cat=' + cm[1] : '');
+    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), cm = /[?&]cat=([^&]*)/.exec(h), sm = /[?&]section=([a-z]+)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '') + (cm ? '&cat=' + cm[1] : '') + (sm ? '&section=' + sm[1] : '');
     CURARG = arg; CURQ = q;
     if (name === 'social') name = 'share';
     if (!routes[name]) name = 'home';
     document.body.setAttribute('data-route', name);
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')));
+    renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')), sm ? sm[1] : '');
     var t = ++token;
     view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
     taxData().then(function () { return Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]); }).then(function (r) {
@@ -432,7 +472,7 @@
     var box = f.querySelector('.submsg'), em = f.elements.email.value.trim();
     if (!/^\S+@\S+\.\S+$/.test(em)) { box.textContent = 'Enter a valid email address.'; return; }
     if (!f.elements.consent.checked) { box.textContent = 'Please tick the box to subscribe.'; return; }
-    fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, consent: true }) }).then(function (r) { box.textContent = r.ok ? 'Thank you. You are on the list.' : 'Could not subscribe. Try again later.'; if (r.ok) f.elements.email.value = ''; }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
+    fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, name: f.elements.name ? f.elements.name.value.trim() : '', consent: true }) }).then(function (r) { if (!r.ok) { box.textContent = 'Could not subscribe. Try again later.'; return; } return r.json().then(function (x) { var nm = x.name || ''; subSave({ name: nm }); topGreet(); document.querySelectorAll('.subf').forEach(function (ff) { var w = document.createElement('div'); w.innerHTML = welcomeHtml(nm, !x.returning); ff.parentNode.replaceChild(w.firstChild, ff); }); }); }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
   });
   document.addEventListener('click', function (e) {
     var ss = e.target.closest('#sharesite'); if (ss) { e.preventDefault(); openSitePop(ss); return; }
@@ -450,5 +490,6 @@
     }
   });
 
+  topGreet();
   route();
 })();

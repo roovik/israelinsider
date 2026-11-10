@@ -2,7 +2,7 @@
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 import worker, { runIngest } from '../worker.js';
 const _f = globalThis.fetch;
-globalThis.fetch = async (u, o) => String(u).startsWith('https://israelnowlej.com/api/news') ? new Response(JSON.stringify({ items: [1, 2, 3, 4, 5, 6].map(n => ({ t: 'Sample NOWlej headline ' + n, u: 'https://example.org/n' + n, src: String(u).includes('views') ? 'Sample Columnist' : 'Sample Wire', d: new Date(Date.now() - n * 3600e3).toISOString() })) })) : _f(u, o);
+globalThis.fetch = async (u, o) => String(u).startsWith('https://israelnowlej.com/api/news') ? new Response(JSON.stringify({ items: [1, 2, 3, 4, 5, 6].map(n => ({ t: 'Sample NOWlej headline ' + n, u: 'https://example.org/n' + n, src: String(u).includes('views') ? 'Sample Columnist' : 'Sample Wire', d: new Date(Date.now() - n * 3600e3).toISOString(), i: 'https://img.test/n' + n + '.svg' })) })) : _f(u, o);
 const kv = new Map();
 const env = { ADMIN_KEY: 'dev', ASSETS: null, STORE: { get: async (k, t) => kv.has(k) ? (t === 'json' ? JSON.parse(kv.get(k)) : kv.get(k)) : null, put: async (k, v) => kv.set(k, v) } };
 const now = Date.now(), rfc = h => new Date(now - h * 3600e3).toUTCString(), iso = h => new Date(now - h * 3600e3).toISOString();
@@ -12,6 +12,7 @@ const yt = `<feed xmlns:yt="x" xmlns:media="y" xmlns="http://www.w3.org/2005/Ato
 const call = (p, body) => worker.fetch(new Request('http://x' + p, { method: 'POST', headers: { authorization: 'Bearer dev', 'content-type': 'application/json' }, body: JSON.stringify(body) }), env);
 await call('/api/admin/voice', { name: 'Sample Writer', short_bio: 'Placeholder bio used for local layout tests.', topics: ['security'], status: 'listed' });
 await call('/api/admin/voice', { name: 'Sample Show', short_bio: 'Placeholder show.', topics: ['diplomacy'], status: 'listed' });
+if (process.env.SEED_BATCH) { const b = JSON.parse(fs.readFileSync(new URL('../seed/batch1.json', import.meta.url))); await call('/api/admin/import', b); for (const v of b.voices) await call('/api/admin/voice', { name: v.name, short_bio: v.short_bio, topics: v.topics, status: 'listed' }); }
 await call('/api/admin/feed', { voice_id: 'sample-writer', kind: 'blog', url: 'https://t/blog' });
 await call('/api/admin/feed', { voice_id: 'sample-show', kind: 'podcast', url: 'https://t/pod' });
 await call('/api/admin/feed', { voice_id: 'sample-show', kind: 'youtube', external_id: 'UC1' });

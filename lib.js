@@ -107,13 +107,13 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
     const src = r.desc || r.encoded;
     const item = {
       id: await sha(feed.id + '|' + (r.guid || url)),
-      voice_id: voice.id, feed_id: feed.id, format: feed.format,
+      voice_id: voice.id, feed_id: feed.id, format: feed.format, section: sectionOf(feed),
       title: r.title, url, published_at: new Date(published).toISOString(),
       excerpt: excerpt(src, 300),
       thumbnail_url: r.thumb || '',
       duration_seconds: r.duration || 0,
       audio_url: feed.format === 'listen' ? r.audio : '',
-      embed_id: feed.kind === 'youtube' ? (r.videoId || '') : '',
+      embed_id: (feed.kind === 'youtube' || feed.kind === 'vlog') ? (r.videoId || '') : '',
       topics: voice.topics || [],
       hidden: false, featured: false,
     };
@@ -123,7 +123,23 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
   return out;
 }
 export function feedFormat(kind) {
-  return { blog: 'read', newsletter: 'read', podcast: 'listen', youtube: 'watch', x: 'social', bluesky: 'social', threads: 'social', telegram: 'social' }[kind] || 'read';
+  return { blog: 'read', newsletter: 'read', substack: 'read', oped: 'read', editorial: 'read', podcast: 'listen', youtube: 'watch', vlog: 'watch', x: 'social', bluesky: 'social', threads: 'social', telegram: 'social' }[kind] || 'read';
+}
+export const SECTIONS = ['blog', 'substack', 'oped', 'editorial', 'podcast', 'vlog'];
+export function sectionOf(feed) { if (SECTIONS.includes(feed.section)) return feed.section; return { blog: 'blog', newsletter: 'substack', substack: 'substack', oped: 'oped', editorial: 'editorial', podcast: 'podcast', youtube: 'vlog', vlog: 'vlog' }[feed.kind] || ''; }
+// Find a feed address from a page's HTML. YouTube pages yield a channel id instead.
+export function discoverFeed(html, base) {
+  const h = String(html || '');
+  const yt = /"(?:channelId|externalId)":"(UC[\w-]{20,24})"/.exec(h) || /channel_id=(UC[\w-]{20,24})/.exec(h);
+  if (yt) return { external_id: yt[1] };
+  const re = /<link\b[^>]*>/gi; let m;
+  while ((m = re.exec(h))) {
+    const tag = m[0];
+    if (!/rel=["']?alternate/i.test(tag) || !/type=["']?application\/(rss|atom)\+xml/i.test(tag)) continue;
+    const href = /href=["']([^"']+)["']/i.exec(tag); if (!href) continue;
+    try { return { url: new URL(href[1].replace(/&amp;/g, '&'), base).href }; } catch { /* next */ }
+  }
+  return null;
 }
 export function youtubeFeedUrl(channelId) { return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`; }
 export function toRss(items, title, site) {

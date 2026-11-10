@@ -1,0 +1,1429 @@
+{
+ "voices": [
+  {
+   "name": "Bari Weiss",
+   "short_bio": "Founder of The Free Press, covering Israel, antisemitism and free speech.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.thefp.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://www.thefp.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Daniel Gordis",
+   "short_bio": "Author and essayist writing about Israel from Jerusalem.",
+   "topics": [
+    "politics",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://danielgordis.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://danielgordis.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Douglas Murray",
+   "short_bio": "British author and commentator on the West, Israel and antisemitism.",
+   "topics": [
+    "politics",
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://douglasmurray.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://douglasmurray.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Alan Dershowitz",
+   "short_bio": "Lawyer, author and Harvard Law professor emeritus, writing on Israel and law.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://alandershowitz.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://alandershowitz.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Einat Wilf",
+   "short_bio": "Israeli author and former Knesset member writing on Zionism and the Arab-Israeli conflict.",
+   "topics": [
+    "politics",
+    "history"
+   ],
+   "position_tag": "center-left",
+   "website": "https://einatwilf.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://einatwilf.substack.com",
+     "guess": true
+    },
+    {
+     "section": "podcast",
+     "site": "https://einatwilf.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Matti Friedman",
+   "short_bio": "Israeli-Canadian author and journalist writing on Israel, media and history.",
+   "topics": [
+    "history",
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "https://mattifriedman.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://mattifriedman.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Seth J. Frantzman",
+   "short_bio": "Middle East analyst and Jerusalem Post correspondent.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://sethfrantzman.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://sethfrantzman.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Gil Troy",
+   "short_bio": "Historian and columnist writing on Zionism and campus antisemitism.",
+   "topics": [
+    "history",
+    "advocacy"
+   ],
+   "position_tag": "center",
+   "website": "https://giltroy.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://giltroy.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Melanie Phillips",
+   "short_bio": "British columnist and author writing on Israel and the West.",
+   "topics": [
+    "politics",
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://melaniephillips.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://melaniephillips.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Eylon Levy",
+   "short_bio": "Former Israeli government spokesman, now writing and speaking on Israel.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://eylonlevy.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://eylonlevy.substack.com",
+     "guess": true
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@EylonALevy",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Noa Tishby",
+   "short_bio": "Author and advocate, former Israeli special envoy for combating antisemitism and delegitimization.",
+   "topics": [
+    "advocacy",
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "https://noatishby.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://noatishby.substack.com",
+     "guess": true
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@noatishby",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Hillel Neuer",
+   "short_bio": "Executive director of UN Watch, on the United Nations and Israel.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://unwatch.org",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://unwatch.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Yair Rosenberg",
+   "short_bio": "Staff writer at The Atlantic covering antisemitism and Jewish life.",
+   "topics": [
+    "advocacy",
+    "faith"
+   ],
+   "position_tag": "center-left",
+   "website": "https://www.theatlantic.com/author/yair-rosenberg/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.theatlantic.com/author/yair-rosenberg/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Tablet Magazine",
+   "short_bio": "Jewish magazine of news, ideas and culture.",
+   "topics": [
+    "culture",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.tabletmag.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.tabletmag.com",
+     "guess": false
+    },
+    {
+     "section": "podcast",
+     "site": "https://www.tabletmag.com/podcasts",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Elder of Ziyon",
+   "short_bio": "Long-running blog on Israel, media and Middle East issues.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://elderofziyon.blogspot.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://elderofziyon.blogspot.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Israellycool",
+   "short_bio": "Israeli blog on media bias, humor and advocacy.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://www.israellycool.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://www.israellycool.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Legal Insurrection",
+   "short_bio": "Law professor William Jacobson's blog, with extensive coverage of campus antisemitism.",
+   "topics": [
+    "advocacy",
+    "diaspora"
+   ],
+   "position_tag": "right",
+   "website": "https://legalinsurrection.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://legalinsurrection.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Daniel Pipes",
+   "short_bio": "Historian and president of the Middle East Forum, blogging on the Middle East.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "right",
+   "website": "https://www.danielpipes.org",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://www.danielpipes.org",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Caroline Glick",
+   "short_bio": "Israeli columnist and author on security and politics.",
+   "topics": [
+    "security",
+    "politics"
+   ],
+   "position_tag": "right",
+   "website": "https://carolineglick.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://carolineglick.com",
+     "guess": false
+    },
+    {
+     "section": "oped",
+     "site": "https://carolineglick.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Dry Bones",
+   "short_bio": "Israeli political cartoon strip by Yaakov Kirschen.",
+   "topics": [
+    "culture",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://drybonesblog.blogspot.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://drybonesblog.blogspot.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Seth Mandel",
+   "short_bio": "Executive editor at Commentary and Contentions blogger.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.commentary.org/author/seth-mandel/",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://www.commentary.org/author/seth-mandel/",
+     "guess": true
+    },
+    {
+     "section": "oped",
+     "site": "https://www.commentary.org/author/seth-mandel/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Times of Israel Blogs",
+   "short_bio": "Open platform of Israeli and diaspora bloggers. Ingest by individual author.",
+   "topics": [
+    "culture",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://blogs.timesofisrael.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://blogs.timesofisrael.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Jerusalem Post Blogs",
+   "short_bio": "Blog platform of The Jerusalem Post. Ingest by individual author.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com/blogs",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://www.jpost.com/blogs",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "HonestReporting",
+   "short_bio": "Media watchdog on coverage of Israel.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://honestreporting.com",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://honestreporting.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "CAMERA",
+   "short_bio": "Committee for Accuracy in Middle East Reporting and Analysis.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.camera.org",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://www.camera.org",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Fathom Journal",
+   "short_bio": "Analysis of Israel and the region from a pro-Israel center-left perspective.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "center-left",
+   "website": "https://fathomjournal.org",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://fathomjournal.org",
+     "guess": false
+    },
+    {
+     "section": "editorial",
+     "site": "https://fathomjournal.org",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Engage",
+   "short_bio": "UK site against antisemitism and for democratic left support for Israel.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-left",
+   "website": "https://engageonline.org.uk",
+   "channels": [
+    {
+     "section": "blog",
+     "site": "https://engageonline.org.uk",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jonathan S. Tobin",
+   "short_bio": "Editor in chief of JNS and columnist.",
+   "topics": [
+    "politics",
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/author/jonathan-s-tobin/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jns.org/author/jonathan-s-tobin/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Ruthie Blum",
+   "short_bio": "Israeli columnist and journalist.",
+   "topics": [
+    "politics",
+    "culture"
+   ],
+   "position_tag": "right",
+   "website": "https://www.jns.org/author/ruthie-blum/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jns.org/author/ruthie-blum/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Lahav Harkov",
+   "short_bio": "Israeli political journalist and columnist.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.jpost.com/author/lahav-harkov",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jpost.com/author/lahav-harkov",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Liel Leibovitz",
+   "short_bio": "Editor at large at Tablet and host of Unorthodox.",
+   "topics": [
+    "culture",
+    "faith"
+   ],
+   "position_tag": "center",
+   "website": "https://www.tabletmag.com/contributors/liel-leibovitz",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.tabletmag.com/contributors/liel-leibovitz",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Yaakov Katz",
+   "short_bio": "Israeli journalist and author on defense and politics.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center",
+   "website": "https://www.jpost.com/author/yaakov-katz",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jpost.com/author/yaakov-katz",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Amit Segal",
+   "short_bio": "Israeli political analyst and author, with English columns.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com/author/amit-segal",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jpost.com/author/amit-segal",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Elliott Abrams",
+   "short_bio": "Senior fellow at the Council on Foreign Relations, writing on Middle East policy.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.cfr.org/expert/elliott-abrams",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.cfr.org/expert/elliott-abrams",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jonathan Schanzer",
+   "short_bio": "Senior vice president at the Foundation for Defense of Democracies, on Middle East policy.",
+   "topics": [
+    "security",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.fdd.org/team/jonathan-schanzer/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.fdd.org/team/jonathan-schanzer/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Michael Doran",
+   "short_bio": "Senior fellow at the Hudson Institute, on Middle East strategy.",
+   "topics": [
+    "security",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.hudson.org/experts/michael-doran",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.hudson.org/experts/michael-doran",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Bret Stephens",
+   "short_bio": "New York Times columnist writing on foreign policy and Israel.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.nytimes.com/column/bret-stephens",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.nytimes.com/column/bret-stephens",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Michael Oren",
+   "short_bio": "Historian and former Israeli ambassador to the United States.",
+   "topics": [
+    "history",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.michaeloren.com",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.michaeloren.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Dan Perry",
+   "short_bio": "Columnist and former Associated Press Middle East editor.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-left",
+   "website": "https://danperry.substack.com",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://danperry.substack.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Ruth Wisse",
+   "short_bio": "Harvard professor emerita writing on Jewish literature and politics.",
+   "topics": [
+    "culture",
+    "history"
+   ],
+   "position_tag": "right",
+   "website": "https://www.commentary.org/author/ruth-wisse/",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.commentary.org/author/ruth-wisse/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Emily Schrader",
+   "short_bio": "Commentator and advocate writing on Israel and the region.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com/author/emily-schrader",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.jpost.com/author/emily-schrader",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Brooke Goldstein",
+   "short_bio": "Lawyer and founder of The Lawfare Project, on legal advocacy.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.thelawfareproject.org",
+   "channels": [
+    {
+     "section": "oped",
+     "site": "https://www.thelawfareproject.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Mosab Hassan Yousef",
+   "short_bio": "Author and speaker, a former Hamas insider turned critic.",
+   "topics": [
+    "security",
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.youtube.com/@MosabHassanYousef",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@MosabHassanYousef",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Jerusalem Post",
+   "short_bio": "Israeli English-language daily. Editorials and opinion section.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com/opinion",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.jpost.com/opinion",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Israel Hayom",
+   "short_bio": "Israeli daily. English-language editorials and opinion section.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.israelhayom.com/opinions/",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.israelhayom.com/opinions/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Algemeiner",
+   "short_bio": "Jewish news and opinion, with a strong opinion section.",
+   "topics": [
+    "advocacy",
+    "diaspora"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.algemeiner.com/category/opinion/",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.algemeiner.com/category/opinion/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "JNS",
+   "short_bio": "Jewish News Syndicate. Opinion and editorials.",
+   "topics": [
+    "politics",
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/opinion/",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.jns.org/opinion/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Commentary Magazine",
+   "short_bio": "Monthly of politics and culture with a long pro-Israel record.",
+   "topics": [
+    "politics",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.commentary.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.commentary.org",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Mosaic Magazine",
+   "short_bio": "Essays on Jewish life, thought and Israel from the Tikvah Fund.",
+   "topics": [
+    "faith",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://mosaicmagazine.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://mosaicmagazine.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "Jewish Insider",
+   "short_bio": "Newsletter and reporting on Israel, Washington and the Jewish world.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://jewishinsider.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://jewishinsider.com",
+     "guess": false
+    }
+   ]
+  },
+  {
+   "name": "The Jewish Chronicle",
+   "short_bio": "British Jewish weekly. Editorials and comment.",
+   "topics": [
+    "diaspora"
+   ],
+   "position_tag": "center",
+   "website": "https://www.thejc.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.thejc.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jewish Journal",
+   "short_bio": "Los Angeles Jewish weekly. Editorial and opinion.",
+   "topics": [
+    "diaspora"
+   ],
+   "position_tag": "center",
+   "website": "https://jewishjournal.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://jewishjournal.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Middle East Forum",
+   "short_bio": "Think tank publishing analysis and commentary.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "right",
+   "website": "https://www.meforum.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.meforum.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Foundation for Defense of Democracies",
+   "short_bio": "Policy institute publishing analysis on security and sanctions.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.fdd.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.fdd.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Israel Policy Forum",
+   "short_bio": "Policy organization publishing center-left pro-Israel analysis.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-left",
+   "website": "https://israelpolicyforum.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://israelpolicyforum.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "NGO Monitor",
+   "short_bio": "Research institute on NGOs active in the Israeli-Palestinian conflict.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.ngo-monitor.org",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.ngo-monitor.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "StandWithUs",
+   "short_bio": "Education organization with commentary and campus resources.",
+   "topics": [
+    "advocacy",
+    "diaspora"
+   ],
+   "position_tag": "center",
+   "website": "https://www.standwithus.com",
+   "channels": [
+    {
+     "section": "editorial",
+     "site": "https://www.standwithus.com",
+     "guess": true
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@StandWithUs",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Call Me Back",
+   "short_bio": "Podcast hosted by Dan Senor on Israel and the world.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.callmebackpodcast.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.callmebackpodcast.com",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Unorthodox",
+   "short_bio": "Tablet's podcast on Jewish news and culture.",
+   "topics": [
+    "culture",
+    "faith"
+   ],
+   "position_tag": "center",
+   "website": "https://www.tabletmag.com/podcasts/unorthodox",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.tabletmag.com/podcasts/unorthodox",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Honestly with Bari Weiss",
+   "short_bio": "Conversations from The Free Press.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.thefp.com/podcasts",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.thefp.com/podcasts",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Israel Story",
+   "short_bio": "Israeli stories told in English.",
+   "topics": [
+    "culture"
+   ],
+   "position_tag": "center-left",
+   "website": "https://israelstory.org",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://israelstory.org",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Commentary Magazine Podcast",
+   "short_bio": "Weekly conversation on politics and Israel.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.commentary.org/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.commentary.org/podcasts/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Haviv Rettig Gur",
+   "short_bio": "Times of Israel senior analyst, in long-form talks on Israel and Jewish history.",
+   "topics": [
+    "history",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.timesofisrael.com/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.timesofisrael.com/podcasts/",
+     "guess": true
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@HavivRettigGur",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Ben Shapiro Show",
+   "short_bio": "Daily conservative commentary that regularly covers Israel.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "right",
+   "website": "https://www.dailywire.com/show/the-ben-shapiro-show",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.dailywire.com/show/the-ben-shapiro-show",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Tikvah Podcast",
+   "short_bio": "Conversations on Jewish thought and Israel from the Tikvah Fund.",
+   "topics": [
+    "faith",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://tikvahfund.org/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://tikvahfund.org/podcasts/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "People of the Pod",
+   "short_bio": "AJC podcast on Israel and the Jewish world.",
+   "topics": [
+    "advocacy",
+    "diaspora"
+   ],
+   "position_tag": "center",
+   "website": "https://www.ajc.org/podcasts",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.ajc.org/podcasts",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Israel Policy Cast",
+   "short_bio": "Israel Policy Forum conversations on policy and politics.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-left",
+   "website": "https://israelpolicyforum.org/podcast",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://israelpolicyforum.org/podcast",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jewish Insider Podcast",
+   "short_bio": "Interviews on Israel and Washington.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://jewishinsider.com/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://jewishinsider.com/podcasts/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Foreign Podicy",
+   "short_bio": "Conversations on foreign policy, with Israel and the Middle East often featured.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.aei.org/podcast-series/foreign-podicy/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.aei.org/podcast-series/foreign-podicy/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "JNS Podcasts",
+   "short_bio": "Interviews and commentary from JNS.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jns.org/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.jns.org/podcasts/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Jerusalem Post Podcast",
+   "short_bio": "Israeli news and analysis in audio.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.jpost.com/podcasts",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.jpost.com/podcasts",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Fathom Podcast",
+   "short_bio": "Interviews on Israel and the region.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center-left",
+   "website": "https://fathomjournal.org/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://fathomjournal.org/podcasts/",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "The Israel Guys",
+   "short_bio": "Christian Zionist commentary on video and in audio.",
+   "topics": [
+    "faith",
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://www.theisraelguys.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.theisraelguys.com",
+     "guess": true
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@TheIsraelGuys",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Hen Mazzig",
+   "short_bio": "Israeli writer and speaker on Israel and antisemitism.",
+   "topics": [
+    "advocacy",
+    "culture"
+   ],
+   "position_tag": "center-left",
+   "website": "https://www.youtube.com/@henmazzig",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@henmazzig",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Yoseph Haddad",
+   "short_bio": "Arab Israeli activist and speaker.",
+   "topics": [
+    "advocacy",
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@YosephHaddad",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@YosephHaddad",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jonathan Conricus",
+   "short_bio": "Former IDF international spokesperson and military analyst.",
+   "topics": [
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.youtube.com/@JonathanConricus",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@JonathanConricus",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Mark Regev",
+   "short_bio": "Veteran Israeli diplomat and former ambassador to the United Kingdom.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@MarkRegev",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@MarkRegev",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Aviva Klompas",
+   "short_bio": "Writer and advocate on antisemitism and Israel.",
+   "topics": [
+    "advocacy"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@AvivaKlompas",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@AvivaKlompas",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Bassem Eid",
+   "short_bio": "Palestinian human rights advocate and commentator.",
+   "topics": [
+    "advocacy",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@BassemEid",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@BassemEid",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Dave Rubin",
+   "short_bio": "Commentator and host of The Rubin Report.",
+   "topics": [
+    "politics"
+   ],
+   "position_tag": "right",
+   "website": "https://www.youtube.com/@RubinReport",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@RubinReport",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "PragerU",
+   "short_bio": "Educational videos on Israel, history and politics.",
+   "topics": [
+    "history",
+    "politics"
+   ],
+   "position_tag": "right",
+   "website": "https://www.youtube.com/@PragerU",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@PragerU",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Unholy",
+   "short_bio": "Tablet video show on the news and the Jews.",
+   "topics": [
+    "culture",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@TabletMag",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@TabletMag",
+     "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Jewish Journal Video",
+   "short_bio": "Interviews and talks from the Jewish Journal.",
+   "topics": [
+    "diaspora",
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "https://www.youtube.com/@jewishjournal",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@jewishjournal",
+     "guess": true
+    }
+   ]
+  }
+ ]
+}

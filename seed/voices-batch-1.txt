@@ -1,0 +1,227 @@
+ISRAEL INSIDER VOICES, FIRST BATCH (DRAFT 1)
+Prepared 10 November 2026 for owner review.
+
+STATUS OF EVERY ENTRY: CANDIDATE. NOTHING HERE IS VERIFIED. I could not open the live web from the build environment, so the addresses come from general knowledge. Entries marked (check) are addresses I am less sure of, and a wrong one will simply fail to resolve. Roles, platforms and activity may have changed. Position tags are my rough guesses for you to correct.
+
+HOW IT WORKS
+All entries are imported as PENDING, so none appear publicly until you list them. After import, the Resolve step opens each address and looks for its RSS feed or YouTube channel. Anything it cannot find is reported back for you. The first ingestion then shows which feeds are alive. Before listing anyone, follow the charter: confirm recent activity, check the standards, and seek opt-in.
+
+COUNTS
+Blogs: 13
+Substack And Newsletters: 11
+Op-Ed Columnists: 19
+Editorial And Institutional Voices: 16
+Podcasts: 18
+Vlogs: 16
+
+BLOGS
+
+CAMERA [center-right] https://www.camera.org
+   Committee for Accuracy in Middle East Reporting and Analysis.
+Caroline Glick [right] https://carolineglick.com
+   Israeli columnist and author on security and politics.
+Daniel Pipes [right] https://www.danielpipes.org
+   Historian and president of the Middle East Forum, blogging on the Middle East.
+Dry Bones [center-right] https://drybonesblog.blogspot.com
+   Israeli political cartoon strip by Yaakov Kirschen.
+Elder of Ziyon [right] https://elderofziyon.blogspot.com
+   Long-running blog on Israel, media and Middle East issues.
+Engage [center-left] https://engageonline.org.uk (check)
+   UK site against antisemitism and for democratic left support for Israel.
+Fathom Journal [center-left] https://fathomjournal.org
+   Analysis of Israel and the region from a pro-Israel center-left perspective.
+HonestReporting [center-right] https://honestreporting.com
+   Media watchdog on coverage of Israel.
+Israellycool [right] https://www.israellycool.com
+   Israeli blog on media bias, humor and advocacy.
+Jerusalem Post Blogs [center-right] https://www.jpost.com/blogs (check)
+   Blog platform of The Jerusalem Post. Ingest by individual author.
+Legal Insurrection [right] https://legalinsurrection.com
+   Law professor William Jacobson's blog, with extensive coverage of campus antisemitism.
+Seth Mandel [center-right] https://www.commentary.org/author/seth-mandel/ (check)
+   Executive editor at Commentary and Contentions blogger.
+Times of Israel Blogs [center] https://blogs.timesofisrael.com
+   Open platform of Israeli and diaspora bloggers. Ingest by individual author.
+
+SUBSTACK AND NEWSLETTERS
+
+Alan Dershowitz [center] https://alandershowitz.substack.com (check)
+   Lawyer, author and Harvard Law professor emeritus, writing on Israel and law.
+Bari Weiss [center] https://www.thefp.com
+   Founder of The Free Press, covering Israel, antisemitism and free speech.
+Daniel Gordis [center-right] https://danielgordis.substack.com (check)
+   Author and essayist writing about Israel from Jerusalem.
+Douglas Murray [right] https://douglasmurray.substack.com (check)
+   British author and commentator on the West, Israel and antisemitism.
+Einat Wilf [center-left] https://einatwilf.substack.com (check)
+   Israeli author and former Knesset member writing on Zionism and the Arab-Israeli conflict.
+Eylon Levy [center] https://eylonlevy.substack.com (check)
+   Former Israeli government spokesman, now writing and speaking on Israel.
+Gil Troy [center] https://giltroy.substack.com (check)
+   Historian and columnist writing on Zionism and campus antisemitism.
+Matti Friedman [center] https://mattifriedman.substack.com (check)
+   Israeli-Canadian author and journalist writing on Israel, media and history.
+Melanie Phillips [right] https://melaniephillips.substack.com (check)
+   British columnist and author writing on Israel and the West.
+Noa Tishby [center] https://noatishby.substack.com (check)
+   Author and advocate, former Israeli special envoy for combating antisemitism and delegitimization.
+Seth J. Frantzman [center-right] https://sethfrantzman.substack.com (check)
+   Middle East analyst and Jerusalem Post correspondent.
+
+OP-ED COLUMNISTS
+
+Amit Segal [center-right] https://www.jpost.com/author/amit-segal (check)
+   Israeli political analyst and author, with English columns.
+Bret Stephens [center-right] https://www.nytimes.com/column/bret-stephens (check)
+   New York Times columnist writing on foreign policy and Israel.
+Brooke Goldstein [center-right] https://www.thelawfareproject.org (check)
+   Lawyer and founder of The Lawfare Project, on legal advocacy.
+Caroline Glick [right] https://carolineglick.com
+   Israeli columnist and author on security and politics.
+Dan Perry [center-left] https://danperry.substack.com (check)
+   Columnist and former Associated Press Middle East editor.
+Elliott Abrams [center-right] https://www.cfr.org/expert/elliott-abrams (check)
+   Senior fellow at the Council on Foreign Relations, writing on Middle East policy.
+Emily Schrader [center-right] https://www.jpost.com/author/emily-schrader (check)
+   Commentator and advocate writing on Israel and the region.
+Hillel Neuer [center-right] https://unwatch.org (check)
+   Executive director of UN Watch, on the United Nations and Israel.
+Jonathan S. Tobin [center-right] https://www.jns.org/author/jonathan-s-tobin/ (check)
+   Editor in chief of JNS and columnist.
+Jonathan Schanzer [center-right] https://www.fdd.org/team/jonathan-schanzer/ (check)
+   Senior vice president at the Foundation for Defense of Democracies, on Middle East policy.
+Lahav Harkov [center] https://www.jpost.com/author/lahav-harkov (check)
+   Israeli political journalist and columnist.
+Liel Leibovitz [center] https://www.tabletmag.com/contributors/liel-leibovitz (check)
+   Editor at large at Tablet and host of Unorthodox.
+Michael Doran [center-right] https://www.hudson.org/experts/michael-doran (check)
+   Senior fellow at the Hudson Institute, on Middle East strategy.
+Michael Oren [center-right] https://www.michaeloren.com (check)
+   Historian and former Israeli ambassador to the United States.
+Ruth Wisse [right] https://www.commentary.org/author/ruth-wisse/ (check)
+   Harvard professor emerita writing on Jewish literature and politics.
+Ruthie Blum [right] https://www.jns.org/author/ruthie-blum/ (check)
+   Israeli columnist and journalist.
+Seth Mandel [center-right] https://www.commentary.org/author/seth-mandel/ (check)
+   Executive editor at Commentary and Contentions blogger.
+Yaakov Katz [center] https://www.jpost.com/author/yaakov-katz (check)
+   Israeli journalist and author on defense and politics.
+Yair Rosenberg [center-left] https://www.theatlantic.com/author/yair-rosenberg/ (check)
+   Staff writer at The Atlantic covering antisemitism and Jewish life.
+
+EDITORIAL AND INSTITUTIONAL VOICES
+
+Commentary Magazine [center-right] https://www.commentary.org
+   Monthly of politics and culture with a long pro-Israel record.
+Fathom Journal [center-left] https://fathomjournal.org
+   Analysis of Israel and the region from a pro-Israel center-left perspective.
+Foundation for Defense of Democracies [center-right] https://www.fdd.org (check)
+   Policy institute publishing analysis on security and sanctions.
+Israel Hayom [center-right] https://www.israelhayom.com/opinions/ (check)
+   Israeli daily. English-language editorials and opinion section.
+Israel Policy Forum [center-left] https://israelpolicyforum.org (check)
+   Policy organization publishing center-left pro-Israel analysis.
+JNS [center-right] https://www.jns.org/opinion/ (check)
+   Jewish News Syndicate. Opinion and editorials.
+Jewish Insider [center] https://jewishinsider.com
+   Newsletter and reporting on Israel, Washington and the Jewish world.
+Jewish Journal [center] https://jewishjournal.com (check)
+   Los Angeles Jewish weekly. Editorial and opinion.
+Middle East Forum [right] https://www.meforum.org (check)
+   Think tank publishing analysis and commentary.
+Mosaic Magazine [center-right] https://mosaicmagazine.com
+   Essays on Jewish life, thought and Israel from the Tikvah Fund.
+NGO Monitor [center-right] https://www.ngo-monitor.org (check)
+   Research institute on NGOs active in the Israeli-Palestinian conflict.
+StandWithUs [center] https://www.standwithus.com (check)
+   Education organization with commentary and campus resources.
+Tablet Magazine [center] https://www.tabletmag.com
+   Jewish magazine of news, ideas and culture.
+The Algemeiner [center-right] https://www.algemeiner.com/category/opinion/ (check)
+   Jewish news and opinion, with a strong opinion section.
+The Jerusalem Post [center-right] https://www.jpost.com/opinion (check)
+   Israeli English-language daily. Editorials and opinion section.
+The Jewish Chronicle [center] https://www.thejc.com (check)
+   British Jewish weekly. Editorials and comment.
+
+PODCASTS
+
+Call Me Back [center-right] https://www.callmebackpodcast.com (check)
+   Podcast hosted by Dan Senor on Israel and the world.
+Einat Wilf [center-left] https://einatwilf.com (check)
+   Israeli author and former Knesset member writing on Zionism and the Arab-Israeli conflict.
+Fathom Podcast [center-left] https://fathomjournal.org/podcasts/ (check)
+   Interviews on Israel and the region.
+Foreign Podicy [center-right] https://www.aei.org/podcast-series/foreign-podicy/ (check)
+   Conversations on foreign policy, with Israel and the Middle East often featured.
+Haviv Rettig Gur [center] https://www.timesofisrael.com/podcasts/ (check)
+   Times of Israel senior analyst, in long-form talks on Israel and Jewish history.
+Honestly with Bari Weiss [center] https://www.thefp.com/podcasts (check)
+   Conversations from The Free Press.
+Israel Policy Cast [center-left] https://israelpolicyforum.org/podcast (check)
+   Israel Policy Forum conversations on policy and politics.
+Israel Story [center-left] https://israelstory.org (check)
+   Israeli stories told in English.
+JNS Podcasts [center-right] https://www.jns.org/podcasts/ (check)
+   Interviews and commentary from JNS.
+Jewish Insider Podcast [center] https://jewishinsider.com/podcasts/ (check)
+   Interviews on Israel and Washington.
+People of the Pod [center] https://www.ajc.org/podcasts (check)
+   AJC podcast on Israel and the Jewish world.
+Tablet Magazine [center] https://www.tabletmag.com/podcasts (check)
+   Jewish magazine of news, ideas and culture.
+The Ben Shapiro Show [right] https://www.dailywire.com/show/the-ben-shapiro-show (check)
+   Daily conservative commentary that regularly covers Israel.
+The Commentary Magazine Podcast [center-right] https://www.commentary.org/podcasts/ (check)
+   Weekly conversation on politics and Israel.
+The Israel Guys [right] https://www.theisraelguys.com (check)
+   Christian Zionist commentary on video and in audio.
+The Jerusalem Post Podcast [center-right] https://www.jpost.com/podcasts (check)
+   Israeli news and analysis in audio.
+Tikvah Podcast [center-right] https://tikvahfund.org/podcasts/ (check)
+   Conversations on Jewish thought and Israel from the Tikvah Fund.
+Unorthodox [center] https://www.tabletmag.com/podcasts/unorthodox (check)
+   Tablet's podcast on Jewish news and culture.
+
+VLOGS
+
+Aviva Klompas [center] https://www.youtube.com/@AvivaKlompas (check)
+   Writer and advocate on antisemitism and Israel.
+Bassem Eid [center] https://www.youtube.com/@BassemEid (check)
+   Palestinian human rights advocate and commentator.
+Dave Rubin [right] https://www.youtube.com/@RubinReport (check)
+   Commentator and host of The Rubin Report.
+Eylon Levy [center] https://www.youtube.com/@EylonALevy (check)
+   Former Israeli government spokesman, now writing and speaking on Israel.
+Haviv Rettig Gur [center] https://www.youtube.com/@HavivRettigGur (check)
+   Times of Israel senior analyst, in long-form talks on Israel and Jewish history.
+Hen Mazzig [center-left] https://www.youtube.com/@henmazzig (check)
+   Israeli writer and speaker on Israel and antisemitism.
+Jewish Journal Video [center] https://www.youtube.com/@jewishjournal (check)
+   Interviews and talks from the Jewish Journal.
+Jonathan Conricus [center-right] https://www.youtube.com/@JonathanConricus (check)
+   Former IDF international spokesperson and military analyst.
+Mark Regev [center] https://www.youtube.com/@MarkRegev (check)
+   Veteran Israeli diplomat and former ambassador to the United Kingdom.
+Mosab Hassan Yousef [center-right] https://www.youtube.com/@MosabHassanYousef (check)
+   Author and speaker, a former Hamas insider turned critic.
+Noa Tishby [center] https://www.youtube.com/@noatishby (check)
+   Author and advocate, former Israeli special envoy for combating antisemitism and delegitimization.
+PragerU [right] https://www.youtube.com/@PragerU (check)
+   Educational videos on Israel, history and politics.
+StandWithUs [center] https://www.youtube.com/@StandWithUs (check)
+   Education organization with commentary and campus resources.
+The Israel Guys [right] https://www.youtube.com/@TheIsraelGuys (check)
+   Christian Zionist commentary on video and in audio.
+Unholy [center] https://www.youtube.com/@TabletMag (check)
+   Tablet video show on the news and the Jews.
+Yoseph Haddad [center] https://www.youtube.com/@YosephHaddad (check)
+   Arab Israeli activist and speaker.
+
+BALANCE CHECK AGAINST THE SEED LIST TARGETS
+Women voices and non-Jewish or non-Israeli voices are present but thin. Next batch should add more of each, plus Christian friends of Israel creators, campus voices, reservist storytellers and Hebrew-language voices with English summaries.
+
+DECISIONS FOR YOU
+1. Cut anyone who does not fit the charter. Several entries are institutions, not individuals, so confirm you want institutional voices.
+2. Confirm which outlets want to be listed as a source versus contacted for consent.
+3. Tell me which position tags you want shown publicly, if any.

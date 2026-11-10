@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
-import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration } from '../lib.js';
+import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
 <item><title><![CDATA[Sample &amp; essay]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
@@ -95,3 +95,24 @@ console.log('entries ok');
   assert.equal((await call('/api/admin/taxonomy', { method: 'POST', body: JSON.stringify({ taxonomy: { cats: [] } }) }, true)).status, 422);
 }
 console.log('taxonomy ok');
+
+// ---- voices batch import, sections, feed discovery, welcome name
+{
+  assert.deepStrictEqual(discoverFeed('<html><link rel="alternate" type="application/rss+xml" href="/feed.xml"></html>', 'https://a.test/x'), { url: 'https://a.test/feed.xml' });
+  assert.deepStrictEqual(discoverFeed('x "channelId":"UCabcdefghijklmnopqrstuv" y', 'https://youtube.com/@a'), { external_id: 'UCabcdefghijklmnopqrstuv' });
+  assert.strictEqual(discoverFeed('<html></html>', 'https://a.test'), null);
+  assert.strictEqual(sectionOf({ kind: 'newsletter' }), 'substack'); assert.strictEqual(sectionOf({ kind: 'blog', section: 'oped' }), 'oped');
+  assert.strictEqual(feedFormat('vlog'), 'watch'); assert.strictEqual(feedFormat('oped'), 'read');
+  const imp = await (await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Test Writer', short_bio: 'Bio', topics: ['politics'], channels: [{ section: 'oped', site: 'https://w.test/o' }, { section: 'vlog', site: 'https://www.youtube.com/@t' }] }] }) })).json();
+  assert.strictEqual(imp.voices_added, 1); assert.strictEqual(imp.feeds_added, 2);
+  const imp2 = await (await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Test Writer', channels: [{ section: 'oped', site: 'https://w.test/o' }] }] }) })).json();
+  assert.strictEqual(imp2.voices_added, 0); assert.strictEqual(imp2.feeds_added, 0);
+  let pub = await (await call('/api/voices', {}, false)).json(); assert.ok(!pub.voices.some(v => v.id === 'test-writer'), 'pending voices stay private');
+  await call('/api/admin/voice', { method: 'POST', body: JSON.stringify({ name: 'Test Writer', status: 'listed' }) });
+  pub = await (await call('/api/voices', {}, false)).json(); const tw = pub.voices.find(v => v.id === 'test-writer'); assert.deepStrictEqual(tw.sections, ['oped', 'vlog']);
+  const sub = await (await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'dana@example.com', name: ' Dana <b> ', consent: true }) }, false)).json();
+  assert.strictEqual(sub.name, 'Dana b'); assert.strictEqual(sub.returning, false);
+  const sub2 = await (await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'dana@example.com', consent: true }) }, false)).json(); assert.strictEqual(sub2.returning, true); assert.strictEqual(sub2.name, 'Dana b');
+  assert.strictEqual(nlItems([{ t: 'A', u: 'https://x.org/a', d: '2026-11-09T10:00:00Z', i: 'https://img.org/a.jpg' }, { t: 'B', u: 'https://x.org/b', d: '2026-11-08T10:00:00Z', i: 'javascript:alert(1)' }])[1].i, '');
+  console.log('batch ok');
+}
