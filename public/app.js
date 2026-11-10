@@ -4,6 +4,8 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var view = $('#view');
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  // headshot when the voice has one, initials otherwise
+  var fi = function (v) { v = v || {}; return v.avatar && /^https:\/\//.test(v.avatar) ? '<img class="hs" src="' + esc(v.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=\'' + esc(initials(v.name)).replace(/'/g, '') + '\'">' : esc(initials(v.name)); };
   var initials = function (n) { return String(n || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(function (w) { return w[0]; }).join('').toUpperCase(); };
   var safeUrl = function (u) { return /^https?:\/\//i.test(u || '') ? u : '#'; };
   var TYPES = { read: 'Read', listen: 'Listen', watch: 'Watch', social: 'Social' };
@@ -37,7 +39,7 @@
   }
   function byline(i) {
     var v = i.voice || {};
-    return '<span class="by"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></span>';
+    return '<span class="by"><span class="av">' + fi(v) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></span>';
   }
   function thumb(i, sq) {
     var v = i.voice || {};
@@ -64,7 +66,7 @@
     if (t === 'watch') {
       return '<article class="card watch"><div class="art" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Watch ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Video</span></div></div></article>';
     }
-    return '<article class="card social"><div class="post"><div class="by"><span class="av">' + esc(initials(v.name)) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
+    return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
   }
   function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + shareRow(i.url, i.title) + h.slice(k); }
   function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g3') + '">' + items.map(card).join('') + '</div>' : ''; }
@@ -109,13 +111,13 @@
   function recentVoices(voices) {
     var l = voices.slice().sort(function (a, b) { return (b.listed_on || '').localeCompare(a.listed_on || ''); }).slice(0, 6);
     if (!l.length) return '';
-    return '<div class="panel"><h3>recent voices</h3><div class="pb">' + l.map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><div><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' + (v.listed_on ? '<span class="meta">Listed ' + esc(dfmt(v.listed_on)) + '</span>' : '') + '</div></div>'; }).join('') + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>';
+    return '<div class="panel"><h3>recent voices</h3><div class="pb">' + l.map(function (v) { return '<div class="rw"><span class="av">' + fi(v) + '</span><div><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' + (v.listed_on ? '<span class="meta">Listed ' + esc(dfmt(v.listed_on)) + '</span>' : '') + '</div></div>'; }).join('') + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>';
   }
   function sideCol() {
     return sideData().then(function (d) {
       var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
-      var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
+      var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + fi(v) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
         '<div class="cta"><b>Have a voice on Israel?</b><span>Get your content listed.</span><a class="btn big" href="#/submit">Submit Content</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
@@ -193,7 +195,7 @@
     l.forEach(function (i) { if (i.voice && !seen[i.voice.slug]) { seen[i.voice.slug] = 1; v.push(i.voice); } });
     if (!v.length) return '';
     return '<div class="posters" aria-label="Most recent posters">' + v.slice(0, 12).map(function (x) {
-      var face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : esc(initials(x.name));
+      var face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : fi(x);
       return '<a class="poster" href="#/voice/' + esc(x.slug) + '"><span class="face">' + face + '</span><span class="pn">' + esc(x.name) + '</span></a>';
     }).join('') + '</div>';
   }
@@ -288,7 +290,7 @@
         var l = a[0], VS = a[1];
         var rows = l.map(function (i) {
           var v = i.voice || {};
-          return '<article class="ep listen"><div class="cvr">' + esc(initials(v.name)) + '</div><div class="tx"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '<span>Audio</span></div><div class="acts"><button class="btn sm" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play</button><button class="btn line sm" type="button" data-queue="' + esc(i.id) + '">Add to queue</button><a class="btn line sm" href="#/voice/' + esc(v.slug) + '">Show page</a></div>' + shareRow(i.url, i.title) + '</div></article>';
+          return '<article class="ep listen"><div class="cvr">' + fi(v) + '</div><div class="tx"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '<span>Audio</span></div><div class="acts"><button class="btn sm" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play</button><button class="btn line sm" type="button" data-queue="' + esc(i.id) + '">Add to queue</button><a class="btn line sm" href="#/voice/' + esc(v.slug) + '">Show page</a></div>' + shareRow(i.url, i.title) + '</div></article>';
         }).join('');
         return '<section class="sec listen" style="padding-top:26px">' + sech('listen', 'Listen', 'Audio-only podcasts. Press play and keep browsing, the player stays at the bottom.', ['/api/rss?format=listen', 'RSS']) + (l.length ? '<div class="grid g1" style="gap:14px 3px">' + rows + '</div>' : empty('Nothing here yet.')) + '</section>' + VS;
       });
@@ -314,7 +316,7 @@
           var seenV = {}, recent = [];
           its.forEach(function (i) { if (i.voice && !seenV[i.voice.slug]) { seenV[i.voice.slug] = 1; recent.push(i); } });
           var rv = recent.length ? '<section class="sec">' + sech('', 'Recent voices', 'Who posted last, with their latest post') + '<div class="grid g3 vdir">' + recent.slice(0, 12).map(function (i) {
-            var x = i.voice, face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : esc(initials(x.name));
+            var x = i.voice, face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : fi(x);
             return '<div class="rvc"><a class="face" href="#/voice/' + esc(x.slug) + '">' + face + '</a><div class="rb"><a class="rn" href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a><a class="rt" href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a><span class="meta">' + ago(i.published_at) + ' &middot; ' + esc(SLONE[i.section] || 'Post') + '</span></div></div>';
           }).join('') + '</div></section>' : '';
           var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + grid(its.slice(0, 15), 'g3') + '</section>' : '';
@@ -330,7 +332,7 @@
         var links = r.feeds.map(function (f) { return '<div class="rw"><span class="dot" style="background:var(--' + f.format + ')"></span><a href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener">' + esc(f.kind) + '</a></div>'; }).join('');
         var tabs = '<nav class="tabs" style="margin-top:6px"><a class="plain on" data-f="all" href="#" style="background:var(--ink)">All</a>' + ['read', 'listen', 'watch', 'social'].filter(function (t) { return kinds[t]; }).map(function (t) { return '<a class="' + t + '" data-f="' + t + '" href="#">' + TYPES[t] + '</a>'; }).join('') + '</nav>';
         var feed = r.items.length ? grid(r.items, 'g2') : empty('No items yet.');
-        return '<div class="prof"><span class="big">' + esc(initials(v.name)) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p><div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
+        return '<div class="prof"><span class="big">' + fi(v) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p><div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
       });
     },
     submit: function () {
@@ -360,7 +362,7 @@
     submitChannel: function () { return routes.submit(); }
   };
   function vcard(v) {
-    return '<a class="vcard" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span class="vb"><b>' + esc(v.name) + '</b><span class="vs">' + esc(v.short_bio || '') + '</span>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' · ') + '</span>' : '') + '</span></a>';
+    return '<a class="vcard" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vb"><b>' + esc(v.name) + '</b><span class="vs">' + esc(v.short_bio || '') + '</span>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' · ') + '</span>' : '') + '</span></a>';
   }
   function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
   // a strip of voices that belong to a tab, shown on the tab page
@@ -368,11 +370,11 @@
     return api('/api/voices').then(function (r) {
       var keep = sec ? [sec] : SECT[type], list = r.voices.filter(function (v) { return (v.sections || []).some(function (s) { return keep.indexOf(s) > -1; }); });
       if (!list.length) return '';
-      return '<section class="sec vstrip ' + type + '">' + sech(type, sec ? SL[sec] + ' voices' : 'Voices', sec ? SDESC[sec] : 'Writers, shows and channels in this tab', ['#/voices?section=' + keep[0], 'Directory']) + '<div class="vrow">' + list.slice(0, 12).map(function (v) { return '<a class="vchip" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span>' + esc(v.name) + '</span></a>'; }).join('') + '</div></section>';
+      return '<section class="sec vstrip ' + type + '">' + sech(type, sec ? SL[sec] + ' voices' : 'Voices', sec ? SDESC[sec] : 'Writers, shows and channels in this tab', ['#/voices?section=' + keep[0], 'Directory']) + '<div class="vrow">' + list.slice(0, 12).map(function (v) { return '<a class="vchip" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span>' + esc(v.name) + '</span></a>'; }).join('') + '</div></section>';
     }).catch(function () { return ''; });
   }
   function voiceTile(v) {
-    return '<a class="vo" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span class="nm">' + esc(v.name) + '</span></a>';
+    return '<a class="vo" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="nm">' + esc(v.name) + '</span></a>';
   }
 
   // ---- router
