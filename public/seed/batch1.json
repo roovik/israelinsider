@@ -1517,6 +1517,30 @@
      "term": "What Matters Now"
     }
    ]
+  },
+  {
+   "name": "The Fifth Column",
+   "short_bio": "Weekly show and Substack from Michael Moynihan, Kmele Foster and Matt Welch, with frequent episodes on Israel, antisemitism and free speech.",
+   "topics": [
+    "politics",
+    "society"
+   ],
+   "position_tag": "center",
+   "website": "https://wethefifth.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://wethefifth.com",
+     "feed": "https://wethefifth.com/feed",
+     "guess": false
+    },
+    {
+     "section": "podcast",
+     "site": "https://wethefifth.com",
+     "guess": true,
+     "term": "The Fifth Column"
+    }
+   ]
   }
  ]
 }
