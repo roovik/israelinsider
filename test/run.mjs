@@ -116,3 +116,18 @@ console.log('taxonomy ok');
   assert.strictEqual(nlItems([{ t: 'A', u: 'https://x.org/a', d: '2026-11-09T10:00:00Z', i: 'https://img.org/a.jpg' }, { t: 'B', u: 'https://x.org/b', d: '2026-11-08T10:00:00Z', i: 'javascript:alert(1)' }])[1].i, '');
   console.log('batch ok');
 }
+
+// ---- activity check
+{
+  const rssOf = d => `<rss version="2.0"><channel><item><title>T</title><link>https://a.test/1</link><guid>g1</guid><pubDate>${new Date(d).toUTCString()}</pubDate></item></channel></rss>`;
+  const real = globalThis.fetch;
+  globalThis.fetch = async u => String(u).includes('fresh') ? new Response(rssOf(Date.now() - 5 * 86400e3)) : String(u).includes('old') ? new Response(rssOf(Date.now() - 400 * 86400e3)) : new Response('no', { status: 404 });
+  const put = body => call('/api/admin/import', { method: 'POST', body: JSON.stringify(body) });
+  await put({ voices: [{ name: 'Act Test', channels: [{ section: 'blog', feed: 'https://fresh.test/f' }, { section: 'oped', feed: 'https://old.test/f' }, { section: 'podcast', feed: 'https://gone.test/f' }, { section: 'vlog', site: 'https://yt.test/@x' }] }] });
+  const r = await (await call('/api/admin/check', { method: 'POST', body: '{}' })).json();
+  globalThis.fetch = real;
+  const fs = (await (await call('/api/admin/feeds')).json()).feeds.filter(f => f.voice_id === 'act-test');
+  assert.deepStrictEqual(fs.map(f => f.activity), ['active', 'stale', 'error', undefined]);
+  assert.ok(fs.every(f => !f.etag), 'check must not leave etags behind');
+  console.log('check ok');
+}

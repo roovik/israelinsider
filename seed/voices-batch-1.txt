@@ -7,7 +7,7 @@ HOW IT WORKS
 All entries are imported as PENDING, so none appear publicly until you list them. After import, the Resolve step opens each address and looks for its RSS feed or YouTube channel. Anything it cannot find is reported back for you. The first ingestion then shows which feeds are alive. Before listing anyone, follow the charter: confirm recent activity, check the standards, and seek opt-in.
 
 COUNTS
-Blogs: 13
+Blogs: 11
 Substack And Newsletters: 11
 Op-Ed Columnists: 19
 Editorial And Institutional Voices: 16
@@ -20,10 +20,6 @@ CAMERA [center-right] https://www.camera.org
    Committee for Accuracy in Middle East Reporting and Analysis.
 Caroline Glick [right] https://carolineglick.com
    Israeli columnist and author on security and politics.
-Daniel Pipes [right] https://www.danielpipes.org
-   Historian and president of the Middle East Forum, blogging on the Middle East.
-Dry Bones [center-right] https://drybonesblog.blogspot.com
-   Israeli political cartoon strip by Yaakov Kirschen.
 Elder of Ziyon [right] https://elderofziyon.blogspot.com
    Long-running blog on Israel, media and Middle East issues.
 Engage [center-left] https://engageonline.org.uk (check)

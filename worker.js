@@ -212,6 +212,25 @@ export default {
         }
         await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); return J({ ok: true, voices_added: nv, feeds_added: nf }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/check' && req.method === 'POST') {
+        // Activity check: fetch each feed once, record the newest item date, never store items.
+        const feeds = await listFeeds(env), vb2 = Object.fromEntries(voices.map(v => [v.id, v])), cut = Date.now() - 12 * 3600e3, day = 90 * 86400e3;
+        const todo = feeds.filter(f => (f.url || f.external_id) && f.kind !== 'x' && (!f.checked_at || Date.parse(f.checked_at) < cut));
+        for (const f of todo.slice(0, 25)) {
+          const saved = { etag: f.etag, lm: f.last_modified, bf: f.backfilled, ec: f.error_count, st: f.status };
+          f.etag = ''; f.last_modified = '';
+          try {
+            const its = await ingestFeed(env, f, vb2[f.voice_id] || { id: f.voice_id, consent: {} }, fetch);
+            const last = its.map(i => Date.parse(i.published_at)).sort((x, y) => y - x)[0];
+            f.last_item_at = last ? new Date(last).toISOString() : ''; f.item_count = its.length;
+            f.activity = (f.error_count || 0) > 0 ? 'error' : !last ? 'empty' : (Date.now() - last <= day ? 'active' : 'stale');
+          } catch { f.activity = 'error'; }
+          f.etag = ''; f.last_modified = ''; f.backfilled = saved.bf; f.error_count = saved.ec; f.status = saved.st; f.checked_at = new Date().toISOString();
+        }
+        await putJson(env, 'feeds', feeds);
+        const c = {}; for (const f of feeds) c[f.activity || (f.url || f.external_id ? 'unchecked' : 'no-feed')] = (c[f.activity || (f.url || f.external_id ? 'unchecked' : 'no-feed')] || 0) + 1;
+        return J({ ok: true, checked: Math.min(25, todo.length), remaining: Math.max(0, todo.length - 25), counts: c }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/resolve' && req.method === 'POST') {
         const feeds = await listFeeds(env); let found = 0, missed = [];
         for (const f of feeds) {

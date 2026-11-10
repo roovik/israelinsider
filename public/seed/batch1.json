@@ -307,23 +307,6 @@
    ]
   },
   {
-   "name": "Daniel Pipes",
-   "short_bio": "Historian and president of the Middle East Forum, blogging on the Middle East.",
-   "topics": [
-    "politics",
-    "security"
-   ],
-   "position_tag": "right",
-   "website": "https://www.danielpipes.org",
-   "channels": [
-    {
-     "section": "blog",
-     "site": "https://www.danielpipes.org",
-     "guess": false
-    }
-   ]
-  },
-  {
    "name": "Caroline Glick",
    "short_bio": "Israeli columnist and author on security and politics.",
    "topics": [
@@ -341,23 +324,6 @@
     {
      "section": "oped",
      "site": "https://carolineglick.com",
-     "guess": false
-    }
-   ]
-  },
-  {
-   "name": "Dry Bones",
-   "short_bio": "Israeli political cartoon strip by Yaakov Kirschen.",
-   "topics": [
-    "culture",
-    "politics"
-   ],
-   "position_tag": "center-right",
-   "website": "https://drybonesblog.blogspot.com",
-   "channels": [
-    {
-     "section": "blog",
-     "site": "https://drybonesblog.blogspot.com",
      "guess": false
     }
    ]
