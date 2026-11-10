@@ -72,7 +72,7 @@
     }
     return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
   }
-  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + shareRow(i.url, i.title) + h.slice(k); }
+  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + '<button class="sharei" type="button" aria-label="Share this item" title="Share"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>' + shareRow(i.url, i.title) + h.slice(k); }
   function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g3') + '">' + items.map(card).join('') + '</div>' : ''; }
   function section(type, items, h, d, cls, limit) {
     return '<section class="sec nob ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
@@ -526,6 +526,7 @@
   document.addEventListener('click', function (e) {
     var ss = e.target.closest('#sharesite'); if (ss) { e.preventDefault(); openSitePop(ss); return; }
     if (!e.target.closest('#sitepop')) closeSitePop();
+    var si = e.target.closest('.sharei'); if (si) { var cd = si.closest('.card'); if (cd) cd.classList.toggle('shopen'); return; }
     var sc = e.target.closest('[data-copy],[data-native]');
     if (sc) { e.preventDefault(); if (sc.dataset.native) { navigator.share({ title: sc.dataset.title, url: sc.dataset.native }).catch(function () {}); } else { var done = function () { if (sc.dataset.hint) { var m = document.getElementById('sitepopmsg'); if (m) m.textContent = 'Link copied. Open ' + sc.dataset.hint + ' and paste it into a post, story or message.'; return; } var o = sc.innerHTML; sc.textContent = 'Copied'; setTimeout(function () { sc.innerHTML = o; }, 1500); };
       if (sc.dataset.hint && navigator.share) { navigator.share({ title: 'Israel Insider', url: sc.dataset.copy }).catch(function () {}); return; } if (navigator.clipboard) navigator.clipboard.writeText(sc.dataset.copy).then(done, function () {}); } return; }

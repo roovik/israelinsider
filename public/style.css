@@ -76,7 +76,7 @@ body{margin:0;background:#fff}
 .sec{padding:30px 0 8px;border-bottom:1px dotted #9aa8b8}
 .sec:last-child{border-bottom:0}
 .sech{position:relative;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;border-top:2px solid #c9ced4;border-bottom:2px solid #c9ced4;padding:7px 0 7px 56px;margin:0 0 18px;min-height:50px}
-.sech::before{content:"";position:absolute;left:4px;top:50%;width:37px;height:37px;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,var(--c) 0 5px,#fff 6px);border:3.5px solid var(--orange)}
+.sech::before{content:"";position:absolute;left:4px;top:50%;width:33px;height:33px;transform:translateY(-50%);border-radius:50%;background:radial-gradient(circle,var(--c) 0 4.5px,#fff 5.5px);border:3px solid var(--orange)}
 .sech h2{font:800 26px var(--logo);text-transform:lowercase;color:var(--c)}
 .sech .more{margin-left:auto;font-weight:700;font-size:13px;color:var(--c)}
 .sech .d{color:var(--gray);font-size:13px}
@@ -308,7 +308,7 @@ body{margin:0;background:#fff}
 .tabs{display:grid!important;grid-template-columns:repeat(4,1fr);gap:3px;overflow:visible!important}
 .tabs a{flex:none!important;width:auto!important;margin:0!important;padding:11px 2px!important;font-size:13px!important;text-align:center}
 .sech{padding-left:42px;min-height:40px;align-items:center}
-.sech::before{width:24px;height:24px;top:50%;left:4px;border-width:2.5px;background:radial-gradient(circle,var(--c) 0 3.5px,#fff 4.5px)}
+.sech::before{width:22px;height:22px;top:50%;left:4px;border-width:2.5px;background:radial-gradient(circle,var(--c) 0 3.5px,#fff 4.5px)}
 .sech h2{font-size:22px;line-height:1}
 .sech .d{display:none}
 .sh{width:36px;height:36px}.sh svg{width:18px;height:18px}
@@ -407,3 +407,11 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .nob .card.read .ex{display:none}
 .posters{scroll-snap-type:x proximity}.poster{scroll-snap-align:start}
 .rvs .poster{font-weight:400}.rvs .poster:first-child{margin-left:auto}.rvs .poster:last-child{margin-right:auto}
+
+.sharei{display:none}
+.nob .card{position:relative}
+.nob .card .sharei{display:flex;position:absolute;right:8px;bottom:8px;width:30px;height:30px;align-items:center;justify-content:center;background:none;border:0;border-radius:50%;color:var(--orange);cursor:pointer;padding:0}
+.nob .card .sharei:hover{background:#fff3ea}
+.nob .card .share{display:none}
+.nob .card.shopen .share{display:flex}
+.nob .card .tgrow{padding-right:36px}
