@@ -91,6 +91,7 @@
         return '<div class="cols"><div class="main">' + feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo + '</div>' + sideHome(voices) + '</div>';
       });
     },
+    nowlej: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Israel NOWlej', 'News, views, media, the NOWlej glossary and sources') + '<p class="ex" style="max-width:62ch">Israel Insider is the opinion cousin of Israel NOWlej. For news, reference and sources, use the main sections of Israel NOWlej.</p><div class="nl">' + NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener"><b>' + x[0] + '</b><span class="ex">israelnowlej.com' + x[1] + '</span></a>'; }).join('') + '</div></section>'); },
     read: function (q) { return items('format=read&limit=60' + q).then(function (l) { return '<section class="sec read" style="padding-top:26px">' + sech('read', 'Read', 'Essays, columns, Substack and blog posts') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>'; }); },
     social: function (q) { return items('format=social&limit=60' + q).then(function (l) { return '<section class="sec social" style="padding-top:26px">' + sech('social', 'Social', 'Short posts from voices, linked to the original') + (l.length ? grid(l, 'g3') : empty('Nothing here yet.')) + '</section>'; }); },
     listen: function (q) {
@@ -135,13 +136,26 @@
   // ---- router
   var token = 0;
   var td = document.getElementById('today'); if (td) td.textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  var TOPICS = ['security', 'politics', 'diplomacy', 'culture', 'history', 'faith', 'campus'];
+  var NL = [['News', '/'], ['Views', '/views/'], ['Media', '/media/'], ['NOWlej', '/glossary/'], ['Sources', '/sources/']];
+  var SUBCOL = { read: 'var(--read)', listen: 'var(--listen)', watch: 'var(--watch)', social: 'var(--social)', voices: 'var(--voices)', nowlej: '#3a4a63' };
+  function renderSub(name, topic) {
+    var n = name === 'voice' ? 'voices' : name, L;
+    if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
+    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit your feed', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (TYPES[n]) L = [['', 'All ' + n]].concat(TOPICS.map(function (t) { return [t, t.charAt(0).toUpperCase() + t.slice(1)]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?topic=' + x[0] : '') + '">' + x[1] + '</a>'; });
+    else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit your feed'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    var el = document.getElementById('sublinks'); el.innerHTML = L.join('');
+    el.parentNode.style.setProperty('--sc', SUBCOL[n] || 'var(--blue)');
+  }
   function route() {
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('?')[0].split('/');
     var name = parts[0] || 'home', arg = parts[1] ? decodeURIComponent(parts[1]) : '';
-    var qm = /[?&]q=([^&]*)/.exec(h), q = qm ? '&q=' + qm[1] : '';
+    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '');
     if (!routes[name]) name = 'home';
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    renderSub(name, tm ? decodeURIComponent(tm[1]) : '');
     var t = ++token;
     view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
     Promise.resolve(routes[name](name === 'voice' ? arg : q)).then(function (html) {
