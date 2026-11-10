@@ -3,6 +3,6 @@
   "main": "worker.js",
   "compatibility_date": "2026-10-01",
   "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": ["/api/*"] },
-  "kv_namespaces": [ { "binding": "STORE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" } ],
+  "kv_namespaces": [ { "binding": "STORE", "id": "6c698f70d00b4ede8c81b924bc2f50e2" } ],
   "triggers": { "crons": ["0 * * * *"] }
 }
