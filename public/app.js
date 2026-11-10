@@ -350,6 +350,7 @@
     CURARG = arg; CURQ = q;
     if (name === 'social') name = 'share';
     if (!routes[name]) name = 'home';
+    document.body.setAttribute('data-route', name);
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')));
     var t = ++token;
