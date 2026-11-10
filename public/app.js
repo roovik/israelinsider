@@ -84,15 +84,13 @@
     return '<form class="subf" novalidate><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
   }
   function sideCol() {
-    return Promise.all([sideData(), entries('type=act&limit=4')]).then(function (z) {
-      var d = z[0], acts = z[1];
+    return sideData().then(function (d) {
       var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
         '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit Channel</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
-        (acts.length ? '<div class="panel actp"><h3>act now</h3><div class="pb">' + acts.map(function (e) { return '<div class="rw"><span class="dot" style="background:var(--act)"></span><div><a href="' + esc(safeUrl(e.url)) + '" target="_blank" rel="noopener">' + esc(e.title) + '</a><span class="meta">' + esc(KIND[e.kind]) + (e.date ? ' · ' + esc(dfmt(e.date)) : '') + '</span></div></div>'; }).join('') + '<div class="rw"><a href="#/act">All ways to act</a></div></div></div>' : '') +
         '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place') + '</div></div>' +
         '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
@@ -126,10 +124,6 @@
       return '<section class="sec ' + type + '" style="padding-top:26px">' + head + note + (body || empty('Nothing listed yet. Submit the first item.')) + '</section>';
     });
   }
-  function actHome(l, type) {
-    var name = type === 'act' ? 'Act' : 'Monitor', d = type === 'act' ? 'Petitions, events, donations and campus resources' : 'Fact-checks, corrections and trackers on public claims';
-    return '<section class="sec ' + type + '">' + sech(type, name, d, ['#/' + type, 'All ' + name.toLowerCase()]) + (l.length ? '<div class="grid g3">' + l.slice(0, 3).map(entryCard).join('') + '</div>' : empty('Nothing listed yet. <a href="#/propose?type=' + type + '">Submit an item.</a>').replace('class="empty">', 'class="empty">')) + '</section>';
-  }
   function proposeForm(type) {
     var ks = type === 'monitor' ? MONK : ACTK;
     return '<div style="max-width:760px"><section class="sec ' + type + '" style="padding-top:26px">' + sech(type, 'Submit an item', type === 'monitor' ? 'For Monitor' : 'For Act') + '<form class="frm" id="pf" novalidate><input type="hidden" name="type" value="' + type + '"><div class="fld"><label for="pk">Kind</label><select id="pk" name="kind">' + ks.map(function (k) { return '<option value="' + k + '">' + esc(KIND[k]) + '</option>'; }).join('') + '</select></div><div class="fld"><label for="pt">Title</label><input id="pt" name="title" required maxlength="200"></div><div class="fld"><label for="pu">Link (https)' + (type === 'monitor' ? ', the source' : '') + '</label><input id="pu" name="url" type="url" required placeholder="https://"></div><div class="fld"><label for="po">Organization' + (type === 'monitor' ? ' or outlet' : '') + '</label><input id="po" name="org"></div><div class="fld"><label for="ps">Summary, 300 characters</label><textarea id="ps" name="summary" maxlength="300"></textarea></div><div class="fld"><label for="pd">Date' + (type === 'monitor' ? ' of the source' : ': event date or petition deadline') + '</label><input id="pd" name="date" type="date"' + (type === 'monitor' ? ' required' : '') + '></div><div class="fld"><label for="pl">Location</label><input id="pl" name="location"></div><div class="fld"><label for="pe">Your contact email</label><input id="pe" name="email" type="email" required></div>' + (type === 'monitor' ? '<label class="chk" for="psc"><input id="psc" type="checkbox" name="scope_ok" value="1">This item concerns a public organization, outlet, statement or campaign, not a private individual.</label>' : '') + '<label class="chk" for="pc"><input id="pc" type="checkbox" name="consent" value="1">Israel Insider may publish this item with a link to the page above. An editor reviews every submission.</label><div><button class="btn big" type="submit">Send for review</button></div><div id="pmsg" role="status"></div></form></section></div>';
@@ -142,14 +136,14 @@
   }
   var routes = {
     home: function () {
-      return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; }), entries('type=act&limit=3'), entries('type=monitor&limit=3')]).then(function (a) {
+      return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; })]).then(function (a) {
         var all = a[0], voices = a[1].voices, nl = a[2];
         if (!all.length && !voices.length) {
           return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Channel</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 8).map(voiceTile).join('') + '</div></section>' : '';
-        return section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + shareHome(by('social')) + actHome(a[3], 'act') + actHome(a[4], 'monitor') + vo + nlBlock(nl);
+        return section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + shareHome(by('social')) + vo + nlBlock(nl);
       });
     },
     subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },
