@@ -187,6 +187,16 @@
     var rcl = (rc || []).filter(function (s) { return TAXIDX.cats[s]; }), rtl = (rt || []).filter(function (s) { return TAXIDX.tags[s]; });
     return (rcl.length ? '<h3 class="rl">Related categories</h3>' + chipRow(rcl, chipC) : '') + (rtl.length ? '<h3 class="rl">Related tags</h3>' + chipRow(rtl, chipT) : '');
   }
+  // One row of the most recent posters: face (or initials), name, link to the full Voice page.
+  function posterRow(l) {
+    var seen = {}, v = [];
+    l.forEach(function (i) { if (i.voice && !seen[i.voice.slug]) { seen[i.voice.slug] = 1; v.push(i.voice); } });
+    if (!v.length) return '';
+    return '<div class="posters" aria-label="Most recent posters">' + v.slice(0, 12).map(function (x) {
+      var face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : esc(initials(x.name));
+      return '<a class="poster" href="#/voice/' + esc(x.slug) + '"><span class="face">' + face + '</span><span class="pn">' + esc(x.name) + '</span></a>';
+    }).join('') + '</div>';
+  }
   function catPage(slug) {
     return taxData().then(function () {
       var sub = TAXIDX.subs[slug], cat = TAXIDX.cats[sub ? sub.parent : slug];
@@ -195,7 +205,7 @@
         var name = sub ? sub.name : cat.name;
         var crumb = '<p class="crumb"><a href="#/topics">Topics</a> &rsaquo; ' + (sub ? '<a href="#/cat/' + esc(cat.slug) + '">' + esc(cat.name) + '</a> &rsaquo; ' + esc(sub.name) : esc(cat.name)) + '</p>';
         var subs = cat.subs.length ? '<h3 class="rl">' + (sub ? 'In ' + esc(cat.name) : 'Subcategories') + '</h3>' + chipRow(cat.subs, function (s) { return '<a class="chip' + (sub && s.slug === slug ? ' on' : '') + '" href="#/cat/' + esc(s.slug) + '">' + esc(s.name) + (s.count ? ' ' + s.count : '') + '</a>'; }) : '';
-        return '<section class="sec" style="padding-top:26px">' + crumb + sech('', name, sub ? '' : cat.desc) + subs + relBlock(cat.related_cats.filter(function (s) { return s !== cat.slug; }), cat.related_tags) + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing in this category yet.')) + '</div></section>';
+        return '<section class="sec" style="padding-top:26px">' + crumb + sech('', name, sub ? '' : cat.desc) + posterRow(l) + subs + relBlock(cat.related_cats.filter(function (s) { return s !== cat.slug; }), cat.related_tags) + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing in this category yet.')) + '</div></section>';
       });
     });
   }
@@ -204,7 +214,7 @@
       var g = TAXIDX.tags[slug];
       return items('tag=' + encodeURIComponent(slug) + '&limit=60').then(function (l) {
         var name = g ? g.name : slug.replace(/-/g, ' ');
-        return '<section class="sec" style="padding-top:26px"><p class="crumb"><a href="#/topics">Topics</a> &rsaquo; Tags &rsaquo; #' + esc(name) + '</p>' + sech('', '#' + name, g ? g.count + ' ' + (g.count === 1 ? 'item' : 'items') : '') + (g ? relBlock(g.related_cats, g.related_tags.filter(function (s) { return s !== slug; })) : '') + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing tagged this yet.')) + '</div></section>';
+        return '<section class="sec" style="padding-top:26px"><p class="crumb"><a href="#/topics">Topics</a> &rsaquo; Tags &rsaquo; #' + esc(name) + '</p>' + sech('', '#' + name, g ? g.count + ' ' + (g.count === 1 ? 'item' : 'items') : '') + posterRow(l) + (g ? relBlock(g.related_cats, g.related_tags.filter(function (s) { return s !== slug; })) : '') + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing tagged this yet.')) + '</div></section>';
       });
     });
   }
