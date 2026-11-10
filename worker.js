@@ -1,5 +1,5 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
-import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant } from './lib.js';
+import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant, channelImage, ogImage } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
@@ -88,6 +88,66 @@ export function cleanEntry(b) {
 export function nlItems(list) {
   return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d, i: /^https:\/\//.test(i.i || '') ? String(i.i).slice(0, 500) : '' }))
     .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
+}
+
+const BOT = { 'user-agent': 'Mozilla/5.0 (compatible; IsraelInsiderBot/1.0; +https://israelinsider.org/bot)', cookie: 'CONSENT=YES+1', 'accept-language': 'en' };
+const getOk = async u => { try { const r = await fetch(u, { headers: BOT, redirect: 'follow' }); return r.ok ? r : null; } catch { return null; } };
+// Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
+export async function resolveBatch(env, retry) {
+  const voices = await listVoices(env), feeds = await listFeeds(env), names = Object.fromEntries(voices.map(v => [v.id, v.name]));
+  if (retry) for (const f of feeds) if (!f.url && !f.external_id) delete f.resolved_at;
+  let found = 0; const missed = [];
+  const todo = feeds.filter(f => !f.url && !f.external_id && f.site && !f.resolved_at);
+  for (const f of todo.slice(0, 6)) {
+    f.resolved_at = new Date().toISOString(); let d = null;
+    const pg = await getOk(f.site); if (pg) d = discoverFeed(await pg.text(), f.site);
+    if (!d && !/youtube\.com/.test(f.site)) for (const g of feedGuesses(f.site).slice(0, 4)) { const r = await getOk(g); if (r && looksLikeFeed(await r.text())) { d = { url: g }; break; } }
+    if (!d && (f.section === 'podcast' || f.kind === 'podcast')) { const r = await getOk('https://itunes.apple.com/search?media=podcast&limit=5&term=' + encodeURIComponent(names[f.voice_id] || '')); if (r) { const u2 = itunesFeed(await r.json().catch(() => null), names[f.voice_id] || ''); if (u2) d = { url: u2 }; } }
+    if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
+  }
+  await putJson(env, 'feeds', feeds); return { found, missed, remaining: Math.max(0, todo.length - 6) };
+}
+// Photos: feed artwork first, then the page's social image (a YouTube channel page gives the channel picture).
+export async function avatarBatch(env) {
+  const voices = await listVoices(env), feeds = await listFeeds(env);
+  const todo = voices.filter(v => !v.avatar && !v.avatar_tried); let got = 0;
+  for (const v of todo.slice(0, 8)) {
+    v.avatar_tried = new Date().toISOString(); let img = '';
+    for (const f of feeds.filter(x => x.voice_id === v.id && x.url && x.kind !== 'youtube' && x.kind !== 'vlog').slice(0, 1)) { const r = await getOk(f.url); if (r) img = channelImage(await r.text()); }
+    if (!img) { const page = v.website || (feeds.find(x => x.voice_id === v.id && x.site) || {}).site; if (page) { const r = await getOk(page); if (r) img = ogImage(await r.text(), page); } }
+    if (img) { v.avatar = img; got++; }
+  }
+  await putJson(env, 'voices', voices); return { found: got, remaining: Math.max(0, todo.length - 8) };
+}
+const PLATFORMS = [
+  { id: 'toi', label: 'The Times of Israel blogs', feeds: ['https://blogs.timesofisrael.com/feed/', 'https://blogs.timesofisrael.com/feed/?paged=2', 'https://blogs.timesofisrael.com/feed/?paged=3'], author: s => `https://blogs.timesofisrael.com/author/${s}/`, bio: 'Blogger on The Times of Israel platform.' },
+  { id: 'jj', label: 'Jewish Journal', feeds: ['https://jewishjournal.com/category/blogs/feed/', 'https://jewishjournal.com/feed/'], author: s => `https://jewishjournal.com/author/${s}/`, bio: 'Writer at the Jewish Journal.', firstOnly: true },
+];
+// Finds new blogger candidates on the big blog platforms. They arrive PENDING for an editor to list.
+export async function discoverBatch(env) {
+  const voices = await listVoices(env), feeds = await listFeeds(env), seen = new Set(await getJson(env, 'discovered', []));
+  const have = new Set(voices.map(v => v.id)); let added = 0, checked = 0, remaining = 0;
+  for (const P of PLATFORMS) {
+    const authors = new Map();
+    for (const fu of P.feeds) {
+      const r = await getOk(fu); if (!r) { if (P.firstOnly && authors.size === 0) continue; else if (P.firstOnly) break; continue; }
+      const raw = parseFeed(await r.text());
+      for (const it of raw) { const nm = String(it.author || '').trim(); if (nm && nm.length < 60 && /\s/.test(nm) && !authors.has(slug(nm))) authors.set(slug(nm), nm); }
+      if (P.firstOnly && authors.size) break;
+    }
+    for (const [sl, nm] of authors) {
+      const key = P.id + ':' + sl; if (seen.has(key)) continue;
+      if (checked >= 12) { remaining++; continue; }
+      checked++; seen.add(key);
+      if (have.has(sl)) continue;
+      const fe = P.author(sl) + 'feed/', r = await getOk(fe);
+      if (!r || !looksLikeFeed(await r.text())) continue;
+      voices.push({ id: sl, slug: sl, name: nm, short_bio: P.bio, avatar: '', website: P.author(sl), topics: [], position_tag: '', status: 'pending', listed_on: '', consent: { excerpt_ok: true, full_text_ok: false, date: '', note: 'Found on ' + P.label + '. Not reviewed yet.' } });
+      feeds.push({ id: slug(sl + '-blog-' + fe.slice(-14)), voice_id: sl, kind: 'blog', section: 'blog', url: fe, external_id: '', site: P.author(sl), format: 'read', status: 'active', error_count: 0, unverified: true }); have.add(sl); added++;
+    }
+  }
+  await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); await putJson(env, 'discovered', [...seen].slice(-5000));
+  return { added, checked, remaining };
 }
 export default {
   async fetch(req, env) {
@@ -240,23 +300,9 @@ export default {
         for (const v of voices) if (v.status !== 'listed' && v.status !== 'removed') { v.status = 'listed'; v.listed_on = day; v.consent = { ...(v.consent || {}), excerpt_ok: true, full_text_ok: false, note: ((v.consent && v.consent.note) || '') + ' Listed in bulk ' + day + ' on public feeds. Link-out and excerpts only. Opt-out honored within 48 hours.' }; n++; }
         await putJson(env, 'voices', voices); return J({ ok: true, listed: n }, 200, { 'cache-control': 'no-store' });
       }
-      if (p === '/api/admin/resolve' && req.method === 'POST') {
-        // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
-        const b = await req.json().catch(() => ({})); const feeds = await listFeeds(env), names = Object.fromEntries(voices.map(v => [v.id, v.name]));
-        if (b.retry) for (const f of feeds) if (!f.url && !f.external_id) delete f.resolved_at;
-        const hdr = { 'user-agent': 'Mozilla/5.0 (compatible; IsraelInsiderBot/1.0; +https://israelinsider.org/bot)', cookie: 'CONSENT=YES+1', 'accept-language': 'en' };
-        const get = async u => { try { const r = await fetch(u, { headers: hdr, redirect: 'follow' }); return r.ok ? r : null; } catch { return null; } };
-        let found = 0; const missed = [];
-        const todo = feeds.filter(f => !f.url && !f.external_id && f.site && !f.resolved_at);
-        for (const f of todo.slice(0, 6)) {
-          f.resolved_at = new Date().toISOString(); let d = null;
-          const pg = await get(f.site); if (pg) d = discoverFeed(await pg.text(), f.site);
-          if (!d && !/youtube\.com/.test(f.site)) for (const g of feedGuesses(f.site).slice(0, 4)) { const r = await get(g); if (r && looksLikeFeed(await r.text())) { d = { url: g }; break; } }
-          if (!d && (f.section === 'podcast' || f.kind === 'podcast')) { const r = await get('https://itunes.apple.com/search?media=podcast&limit=5&term=' + encodeURIComponent(names[f.voice_id] || '')); if (r) { const u2 = itunesFeed(await r.json().catch(() => null), names[f.voice_id] || ''); if (u2) d = { url: u2 }; } }
-          if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
-        }
-        await putJson(env, 'feeds', feeds); return J({ ok: true, found, missed, remaining: Math.max(0, todo.length - 6) }, 200, { 'cache-control': 'no-store' });
-      }
+      if (p === '/api/admin/resolve' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J({ ok: true, ...(await resolveBatch(env, !!b.retry)) }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/avatars' && req.method === 'POST') return J({ ok: true, ...(await avatarBatch(env)) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/discover' && req.method === 'POST') return J({ ok: true, ...(await discoverBatch(env)) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/feed' && req.method === 'POST') {
         const b = await req.json(); const feeds = await listFeeds(env);
         const f = { id: b.id || slug(b.voice_id + '-' + b.kind + '-' + (b.external_id || b.url || '').slice(-12)), voice_id: b.voice_id, kind: b.kind, url: b.url || '', external_id: b.external_id || '', format: feedFormat(b.kind), section: SECTIONS.includes(b.section) ? b.section : '', site: b.site || '', status: 'active', error_count: 0 };
@@ -272,5 +318,5 @@ export default {
     }
     return J({ error: 'not found' }, 404);
   },
-  async scheduled(_evt, env, ctx) { ctx.waitUntil(runIngest(env)); },
+  async scheduled(_evt, env, ctx) { ctx.waitUntil((async () => { await runIngest(env); for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
 };

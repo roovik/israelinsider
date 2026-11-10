@@ -71,7 +71,7 @@ export function parseFeed(xml) {
         encoded: tag(it, 'content:encoded'),
         audio: /audio/i.test(encType) || /\.(mp3|m4a|aac|ogg)(\?|$)/i.test(enc) ? enc : '',
         duration: parseDuration(tag(it, 'itunes:duration')),
-        thumb: attr(it, 'itunes:image', 'href') || attr(it, 'media:thumbnail', 'url') || (/image/i.test(encType) ? enc : ''),
+        thumb: attr(it, 'itunes:image', 'href') || attr(it, 'media:thumbnail', 'url') || (/image/i.test(encType) ? enc : '') || firstImg(tag(it, 'content:encoded') || tag(it, 'description')),
       });
     }
     return items;
@@ -141,6 +141,27 @@ export function discoverFeed(html, base) {
     try { return { url: new URL(href[1].replace(/&amp;/g, '&'), base).href }; } catch { /* next */ }
   }
   return null;
+}
+export function firstImg(html) {
+  const re = /<img\b[^>]*>/gi; let m;
+  while ((m = re.exec(String(html || '')))) {
+    const src = /\bsrc=["'](https:[^"']+)["']/i.exec(m[0]); if (!src) continue;
+    if (/pixel|beacon|tracker|spacer|1x1|feedburner|gravatar/i.test(src[1]) || /\b(width|height)=["']?1["']?\b/i.test(m[0])) continue;
+    return src[1].replace(/&amp;/g, '&');
+  }
+  return '';
+}
+// Channel level artwork from a feed: itunes image, RSS image, Atom logo or icon.
+export function channelImage(xml) {
+  const head = String(xml || '').split(/<(?:item|entry)\b/i)[0];
+  const m = /<itunes:image\b[^>]*href=["'](https:[^"']+)["']/i.exec(head) || /<image>[\s\S]*?<url>\s*(https:[^<\s]+)\s*<\/url>/i.exec(head) || /<(?:logo|icon)>\s*(https:[^<\s]+)\s*<\/(?:logo|icon)>/i.exec(head);
+  return m ? m[1].replace(/&amp;/g, '&') : '';
+}
+export function ogImage(html, base) {
+  const h = String(html || '');
+  const m = /<meta\b[^>]*(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*content=["']([^"']+)["']/i.exec(h) || /<meta\b[^>]*content=["']([^"']+)["'][^>]*(?:property|name)=["'](?:og:image|twitter:image)["']/i.exec(h);
+  if (!m) return '';
+  try { const u = new URL(m[1].replace(/&amp;/g, '&'), base); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
 }
 export const looksLikeFeed = t => /<(rss|feed|rdf:RDF)\b/i.test(String(t || '').slice(0, 2000));
 // Likely feed addresses for a site when the page itself does not advertise one.

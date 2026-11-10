@@ -1,7 +1,7 @@
 import assert from 'node:assert';
-import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
+import worker, { runIngest, nlItems, cleanEntry, avatarBatch, discoverBatch } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
-import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT } from '../lib.js';
+import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT, channelImage, ogImage, firstImg } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
 <item><title><![CDATA[Sample &amp; essay on Israel]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
@@ -168,4 +168,27 @@ console.log('taxonomy ok');
   const a = all.filter(i => i.voice && i.voice.slug === 'div-a'), onVoice = (await (await call('/api/voice/div-a', {}, false)).json()).items;
   assert.strictEqual(a.length, 3, 'max 3 per source on shared pages'); assert.strictEqual(onVoice.length, 5, 'voice page shows all relevant posts, tax post excluded');
   console.log('diversity ok');
+}
+
+{
+  assert.strictEqual(channelImage('<rss><channel><itunes:image href="https://i.test/a.jpg"/><item><itunes:image href="https://i.test/ep.jpg"/></item></channel></rss>'), 'https://i.test/a.jpg');
+  assert.strictEqual(channelImage('<rss><channel><image><url>https://i.test/l.png</url></image><item/></channel></rss>'), 'https://i.test/l.png');
+  assert.strictEqual(ogImage('<meta property="og:image" content="/p.jpg">', 'https://s.test/x'), 'https://s.test/p.jpg');
+  assert.strictEqual(ogImage('<meta property="og:image" content="http://s.test/p.jpg">', 'https://s.test/x'), '');
+  assert.strictEqual(firstImg('<img src="https://t.test/pixel.gif" width="1"><img src="https://t.test/pic.jpg">'), 'https://t.test/pic.jpg');
+  const real = globalThis.fetch;
+  globalThis.fetch = async u => { u = String(u);
+    if (u === 'https://blogs.timesofisrael.com/feed/') return new Response('<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><item><title>P</title><link>https://blogs.timesofisrael.com/p/</link><guid>1</guid><dc:creator>Jane Blogger</dc:creator><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate></item><item><title>Q</title><link>https://blogs.timesofisrael.com/q/</link><guid>2</guid><dc:creator>Gone Author</dc:creator><pubDate>Mon, 09 Nov 2026 09:00:00 GMT</pubDate></item></channel></rss>');
+    if (u === 'https://blogs.timesofisrael.com/author/jane-blogger/feed/') return new Response('<rss version="2.0"><channel><itunes:image href="https://img.test/jane.jpg"/></channel></rss>');
+    if (u.includes('av-site.test')) return new Response('<meta property="og:image" content="https://img.test/site.jpg">');
+    return new Response('no', { status: 404 }); };
+  const d = await discoverBatch(env); assert.strictEqual(d.added, 1);
+  const d2 = await discoverBatch(env); assert.strictEqual(d2.added, 0, 'already seen authors are not re-checked');
+  const vs = (await (await call('/api/admin/voices')).json()).voices; const jane = vs.find(v => v.id === 'jane-blogger'); assert.ok(jane && jane.status === 'pending' && !vs.some(v => v.id === 'gone-author'));
+  await call('/api/admin/voice', { method: 'POST', body: JSON.stringify({ name: 'Av Site', website: 'https://av-site.test/', status: 'pending' }) });
+  for (let k = 0; k < 20; k++) { const a = await avatarBatch(env); if (!a.remaining) break; }
+  const vs2 = (await (await call('/api/admin/voices')).json()).voices;
+  globalThis.fetch = real;
+  assert.strictEqual(vs2.find(v => v.id === 'jane-blogger').avatar, 'https://img.test/jane.jpg'); assert.strictEqual(vs2.find(v => v.id === 'av-site').avatar, 'https://img.test/site.jpg');
+  console.log('discover and avatars ok');
 }
