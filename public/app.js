@@ -245,24 +245,25 @@
     var s = STATIC[key];
     return '<section class="sec prose" style="padding-top:26px">' + sech('', s[1], '') + s[2] + '</section>';
   }
-  function nlList(title, list, more) {
-    return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, 5).map(function (i, k) { return '<li' + (i.i ? ' class="hasimg' + (k === 0 ? ' lead' : '') + '"' : '') + '>' + (i.i ? '<a class="nth" tabindex="-1" aria-hidden="true" href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener"><img src="' + esc(i.i) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></a>' : '') + '<div><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></div></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
+  function nlList(title, list, more, lim) {
+    return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, lim || 5).map(function (i, k) { return '<li' + (i.i && !(lim > 5) ? ' class="hasimg' + (k === 0 ? ' lead' : '') + '"' : '') + '>' + (i.i && !(lim > 5) ? '<a class="nth" tabindex="-1" aria-hidden="true" href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener"><img src="' + esc(i.i) + '" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></a>' : '') + '<div><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></div></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
   }
   function nlBlock(nl) {
-    return '<section class="sec">' + sech('', 'From Israel NOWlej', 'The latest news and views, from israelnowlej.com', ['#/nowlej', 'All sections']) + '<div class="nlcols">' + nlList('news', nl.news || [], '/news/') + nlList('views', nl.views || [], '/views/') + '</div></section>';
+    return '<section class="sec">' + sech('', 'From Israel NOWlej', 'The latest news and views, from israelnowlej.com', ['#/nowlej', 'All sections']) + '<div class="nlcols">' + nlList('news', nl.news || [], '/news/') + nlList('views', nl.views || [], '/views/', 10) + '</div></section>';
   }
   var CURARG = '', CURQ = '';
   var routes = {
     home: function () {
-      return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; })]).then(function (a) {
-        var all = a[0], voices = a[1].voices, nl = a[2];
+      return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; }), items('format=watch&limit=60')]).then(function (a) {
+        var all = a[0], voices = a[1].voices, nl = a[2], seenV = {};
+        var vids = a[3].filter(function (i) { var k = i.voice && i.voice.slug; if (!k || seenV[k]) return false; seenV[k] = 1; return true; }).slice(0, 6);
         if (!all.length && !voices.length) {
           return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Content</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
         var rv = posterRow(all) ? '<section class="sec">' + sech('', 'Recent voices', 'Who posted last', ['#/voices', 'All voices']) + posterRow(all) + '</section>' : '';
-        return rv + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + shareHome(by('social')) + vo + nlBlock(nl);
+        return rv + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', vids, 'Watch', 'Latest video, one per channel', 'g3', 6) + shareHome(by('social')) + vo + nlBlock(nl);
       });
     },
     subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },

@@ -91,7 +91,7 @@ export function cleanEntry(b) {
 }
 export function nlItems(list) {
   return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d, i: /^https:\/\//.test(i.i || '') ? String(i.i).slice(0, 500) : '' }))
-    .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
+    .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 10);
 }
 
 const BOT = { 'user-agent': 'Mozilla/5.0 (compatible; IsraelInsiderBot/1.0; +https://israelinsider.org/bot)', cookie: 'CONSENT=YES+1', 'accept-language': 'en' };
@@ -99,12 +99,13 @@ const getOk = async u => { try { const r = await fetch(u, { headers: BOT, redire
 // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
 export async function resolveBatch(env, retry) {
   const voices = await listVoices(env), feeds = await listFeeds(env), names = Object.fromEntries(voices.map(v => [v.id, v.name]));
-  if (retry) for (const f of feeds) if (!f.url && !f.external_id) delete f.resolved_at;
+  if (retry) for (const f of feeds) { if (f.section === 'podcast' && !f.audio && f.site) { f.url = ''; } if (!f.url && !f.external_id) delete f.resolved_at; }
   let found = 0; const missed = [];
   const todo = feeds.filter(f => !f.url && !f.external_id && f.site && !f.resolved_at);
   for (const f of todo.slice(0, 6)) {
     f.resolved_at = new Date().toISOString(); let d = null;
-    const pg = await getOk(f.site); if (pg) d = discoverFeed(await pg.text(), f.site);
+    if (f.section === 'podcast' || f.kind === 'podcast') { const r = await getOk('https://itunes.apple.com/search?media=podcast&limit=5&term=' + encodeURIComponent(f.term || names[f.voice_id] || '')); if (r) { const u2 = itunesFeed(await r.json().catch(() => null), f.term || names[f.voice_id] || ''); if (u2) { d = { url: u2, audio: true }; } } }
+    const pg = d ? null : await getOk(f.site); if (pg) d = discoverFeed(await pg.text(), f.site);
     if (!d && !/youtube\.com/.test(f.site)) for (const g of feedGuesses(f.site).slice(0, 4)) { const r = await getOk(g); if (r && looksLikeFeed(await r.text())) { d = { url: g }; break; } }
     if (!d && (f.section === 'podcast' || f.kind === 'podcast')) { const r = await getOk('https://itunes.apple.com/search?media=podcast&limit=5&term=' + encodeURIComponent(names[f.voice_id] || '')); if (r) { const u2 = itunesFeed(await r.json().catch(() => null), names[f.voice_id] || ''); if (u2) d = { url: u2 }; } }
     if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
@@ -289,7 +290,7 @@ export default {
             const fid = slug(id + '-' + c.section + '-' + (c.feed || c.external_id || c.site || '').slice(-14));
             if (feeds.some(f => f.id === fid)) continue;
             const kind = c.kind || ({ substack: 'newsletter', blog: 'blog', oped: 'oped', editorial: 'editorial', podcast: 'podcast', vlog: 'vlog' }[c.section] || 'blog');
-            feeds.push({ id: fid, voice_id: id, kind, section: c.section, url: c.feed || '', external_id: c.external_id || '', site: c.site || '', format: feedFormat(kind), status: 'active', error_count: 0, unverified: true }); nf++;
+            feeds.push({ id: fid, voice_id: id, kind, section: c.section, url: c.feed || '', external_id: c.external_id || '', site: c.site || '', term: c.term || '', format: feedFormat(kind), status: 'active', error_count: 0, unverified: true }); nf++;
           }
         }
         await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); return J({ ok: true, voices_added: nv, feeds_added: nf }, 200, { 'cache-control': 'no-store' });

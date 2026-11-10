@@ -965,7 +965,8 @@
     {
      "section": "podcast",
      "site": "https://www.callmebackpodcast.com",
-     "guess": true
+     "guess": true,
+     "term": "Call Me Back with Dan Senor"
     }
    ]
   },
@@ -982,7 +983,8 @@
     {
      "section": "podcast",
      "site": "https://www.tabletmag.com/podcasts/unorthodox",
-     "guess": true
+     "guess": true,
+     "term": "Unorthodox Tablet"
     }
    ]
   },
@@ -998,7 +1000,8 @@
     {
      "section": "podcast",
      "site": "https://www.thefp.com/podcasts",
-     "guess": true
+     "guess": true,
+     "term": "Honestly with Bari Weiss"
     }
    ]
   },
@@ -1014,7 +1017,8 @@
     {
      "section": "podcast",
      "site": "https://israelstory.org",
-     "guess": true
+     "guess": true,
+     "term": "Israel Story"
     }
    ]
   },
@@ -1030,7 +1034,8 @@
     {
      "section": "podcast",
      "site": "https://www.commentary.org/podcasts/",
-     "guess": true
+     "guess": true,
+     "term": "Commentary Magazine Podcast"
     }
    ]
   },
@@ -1068,7 +1073,8 @@
     {
      "section": "podcast",
      "site": "https://www.dailywire.com/show/the-ben-shapiro-show",
-     "guess": true
+     "guess": true,
+     "term": "The Ben Shapiro Show"
     }
    ]
   },
@@ -1085,7 +1091,8 @@
     {
      "section": "podcast",
      "site": "https://tikvahfund.org/podcasts/",
-     "guess": true
+     "guess": true,
+     "term": "Tikvah Podcast"
     }
    ]
   },
@@ -1102,7 +1109,8 @@
     {
      "section": "podcast",
      "site": "https://www.ajc.org/podcasts",
-     "guess": true
+     "guess": true,
+     "term": "People of the Pod"
     }
    ]
   },
@@ -1134,7 +1142,8 @@
     {
      "section": "podcast",
      "site": "https://jewishinsider.com/podcasts/",
-     "guess": true
+     "guess": true,
+     "term": "Jewish Insider"
     }
    ]
   },
@@ -1151,7 +1160,8 @@
     {
      "section": "podcast",
      "site": "https://www.aei.org/podcast-series/foreign-podicy/",
-     "guess": true
+     "guess": true,
+     "term": "Foreign Podicy"
     }
    ]
   },
@@ -1167,7 +1177,8 @@
     {
      "section": "podcast",
      "site": "https://www.jns.org/podcasts/",
-     "guess": true
+     "guess": true,
+     "term": "JNS"
     }
    ]
   },
@@ -1183,7 +1194,8 @@
     {
      "section": "podcast",
      "site": "https://www.jpost.com/podcasts",
-     "guess": true
+     "guess": true,
+     "term": "The Jerusalem Post Podcast"
     }
    ]
   },
@@ -1199,7 +1211,8 @@
     {
      "section": "podcast",
      "site": "https://fathomjournal.org/podcasts/",
-     "guess": true
+     "guess": true,
+     "term": "Fathom"
     }
    ]
   },
@@ -1216,7 +1229,8 @@
     {
      "section": "podcast",
      "site": "https://www.theisraelguys.com",
-     "guess": true
+     "guess": true,
+     "term": "The Israel Guys"
     },
     {
      "section": "vlog",
@@ -1388,6 +1402,60 @@
      "section": "vlog",
      "site": "https://www.youtube.com/@jewishjournal",
      "guess": true
+    }
+   ]
+  },
+  {
+   "name": "Unholy: Two Jews on the News",
+   "short_bio": "Tablet's weekly show on Jewish and Israeli news.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.tabletmag.com/podcasts/unholy",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.tabletmag.com/podcasts/unholy",
+     "guess": true,
+     "term": "Unholy Two Jews on the News"
+    }
+   ]
+  },
+  {
+   "name": "The Israel Brief",
+   "short_bio": "A short daily briefing on Israel.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://theisraelbrief.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://theisraelbrief.com",
+     "guess": true,
+     "term": "The Israel Brief"
+    }
+   ]
+  },
+  {
+   "name": "Israel Daily News Podcast",
+   "short_bio": "Daily audio news roundup from Israel.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://israeldailynewspodcast.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://israeldailynewspodcast.com",
+     "guess": true,
+     "term": "Israel Daily News Podcast"
     }
    ]
   }
