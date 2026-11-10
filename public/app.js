@@ -67,6 +67,14 @@
   function remember(items) { items.forEach(function (i) { ITEMS[i.id] = i; }); return items; }
   function items(qs) { return api('/api/items?' + qs).then(function (r) { return remember(r.items); }); }
 
+  function sideHome(voices) {
+    var vl = voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
+    return '<aside class="side">' +
+      '<div class="panel"><h3>feeds</h3><div class="pb"><div class="rw"><a href="/api/rss">All items, RSS</a></div><div class="rw"><a href="#/submit">Submit your feed</a></div></div></div>' +
+      (vl ? '<div class="panel"><h3>voices</h3><div class="pb">' + vl + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>' : '') +
+      '<div class="panel"><h3>insider sponsors</h3><div class="pb"><a class="adbook" href="https://israelinmaps.com" target="_blank" rel="noopener sponsored"><b>Israel\'s Story in Maps</b><span>Preview the book</span></a></div></div>' +
+      '</aside>';
+  }
   var routes = {
     home: function () {
       return Promise.all([items('limit=60'), api('/api/voices')]).then(function (a) {
@@ -80,7 +88,7 @@
         var feat = '<div class="feat"><article class="big ' + lead.format + '"><div class="bd"><span class="kick" style="color:var(--' + lead.format + ')">' + TYPES[lead.format] + ' · Latest</span><h2><a href="' + (lead.format === 'read' || lead.format === 'social' ? esc(safeUrl(lead.url)) + '" target="_blank" rel="noopener' : '#/' + lead.format) + '">' + esc(lead.title) + '</a></h2><p class="ex">' + esc(lead.excerpt) + '</p><div class="meta">' + byline(lead) + '<span>' + ago(lead.published_at) + '</span></div></div></article><div class="list">' +
           rest.map(function (i) { return '<div class="it ' + i.format + '"><span class="ty">' + ICON[i.format] + '</span><div><span class="kick">' + TYPES[i.format] + '</span><h4><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a></h4><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('') + '</div></div>';
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
-        return feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo;
+        return '<div class="cols"><div class="main">' + feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo + '</div>' + sideHome(voices) + '</div>';
       });
     },
     read: function (q) { return items('format=read&limit=60' + q).then(function (l) { return '<section class="sec read" style="padding-top:26px">' + sech('read', 'Read', 'Essays, columns, Substack and blog posts') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>'; }); },
@@ -126,6 +134,7 @@
 
   // ---- router
   var token = 0;
+  var td = document.getElementById('today'); if (td) td.textContent = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   function route() {
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('?')[0].split('/');
