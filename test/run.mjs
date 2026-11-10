@@ -48,4 +48,8 @@ const r304 = await runIngest(env, async () => new Response(null, { status: 304 }
 // submit
 assert.equal((await call('/api/submit', { method: 'POST', body: JSON.stringify({ name: 'X' }) }, false)).status, 422);
 assert.equal((await call('/api/submit', { method: 'POST', body: JSON.stringify({ name: 'X', email: 'a@b.co', consent_excerpt: true }) }, false)).status, 201);
+assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'bad' }) }, false)).status, 422);
+assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'S@Ex.org', consent: true }) }, false)).status, 201);
+assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 's@ex.org', consent: true }) }, false)).status, 201);
+{ const sl = await (await call('/api/admin/subscribers', {}, true)).json(); assert.equal(sl.subscribers.length, 1); }
 console.log('all tests passed');

@@ -92,6 +92,15 @@ export default {
       s.push({ id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name).slice(0, 120), email: String(b.email).slice(0, 200), website: String(b.website || '').slice(0, 300), feeds: String(b.feeds || '').slice(0, 2000), social: String(b.social || '').slice(0, 300), formats: String(b.formats || '').slice(0, 100), bio: String(b.bio || '').slice(0, 500), topics: String(b.topics || '').slice(0, 200), consent_full_text: !!b.consent_full_text });
       await putJson(env, 'submissions', s); return J({ ok: true }, 201, { 'cache-control': 'no-store' });
     }
+    if (p === '/api/subscribe' && req.method === 'POST') {
+      let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
+      const em = String(b.email || '').trim().toLowerCase();
+      if (!/^\S+@\S+\.\S+$/.test(em) || em.length > 200 || !b.consent) return J({ error: 'A valid email and your consent are required' }, 422);
+      const s = await getJson(env, 'subscribers', []);
+      if (s.length > 20000) return J({ error: 'list full' }, 429);
+      if (!s.some(x => x.email === em)) { s.push({ email: em, at: new Date().toISOString() }); await putJson(env, 'subscribers', s); }
+      return J({ ok: true }, 201, { 'cache-control': 'no-store' });
+    }
     // Admin routes
     if (p.startsWith('/api/admin/')) {
       if (!admin(req, env)) return J({ error: 'unauthorized' }, 401, { 'cache-control': 'no-store' });
@@ -101,6 +110,7 @@ export default {
       if (p === '/api/admin/feed/delete' && req.method === 'POST') { const b = await req.json(); const feeds = (await listFeeds(env)).filter(f => f.id !== b.id); await putJson(env, 'feeds', feeds); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/voice/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'voices', voices.filter(v => v.id !== b.id)); await putJson(env, 'feeds', (await listFeeds(env)).filter(f => f.voice_id !== b.id)); await putJson(env, 'items', (await getJson(env, 'items', [])).filter(i => i.voice_id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/submission/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'submissions', (await getJson(env, 'submissions', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/subscribers') return J({ subscribers: await getJson(env, 'subscribers', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/submissions') return J({ submissions: await getJson(env, 'submissions', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voice' && req.method === 'POST') {
         const b = await req.json(); const id = b.id || slug(b.name); const i = voices.findIndex(v => v.id === id);

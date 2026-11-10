@@ -67,13 +67,30 @@
   function remember(items) { items.forEach(function (i) { ITEMS[i.id] = i; }); return items; }
   function items(qs) { return api('/api/items?' + qs).then(function (r) { return remember(r.items); }); }
 
-  function sideHome(voices) {
-    var vl = voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
-    return '<aside class="side">' +
-      '<div class="panel"><h3>feeds</h3><div class="pb"><div class="rw"><a href="/api/rss">All items, RSS</a></div><div class="rw"><a href="#/submit">Submit your feed</a></div></div></div>' +
-      (vl ? '<div class="panel"><h3>voices</h3><div class="pb">' + vl + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>' : '') +
-      '<div class="panel"><h3>insider sponsors</h3><div class="pb"><a class="adbook" href="https://israelinmaps.com" target="_blank" rel="noopener sponsored"><b>Israel\'s Story in Maps</b><span>Preview the book</span></a></div></div>' +
-      '</aside>';
+  var SIDE = null;
+  function sideData() { if (!SIDE) SIDE = Promise.all([api('/api/items?limit=30'), api('/api/voices')]).then(function (a) { remember(a[0].items); return { items: a[0].items, voices: a[1].voices }; }); return SIDE; }
+  function houseAd(slot, size) {
+    return '<a class="adbox" data-slot="' + slot + '" style="' + size + '" href="https://israelinmaps.com" target="_blank" rel="noopener sponsored"><small>Advertisement</small><b>Israel\'s Story in Maps</b><span>Preview the book</span></a>';
+  }
+  function subForm(id) {
+    return '<form class="subf" novalidate><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
+  }
+  function sideCol() {
+    return sideData().then(function (d) {
+      var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
+      var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
+      var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
+      return '<aside class="side" aria-label="Widgets">' +
+        '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit your feed</a></div>' +
+        '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
+        '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
+        (latest ? '<div class="panel"><h3>latest</h3><div class="pb">' + latest + '</div></div>' : '') +
+        (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
+        (vl ? '<div class="panel"><h3>voices</h3><div class="pb">' + vl + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>' : '') +
+        '<div class="panel"><h3>from israel nowlej</h3><div class="pb"><span>News, views, media and sources.</span><a class="btn line sm" href="https://israelnowlej.com" target="_blank" rel="noopener">Visit Israel NOWlej</a></div></div>' +
+        '<div class="adslot" data-slot="rect-300x250-b"><a class="adbox alt" data-slot="rect-300x250-b" href="#/submit"><small>Advertisement</small><b>Sponsor Israel Insider</b><span>Reach readers of Israel voices</span></a></div>' +
+        '</aside>';
+    }).catch(function () { return ''; });
   }
   var routes = {
     home: function () {
@@ -88,9 +105,10 @@
         var feat = '<div class="feat"><article class="big ' + lead.format + '"><div class="bd"><span class="kick" style="color:var(--' + lead.format + ')">' + TYPES[lead.format] + ' · Latest</span><h2><a href="' + (lead.format === 'read' || lead.format === 'social' ? esc(safeUrl(lead.url)) + '" target="_blank" rel="noopener' : '#/' + lead.format) + '">' + esc(lead.title) + '</a></h2><p class="ex">' + esc(lead.excerpt) + '</p><div class="meta">' + byline(lead) + '<span>' + ago(lead.published_at) + '</span></div></div></article><div class="list">' +
           rest.map(function (i) { return '<div class="it ' + i.format + '"><span class="ty">' + ICON[i.format] + '</span><div><span class="kick">' + TYPES[i.format] + '</span><h4><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a></h4><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('') + '</div></div>';
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
-        return '<div class="cols"><div class="main">' + feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo + '</div>' + sideHome(voices) + '</div>';
+        return feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo;
       });
     },
+    subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },
     nowlej: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Israel NOWlej', 'News, views, media, the NOWlej glossary and sources') + '<p class="ex" style="max-width:62ch">Israel Insider is the opinion cousin of Israel NOWlej. For news, reference and sources, use the main sections of Israel NOWlej.</p><div class="nl">' + NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener"><b>' + x[0] + '</b><span class="ex">israelnowlej.com' + x[1] + '</span></a>'; }).join('') + '</div></section>'); },
     read: function (q) { return items('format=read&limit=60' + q).then(function (l) { return '<section class="sec read" style="padding-top:26px">' + sech('read', 'Read', 'Essays, columns, Substack and blog posts') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>'; }); },
     social: function (q) { return items('format=social&limit=60' + q).then(function (l) { return '<section class="sec social" style="padding-top:26px">' + sech('social', 'Social', 'Short posts from voices, linked to the original') + (l.length ? grid(l, 'g3') : empty('Nothing here yet.')) + '</section>'; }); },
@@ -158,9 +176,10 @@
     renderSub(name, tm ? decodeURIComponent(tm[1]) : '');
     var t = ++token;
     view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
-    Promise.resolve(routes[name](name === 'voice' ? arg : q)).then(function (html) {
+    Promise.all([routes[name](name === 'voice' ? arg : q), name === 'voice' ? '' : sideCol()]).then(function (r) {
       if (t !== token) return;
-      view.innerHTML = html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
+      var html = r[0];
+      view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
       if (name === 'submit') wireSubmit();
       if (name === 'voice') wireVoice();
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
@@ -223,6 +242,13 @@
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  document.addEventListener('submit', function (e) {
+    var f = e.target.closest('.subf'); if (!f) return; e.preventDefault();
+    var box = f.querySelector('.submsg'), em = f.elements.email.value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(em)) { box.textContent = 'Enter a valid email address.'; return; }
+    if (!f.elements.consent.checked) { box.textContent = 'Please tick the box to subscribe.'; return; }
+    fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, consent: true }) }).then(function (r) { box.textContent = r.ok ? 'Thank you. You are on the list.' : 'Could not subscribe. Try again later.'; if (r.ok) f.elements.email.value = ''; }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
+  });
   document.addEventListener('click', function (e) {
     var el = e.target.closest('[data-play],[data-queue],[data-watch]'); if (!el) return;
     e.preventDefault();
