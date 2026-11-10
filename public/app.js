@@ -75,7 +75,7 @@
   function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + shareRow(i.url, i.title) + h.slice(k); }
   function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g3') + '">' + items.map(card).join('') + '</div>' : ''; }
   function section(type, items, h, d, cls, limit) {
-    return '<section class="sec ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
+    return '<section class="sec nob ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
   }
 
   var cache = {};
@@ -198,7 +198,7 @@
     var seen = {}, v = [];
     l.forEach(function (i) { if (i.voice && !seen[i.voice.slug]) { seen[i.voice.slug] = 1; v.push(i.voice); } });
     if (!v.length) return '';
-    return '<div class="posters" aria-label="Most recent posters">' + v.slice(0, 12).map(function (x) {
+    return '<div class="posters" aria-label="Most recent posters">' + v.slice(0, 10).map(function (x) {
       var face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : fi(x);
       return '<a class="poster" href="#/voice/' + esc(x.slug) + '"><span class="face">' + face + '</span><span class="pn">' + esc(x.name) + '</span></a>';
     }).join('') + '</div>';
