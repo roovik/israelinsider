@@ -81,7 +81,6 @@
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
-        '<form class="searchw sf"><input type="search" aria-label="Search voices and items" placeholder="Search voices, shows, topics"><button type="submit">Search</button></form>' +
         '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit your feed</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
