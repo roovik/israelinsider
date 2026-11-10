@@ -1,4 +1,4 @@
-:root{--ink:#1f2d3d;--ink2:#5b6672;--paper:#ffffff;--card:#eaf0f8;--line:#b7cbe3;--band:#b7cbe3;--strip:#e2ebf4;--blue:#6699cc;--gray:#999999;--orange:#ed702c;--read:#2f6db5;--listen:#ed702c;--watch:#7a4aa8;--social:#0e8a76;--voices:#7d8da6;--sans:Verdana,Geneva,'DejaVu Sans',sans-serif;--head:'Trebuchet MS','Nunito',Verdana,sans-serif;--logo:'Nunito','Trebuchet MS',Verdana,sans-serif}
+:root{--ink:#1f2d3d;--ink2:#5b6672;--paper:#ffffff;--card:#eaf0f8;--line:#b7cbe3;--band:#b7cbe3;--strip:#e2ebf4;--blue:#6699cc;--gray:#999999;--orange:#ed702c;--read:#2f6db5;--listen:#8c1c3a;--watch:#7a4aa8;--social:#0e8a76;--voices:#7d8da6;--sans:Verdana,Geneva,'DejaVu Sans',sans-serif;--head:'Trebuchet MS','Nunito',Verdana,sans-serif;--logo:'Nunito','Trebuchet MS',Verdana,sans-serif}
 *{box-sizing:border-box}
 body{margin:0;background:#fff}
 .pg{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column}
@@ -21,8 +21,8 @@ body{margin:0;background:#fff}
 .mast .sp{flex:1 1 10px}
 .mast .today{font-size:15px;color:var(--gray);padding-bottom:6px}
 .navband{position:relative;background:var(--band);margin-top:6px;border-bottom:2px solid #a9b6c6}
-.navband .rule{position:absolute;left:86px;right:0;top:-5px;height:2px;background:#a9b6c6}
-.navband .diag{position:absolute;left:60px;top:17px;width:35px;height:2px;background:#a9b6c6;transform:rotate(-40deg);transform-origin:left center}
+.navband .rule{position:absolute;left:86px;right:0;top:-5px;height:2px;background:var(--orange)}
+.navband .diag{position:absolute;left:60px;top:17px;width:35px;height:2px;background:var(--orange);transform:rotate(-40deg);transform-origin:left center}
 .navband .wrap{position:relative}
 .navband .dot{position:absolute;left:12px;top:8px;width:54px;height:54px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px #fff;z-index:2}
 .tabs{display:flex;flex-wrap:wrap;gap:3px}
