@@ -62,7 +62,7 @@
   function card0(i) {
     var t = i.format, v = i.voice || {};
     if (t === 'read') {
-      return '<article class="card read"><div class="bd">' + kick(v) + '<h3><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a></h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span><span>' + mins(i) + ' min read</span></div></div></article>';
+      return '<article class="card read"><div class="bd">' + kick(v) + '<h3><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a></h3>' + (i.excerpt ? '<p class="ex">' + esc(i.excerpt) + '</p>' : '') + '<div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span><span>' + mins(i) + ' min read</span></div></div></article>';
     }
     if (t === 'listen') {
       return '<article class="card listen"><div class="art sq">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-play="' + esc(i.id) + '" aria-label="Play ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Audio</span></div></div></article>';

@@ -104,7 +104,9 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
     const t = Date.parse(r.date);
     const published = isNaN(t) ? now : Math.min(t, now);
     const full = voice?.consent?.full_text_ok === true;
-    const src = r.desc || r.encoded;
+    const clean = x => stripHtml(x).replace(/^(continue reading|read more)\b.*$/i, '').trim();
+    const d1 = clean(r.desc), d2 = clean(r.encoded);
+    const src = d1.length >= 80 || !d2 ? d1 : (d2.startsWith(d1) || !d1 ? d2 : d1 + ' ' + d2);
     const item = {
       id: await sha(feed.id + '|' + (r.guid || url)),
       voice_id: voice.id, feed_id: feed.id, format: fixFormat(feed.format, !!r.audio, !!r.videoId), section: sectionOf(feed),
