@@ -39,7 +39,7 @@
   }
   // On a voice's own page the name is already in the heading, so cards leave it out.
   var HIDEV = false;
-  function kick(v) { return HIDEV ? '' : '' + kick(v) + ''; }
+  function kick(v) { return HIDEV ? '' : '<span class="kick">' + esc(v.name) + '</span>'; }
   function byline(i) {
     if (HIDEV) return '';
     var v = i.voice || {};
