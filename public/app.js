@@ -67,7 +67,7 @@
     return '<article class="card social"><div class="post"><div class="by"><span class="av">' + esc(initials(v.name)) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
   }
   function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + shareRow(i.url, i.title) + h.slice(k); }
-  function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g4') + '">' + items.map(card).join('') + '</div>' : ''; }
+  function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g3') + '">' + items.map(card).join('') + '</div>' : ''; }
   function section(type, items, h, d, cls, limit) {
     return '<section class="sec ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
   }
