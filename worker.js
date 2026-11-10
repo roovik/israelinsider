@@ -158,9 +158,11 @@ export default {
 
     if (p === '/api/items') { const items = filter(await itemsC(env, vb), u.searchParams, vb); return J({ items: items.map(i => publicItem(i, vb[i.voice_id])) }); }
     if (p === '/api/voices') {
-      const fs = await listFeeds(env), sec = {};
+      const fs = await listFeeds(env), sec = {}, last = {};
       for (const f of fs) { const s = sectionOf(f); if (s) (sec[f.voice_id] = sec[f.voice_id] || new Set()).add(s); }
-      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, sections: SECTIONS.filter(s => sec[v.id]?.has(s)) })) });
+      const its = (await getJson(env, 'items', [])).filter(i => !i.hidden && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
+      for (const i of its) { const l = (last[i.voice_id] = last[i.voice_id] || []); if (l.length < 2) l.push({ t: i.title, u: i.url, d: i.published_at }); }
+      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, sections: SECTIONS.filter(s => sec[v.id]?.has(s)), latest: last[v.id] || [] })) });
     }
     if (p.startsWith('/api/voice/')) {
       const v = voices.find(x => x.slug === p.slice(11) && x.status === 'listed'); if (!v) return J({ error: 'not found' }, 404);

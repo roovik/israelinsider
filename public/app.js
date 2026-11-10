@@ -309,7 +309,7 @@
         if (!r.voices.length) return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Every listed writer, show and channel') + empty('No voices listed yet.') + '</section>';
         var jump = '<nav class="jump" aria-label="Directory sections"><a' + (only ? '' : ' class="on"') + ' href="#/voices">All</a>' + order.map(function (s) { var n = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).length; return n ? '<a' + (only === s ? ' class="on"' : '') + ' href="#/voices?section=' + s + '">' + SL[s] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>';
         var blocks = order.filter(function (s) { return !only || only === s; }).map(function (s) {
-          var l = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).sort(function (x, y) { return x.name.localeCompare(y.name); });
+          var l = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).sort(function (x, y) { var dx = ((x.latest || [])[0] || {}).d || '', dy = ((y.latest || [])[0] || {}).d || ''; return dx === dy ? x.name.localeCompare(y.name) : (dx < dy ? 1 : -1); });
           return l.length ? '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + '<div class="grid g3 vdir">' + l.map(vcard).join('') + '</div></section>' : '';
         }).join('');
         return items('limit=100' + (only ? '&section=' + only : '')).then(function (its) {
@@ -362,7 +362,8 @@
     submitChannel: function () { return routes.submit(); }
   };
   function vcard(v) {
-    return '<a class="vcard" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vb"><b>' + esc(v.name) + '</b><span class="vs">' + esc(v.short_bio || '') + '</span>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' · ') + '</span>' : '') + '</span></a>';
+    var lt = (v.latest || []).map(function (p) { return '<li><a href="' + esc(safeUrl(p.u)) + '" target="_blank" rel="noopener">' + esc(p.t) + '</a><span class="when">' + ago(p.d) + '</span></li>'; }).join('');
+    return '<div class="vcard"><a class="big" href="#/voice/' + esc(v.slug) + '" tabindex="-1" aria-hidden="true">' + fi(v) + '</a><div class="vb"><a class="vn" href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' &middot; ') + '</span>' : '') + (lt ? '<ul class="vlat">' + lt + '</ul>' : '<span class="vs">' + esc(v.short_bio || '') + '</span>') + '</div></div>';
   }
   function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
   // a strip of voices that belong to a tab, shown on the tab page

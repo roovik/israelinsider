@@ -204,3 +204,9 @@ console.log('taxonomy ok');
   assert.strictEqual(last.title, 'Show b'); assert.strictEqual(last.apply_voice, true); assert.strictEqual(last.relation, 'reader'); assert.ok(!sb.some(x => x.name === 'Bot'), 'honeypot submissions are dropped');
   console.log('submit ok');
 }
+
+{
+  const pub = await (await call('/api/voices', {}, false)).json(); const dv = pub.voices.find(v => v.id === 'div-a');
+  assert.ok(dv.latest.length === 2 && dv.latest[0].d >= dv.latest[1].d && /Israel/.test(dv.latest[0].t), 'voices carry their two latest relevant posts');
+  console.log('latest ok');
+}

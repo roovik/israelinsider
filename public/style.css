@@ -372,3 +372,12 @@ body[data-route=home] .sec .grid>*{flex:0 0 82%;scroll-snap-align:start}
 .rvc .rt:hover{color:var(--bluedk)}
 .av,.vo .big,.prof .big,.vcard .big,.vchip .big{overflow:hidden}
 img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+
+.vcard .big{text-decoration:none}
+.vcard .vn{font:800 16px var(--head);color:var(--bluedk)}
+.vlat{list-style:none;margin:4px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.vlat li{font-size:13px;line-height:1.3;color:var(--ink);display:flex;flex-direction:column}
+.vlat li a{color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vlat li a:hover{color:var(--bluedk)}
+.vlat .when{font-size:11px;color:var(--gray);margin-top:1px}
+.vcard:hover{background:var(--card)}
