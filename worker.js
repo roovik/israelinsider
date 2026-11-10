@@ -265,7 +265,7 @@ export default {
       if (p === '/api/admin/submissions') return J({ submissions: await getJson(env, 'submissions', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voice' && req.method === 'POST') {
         const b = await req.json(); const id = b.id || slug(b.name); const i = voices.findIndex(v => v.id === id);
-        const rec = { id, slug: slug(b.slug || b.name), name: b.name, short_bio: b.short_bio || '', avatar: b.avatar || '', website: b.website || '', topics: b.topics || [], position_tag: b.position_tag || '', status: b.status || 'pending', listed_on: b.status === 'listed' ? (voices[i]?.listed_on || new Date().toISOString().slice(0, 10)) : '', consent: { excerpt_ok: b.consent?.excerpt_ok !== false, full_text_ok: b.consent?.full_text_ok === true, date: b.consent?.date || '', note: b.consent?.note || '' } };
+        const rec = { id, slug: slug(b.slug || b.name), name: b.name, short_bio: b.short_bio || '', bio: String(b.bio || '').slice(0, 2000), avatar: b.avatar || '', website: b.website || '', topics: b.topics || [], position_tag: b.position_tag || '', status: b.status || 'pending', listed_on: b.status === 'listed' ? (voices[i]?.listed_on || new Date().toISOString().slice(0, 10)) : '', consent: { excerpt_ok: b.consent?.excerpt_ok !== false, full_text_ok: b.consent?.full_text_ok === true, date: b.consent?.date || '', note: b.consent?.note || '' } };
         if (i >= 0) voices[i] = { ...voices[i], ...rec }; else voices.push(rec);
         await putJson(env, 'voices', voices); return J({ ok: true, voice: rec }, 200, { 'cache-control': 'no-store' });
       }

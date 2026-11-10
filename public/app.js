@@ -329,7 +329,7 @@
         var links = r.feeds.map(function (f) { return '<div class="rw"><span class="dot" style="background:var(--' + f.format + ')"></span><a href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener">' + esc(f.kind) + '</a></div>'; }).join('');
         var tabs = '<nav class="tabs" style="margin-top:6px"><a class="plain on" data-f="all" href="#" style="background:var(--ink)">All</a>' + ['read', 'listen', 'watch', 'social'].filter(function (t) { return kinds[t]; }).map(function (t) { return '<a class="' + t + '" data-f="' + t + '" href="#">' + TYPES[t] + '</a>'; }).join('') + '</nav>';
         var feed = r.items.length ? grid(r.items, 'g2') : empty('No items yet.');
-        return '<div class="prof"><span class="big">' + fi(v) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p><div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
+        return '<div class="prof"><span class="big">' + fi(v) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p>' + (v.bio ? v.bio.split(/\n\s*\n/).map(function (p) { return '<p class="lbio">' + esc(p) + '</p>'; }).join('') : '') + '<div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
       });
     },
     submit: function () {
@@ -358,8 +358,9 @@
     },
     submitChannel: function () { return routes.submit(); }
   };
+  function oneLine(t) { t = String(t || '').trim(); var m = /^.*?[.!?](?=\s+[A-Z]|$)/.exec(t); return m ? m[0] : t; }
   function vcard(v) {
-    return '<a class="vcard vmin" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vn">' + esc(v.name) + '</span></a>';
+    return '<a class="vcard vmin" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vb"><span class="vn">' + esc(v.name) + '</span><span class="vs">' + esc(oneLine(v.short_bio)) + '</span></span></a>';
   }
   function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
   // a strip of voices that belong to a tab, shown on the tab page
