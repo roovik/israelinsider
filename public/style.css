@@ -44,9 +44,9 @@ body{margin:0;background:#fff}
 .topb{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .navband{--jx:max(62px,calc((100% - 1492px)/2 + 62px));position:relative;background:var(--band);margin-top:6px;border-bottom:2px solid #a9b6c6}
 .navband .rule{position:absolute;left:var(--jx);right:0;top:-5px;height:2px;background:var(--orange)}
-.navband .diag{position:absolute;left:calc(var(--jx) - 27px);top:17px;width:35px;height:2px;background:var(--orange);transform:rotate(-40deg);transform-origin:left center}
+.navband .diag{position:absolute;left:calc(var(--jx) - 17px);top:10px;width:23px;height:2px;background:var(--orange);transform:rotate(-42deg);transform-origin:left center}
 .navband .wrap{position:relative}
-.navband .dot{position:absolute;left:calc(var(--jx) - 57px);top:11px;width:34px;height:34px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px #fff;z-index:2}
+.navband .dot{position:absolute;left:calc(var(--jx) - 49px);top:4px;width:36px;height:36px;border-radius:50%;background:var(--orange);z-index:2}
 .tabs{display:flex;flex-wrap:wrap;gap:3px}
 .tabs a{flex:1 1 90px;text-align:center;padding:10px 6px;font-weight:700;font-size:15px;letter-spacing:.02em;color:#fff;background:var(--voices);border:0}
 .tabs a:hover{filter:brightness(1.12);text-decoration:none}
