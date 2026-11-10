@@ -206,6 +206,23 @@
   var TOPICS = ['security', 'politics', 'diplomacy', 'culture', 'history', 'faith', 'campus'];
   var NL = [['News', '/'], ['Views', '/views/'], ['Media', '/media/'], ['NOWlej', '/glossary/'], ['Sources', '/sources/']];
   var SUBCOL = { act: 'var(--act)', monitor: 'var(--monitor)', share: 'var(--social)', read: 'var(--read)', listen: 'var(--listen)', watch: 'var(--watch)', social: 'var(--social)', voices: 'var(--voices)', nowlej: 'var(--bluedk)' };
+  function siteExtras() {
+    return '<button class="sh ig" type="button" data-copy="' + SITE + '" data-hint="Instagram" aria-label="Share on Instagram"><b>IG</b>Instagram</button><button class="sh tt" type="button" data-copy="' + SITE + '" data-hint="TikTok" aria-label="Share on TikTok"><b>TT</b>TikTok</button>';
+  }
+  function openSitePop(btn) {
+    var pop = document.getElementById('sitepop');
+    if (!pop.hidden) { closeSitePop(); return; }
+    var u = encodeURIComponent(SITE), t = encodeURIComponent('Israel Insider: Pro-Israel voices in one place via Israel Insider'), by = {};
+    NET.forEach(function (n) { by[n[0]] = '<a class="sh ' + n[0] + '" href="' + esc(n[3](u, t)) + '" target="_blank" rel="noopener" aria-label="Share on ' + n[1] + '"><b>' + n[2] + '</b>' + n[1] + '</a>'; });
+    var ig = siteExtras().split('</button>');
+    var order = [by.whatsapp, by.x, ig[0] + '</button>', ig[1] + '</button>', by.facebook, by.telegram, by.threads, by.bluesky, by.linkedin, by.reddit, by.email, '<button class="sh copy" type="button" data-copy="' + SITE + '"><b>\u29c9</b>Copy link</button>'];
+    if (navigator.share) order.push('<button class="sh nat" type="button" data-native="' + SITE + '" data-title="Israel Insider"><b>\u2026</b>More</button>');
+    var row = '<div class="share big">' + order.join('') + '</div>';
+    pop.innerHTML = '<b class="pt">Share Israel Insider</b>' + row + '<p class="ph" id="sitepopmsg" role="status">Instagram and TikTok have no web share link. Tap one to copy the link, then paste it into a post, story or video.</p>';
+    pop.style.left = Math.max(0, Math.min(btn.offsetLeft, pop.parentNode.clientWidth - 420)) + 'px';
+    pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+  }
+  function closeSitePop() { var pop = document.getElementById('sitepop'), b = document.getElementById('sharesite'); if (pop) pop.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
   function renderSub(name, topic) {
     var n = name === 'voice' ? 'voices' : name, L;
     if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
@@ -215,6 +232,7 @@
     else if (n === 'share') L = [['#/share', 'Share the site', 1], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (TYPES[n]) L = [['', 'All ' + n]].concat(TOPICS.map(function (t) { return [t, t.charAt(0).toUpperCase() + t.slice(1)]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?topic=' + x[0] : '') + '">' + x[1] + '</a>'; });
     else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit Channel'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    L.push('<button class="sharesite" id="sharesite" type="button" aria-expanded="false" aria-controls="sitepop">Share site</button>');
     var el = document.getElementById('sublinks'); el.innerHTML = L.join('');
     el.parentNode.style.setProperty('--sc', SUBCOL[n] || 'var(--blue)');
   }
@@ -237,6 +255,8 @@
       if (name === 'voice') wireVoice();
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
   }
+  window.addEventListener('hashchange', function () { closeSitePop(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeSitePop(); });
   window.addEventListener('hashchange', route);
   document.addEventListener('submit', function (e) { var f = e.target.closest('.sf'); if (!f) return; e.preventDefault(); var v = f.querySelector('input').value.trim(); location.hash = v ? '#/read?q=' + encodeURIComponent(v) : '#/'; });
 
@@ -305,8 +325,11 @@
     fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, consent: true }) }).then(function (r) { box.textContent = r.ok ? 'Thank you. You are on the list.' : 'Could not subscribe. Try again later.'; if (r.ok) f.elements.email.value = ''; }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
   });
   document.addEventListener('click', function (e) {
+    var ss = e.target.closest('#sharesite'); if (ss) { e.preventDefault(); openSitePop(ss); return; }
+    if (!e.target.closest('#sitepop')) closeSitePop();
     var sc = e.target.closest('[data-copy],[data-native]');
-    if (sc) { e.preventDefault(); if (sc.dataset.native) { navigator.share({ title: sc.dataset.title, url: sc.dataset.native }).catch(function () {}); } else { var done = function () { var o = sc.innerHTML; sc.textContent = 'Copied'; setTimeout(function () { sc.innerHTML = o; }, 1500); }; if (navigator.clipboard) navigator.clipboard.writeText(sc.dataset.copy).then(done, function () {}); } return; }
+    if (sc) { e.preventDefault(); if (sc.dataset.native) { navigator.share({ title: sc.dataset.title, url: sc.dataset.native }).catch(function () {}); } else { var done = function () { if (sc.dataset.hint) { var m = document.getElementById('sitepopmsg'); if (m) m.textContent = 'Link copied. Open ' + sc.dataset.hint + ' and paste it into a post, story or message.'; return; } var o = sc.innerHTML; sc.textContent = 'Copied'; setTimeout(function () { sc.innerHTML = o; }, 1500); };
+      if (sc.dataset.hint && navigator.share) { navigator.share({ title: 'Israel Insider', url: sc.dataset.copy }).catch(function () {}); return; } if (navigator.clipboard) navigator.clipboard.writeText(sc.dataset.copy).then(done, function () {}); } return; }
     var el = e.target.closest('[data-play],[data-queue],[data-watch]'); if (!el) return;
     e.preventDefault();
     if (el.dataset.play) playItem(el.dataset.play);

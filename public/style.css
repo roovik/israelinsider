@@ -249,3 +249,14 @@ body{margin:0;background:#fff}
 .pg .card .acts a.btn{color:#fff}
 @media(max-width:700px){.tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.tabs a{flex:0 0 auto;padding:9px 14px;font-size:13px}.tabs::-webkit-scrollbar{display:none}}
 @media(min-width:901px){.tabs a[data-r=voices],.tabs a[data-r=nowlej]{flex:0 0 158.5px;width:158.5px}.tabs a[data-r=voices]{margin-left:21px}}
+
+.subnav{position:relative}
+.sharesite{background:none;border:0;font:700 13px var(--sans);color:var(--orange);padding:4px 12px;cursor:pointer}
+.sharesite:hover{text-decoration:underline}
+.sitepop{position:absolute;top:100%;z-index:30;width:420px;max-width:calc(100vw - 24px);background:#fff;border:1px solid var(--line);border-top:3px solid var(--orange);box-shadow:0 8px 24px rgba(20,33,61,.18);padding:14px}
+.sitepop[hidden]{display:none}
+.sitepop .pt{display:block;font:800 18px var(--logo);color:var(--bluedk);margin-bottom:10px}
+.sitepop .share.big{gap:6px}
+.sitepop .ph{font-size:12px;color:var(--ink2);margin-top:10px}
+.sh.ig{background:#c13584}.sh.tt{background:#111}
+@media(max-width:700px){.sitepop{left:0!important}}
