@@ -263,7 +263,7 @@
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
         var rv = posterRow(all) ? '<section class="sec rvs">' + sech('', 'Recent voices', 'Who posted last', ['#/voices', 'All voices']) + posterRow(all) + '</section>' : '';
-        return rv + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', vids, 'Watch', 'Latest video, one per channel', 'g3', 6) + shareHome(by('social')) + vo + nlBlock(nl);
+        return rv + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', vids, 'Watch', 'Latest video, one per channel', 'g3', 6) + shareHome(by('social')) + nlBlock(nl);
       });
     },
     subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },
