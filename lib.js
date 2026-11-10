@@ -141,6 +141,22 @@ export function discoverFeed(html, base) {
   }
   return null;
 }
+export const looksLikeFeed = t => /<(rss|feed|rdf:RDF)\b/i.test(String(t || '').slice(0, 2000));
+// Likely feed addresses for a site when the page itself does not advertise one.
+export function feedGuesses(site) {
+  let u; try { u = new URL(site); } catch { return []; }
+  const o = u.origin, p = u.pathname.replace(/\/$/, ''), out = [];
+  if (/blogspot\.com$/.test(u.hostname)) out.push(o + '/feeds/posts/default');
+  if (/substack\.com$/.test(u.hostname)) out.push(o + '/feed');
+  if (p && p !== '/') out.push(o + p + '/feed', o + p + '/feed/', o + p + '/rss');
+  out.push(o + '/feed', o + '/feed/', o + '/rss', o + '/rss.xml', o + '/feed.xml', o + '/atom.xml', o + '/index.xml');
+  return [...new Set(out)];
+}
+export function itunesFeed(json, name) {
+  const want = String(name).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const r = (json && json.results || []).find(x => x.feedUrl && String(x.collectionName || '').toLowerCase().replace(/[^a-z0-9]/g, '').includes(want.slice(0, 12)));
+  return r ? r.feedUrl : '';
+}
 export function youtubeFeedUrl(channelId) { return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`; }
 export function toRss(items, title, site) {
   const e = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

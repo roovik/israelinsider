@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
-import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat } from '../lib.js';
+import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
 <item><title><![CDATA[Sample &amp; essay]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
@@ -137,4 +137,19 @@ console.log('taxonomy ok');
   const pub = await (await call('/api/voices', {}, false)).json(); assert.ok(pub.voices.some(v => v.id === 'act-test'));
   const r2 = await (await call('/api/admin/listall', { method: 'POST', body: '{}' })).json(); assert.strictEqual(r2.listed, 0);
   console.log('listall ok');
+}
+
+{
+  assert.ok(feedGuesses('https://x.blogspot.com').includes('https://x.blogspot.com/feeds/posts/default'));
+  assert.ok(feedGuesses('https://a.org/blog/').includes('https://a.org/blog/feed'));
+  assert.ok(looksLikeFeed('<?xml?><rss version="2.0">') && !looksLikeFeed('<html>'));
+  assert.strictEqual(itunesFeed({ results: [{ collectionName: 'Call Me Back with Dan Senor', feedUrl: 'https://f.test/cmb' }] }, 'Call Me Back'), 'https://f.test/cmb');
+  const real = globalThis.fetch;
+  globalThis.fetch = async u => String(u) === 'https://nofeed.test/' ? new Response('<html>none</html>') : String(u) === 'https://nofeed.test/feed' ? new Response('<rss version="2.0"><channel></channel></rss>') : new Response('x', { status: 404 });
+  await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Guess Test', channels: [{ section: 'blog', site: 'https://nofeed.test/' }, { section: 'blog', site: 'https://none.test/' }] }] }) });
+  const r = await (await call('/api/admin/resolve', { method: 'POST', body: '{}' })).json();
+  globalThis.fetch = real;
+  const fs2 = (await (await call('/api/admin/feeds')).json()).feeds.filter(f => f.voice_id === 'guess-test');
+  assert.deepStrictEqual(fs2.map(f => f.url), ['https://nofeed.test/feed', '']);
+  console.log('resolve ok');
 }

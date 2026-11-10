@@ -1,5 +1,5 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
-import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS } from './lib.js';
+import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
@@ -239,18 +239,21 @@ export default {
         await putJson(env, 'voices', voices); return J({ ok: true, listed: n }, 200, { 'cache-control': 'no-store' });
       }
       if (p === '/api/admin/resolve' && req.method === 'POST') {
-        // Batches of 40 so one request stays under the subrequest limit. Each feed is tried once.
-        const feeds = await listFeeds(env); let found = 0; const missed = [];
+        // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
+        const b = await req.json().catch(() => ({})); const feeds = await listFeeds(env), names = Object.fromEntries(voices.map(v => [v.id, v.name]));
+        if (b.retry) for (const f of feeds) if (!f.url && !f.external_id) delete f.resolved_at;
+        const hdr = { 'user-agent': 'Mozilla/5.0 (compatible; IsraelInsiderBot/1.0; +https://israelinsider.org/bot)', cookie: 'CONSENT=YES+1', 'accept-language': 'en' };
+        const get = async u => { try { const r = await fetch(u, { headers: hdr, redirect: 'follow' }); return r.ok ? r : null; } catch { return null; } };
+        let found = 0; const missed = [];
         const todo = feeds.filter(f => !f.url && !f.external_id && f.site && !f.resolved_at);
-        for (const f of todo.slice(0, 40)) {
-          f.resolved_at = new Date().toISOString();
-          try {
-            const r = await fetch(f.site, { headers: { 'user-agent': 'IsraelInsiderBot/1.0 (+https://israelinsider.org/bot)' }, redirect: 'follow' });
-            const d = r.ok ? discoverFeed(await r.text(), f.site) : null;
-            if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
-          } catch { missed.push(f.id); }
+        for (const f of todo.slice(0, 6)) {
+          f.resolved_at = new Date().toISOString(); let d = null;
+          const pg = await get(f.site); if (pg) d = discoverFeed(await pg.text(), f.site);
+          if (!d && !/youtube\.com/.test(f.site)) for (const g of feedGuesses(f.site).slice(0, 4)) { const r = await get(g); if (r && looksLikeFeed(await r.text())) { d = { url: g }; break; } }
+          if (!d && (f.section === 'podcast' || f.kind === 'podcast')) { const r = await get('https://itunes.apple.com/search?media=podcast&limit=5&term=' + encodeURIComponent(names[f.voice_id] || '')); if (r) { const u2 = itunesFeed(await r.json().catch(() => null), names[f.voice_id] || ''); if (u2) d = { url: u2 }; } }
+          if (d) { Object.assign(f, d); found++; } else missed.push(f.id);
         }
-        await putJson(env, 'feeds', feeds); return J({ ok: true, found, missed, remaining: Math.max(0, todo.length - 40) }, 200, { 'cache-control': 'no-store' });
+        await putJson(env, 'feeds', feeds); return J({ ok: true, found, missed, remaining: Math.max(0, todo.length - 6) }, 200, { 'cache-control': 'no-store' });
       }
       if (p === '/api/admin/feed' && req.method === 'POST') {
         const b = await req.json(); const feeds = await listFeeds(env);
