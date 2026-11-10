@@ -7,8 +7,8 @@ body{margin:0;background:#fff}
 .pg a:hover{text-decoration:underline}
 .pg h1,.pg h2,.pg h3,.pg h4{font-family:var(--head);margin:0;line-height:1.25;text-wrap:balance}
 .pg p{margin:0}
-.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-@media(min-width:701px){.wrap{padding-left:74px}}
+.wrap{max-width:1320px;margin:0 auto;padding:0 20px}
+@media(min-width:701px){.wrap{padding-left:52px}}
 
 /* masthead: 2008 wordmark, blue band, NOWlej-style flat tabs */
 .adtop{background:#f1f3f6;border-bottom:1px solid #dde2e8;display:flex;justify-content:center;padding:6px 0}
@@ -38,10 +38,10 @@ body{margin:0;background:#fff}
 .mast .today{font-size:13px;color:var(--gray)}
 .topb{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 .navband{position:relative;background:var(--band);margin-top:6px;border-bottom:2px solid #a9b6c6}
-.navband .rule{position:absolute;left:86px;right:0;top:-5px;height:2px;background:var(--orange)}
-.navband .diag{position:absolute;left:60px;top:17px;width:35px;height:2px;background:var(--orange);transform:rotate(-40deg);transform-origin:left center}
+.navband .rule{position:absolute;left:62px;right:0;top:-5px;height:2px;background:var(--orange)}
+.navband .diag{position:absolute;left:38px;top:17px;width:35px;height:2px;background:var(--orange);transform:rotate(-40deg);transform-origin:left center}
 .navband .wrap{position:relative}
-.navband .dot{position:absolute;left:12px;top:8px;width:54px;height:54px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px #fff;z-index:2}
+.navband .dot{position:absolute;left:6px;top:8px;width:34px;height:34px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 3px #fff;z-index:2}
 .tabs{display:flex;flex-wrap:wrap;gap:3px}
 .tabs a{flex:1 1 90px;text-align:center;padding:10px 6px;font-weight:700;font-size:15px;letter-spacing:.02em;color:#fff;background:var(--voices);border:0}
 .tabs a:hover{filter:brightness(1.12);text-decoration:none}

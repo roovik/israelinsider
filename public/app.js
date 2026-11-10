@@ -139,7 +139,7 @@
         var links = r.feeds.map(function (f) { return '<div class="rw"><span class="dot" style="background:var(--' + f.format + ')"></span><a href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener">' + esc(f.kind) + '</a></div>'; }).join('');
         var tabs = '<nav class="tabs" style="margin-top:6px"><a class="plain on" data-f="all" href="#" style="background:var(--ink)">All</a>' + ['read', 'listen', 'watch', 'social'].filter(function (t) { return kinds[t]; }).map(function (t) { return '<a class="' + t + '" data-f="' + t + '" href="#">' + TYPES[t] + '</a>'; }).join('') + '</nav>';
         var feed = r.items.length ? grid(r.items, 'g2') : empty('No items yet.');
-        return '<div class="prof"><span class="big">' + esc(initials(v.name)) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p><div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div class="cols"><div class="main" id="vfeed">' + feed + '</div><aside class="side"><div class="panel"><h3>Follow and subscribe</h3>' + (links || '<p class="ex">No feeds listed.</p>') + '</div><div class="panel"><h3>About this listing</h3><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></aside></div>';
+        return '<div class="prof"><span class="big">' + esc(initials(v.name)) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p><div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
       });
     },
     submit: function () {
@@ -176,7 +176,7 @@
     renderSub(name, tm ? decodeURIComponent(tm[1]) : '');
     var t = ++token;
     view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
-    Promise.all([routes[name](name === 'voice' ? arg : q), name === 'voice' ? '' : sideCol()]).then(function (r) {
+    Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]).then(function (r) {
       if (t !== token) return;
       var html = r[0];
       view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
