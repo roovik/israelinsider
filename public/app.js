@@ -37,7 +37,11 @@
     var c = type ? ' ' + type : '';
     return '<div class="sech' + c + '"' + (type ? '' : ' style="--c:var(--ink)"') + '><h2' + (type ? '' : ' style="color:var(--ink)"') + '>' + esc(h) + '</h2><span class="d">' + esc(d || '') + '</span>' + (more ? '<a class="more" href="' + more[0] + '">' + esc(more[1]) + '</a>' : '') + '</div>';
   }
+  // On a voice's own page the name is already in the heading, so cards leave it out.
+  var HIDEV = false;
+  function kick(v) { return HIDEV ? '' : '' + kick(v) + ''; }
   function byline(i) {
+    if (HIDEV) return '';
     var v = i.voice || {};
     return '<span class="by"><span class="av">' + fi(v) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></span>';
   }
@@ -58,13 +62,13 @@
   function card0(i) {
     var t = i.format, v = i.voice || {};
     if (t === 'read') {
-      return '<article class="card read"><div class="bd"><span class="kick">' + esc(v.name) + '</span><h3><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a></h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span><span>' + mins(i) + ' min read</span></div></div></article>';
+      return '<article class="card read"><div class="bd">' + kick(v) + '<h3><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a></h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span><span>' + mins(i) + ' min read</span></div></div></article>';
     }
     if (t === 'listen') {
-      return '<article class="card listen"><div class="art sq">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-play="' + esc(i.id) + '" aria-label="Play ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Audio</span></div></div></article>';
+      return '<article class="card listen"><div class="art sq">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-play="' + esc(i.id) + '" aria-label="Play ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Audio</span></div></div></article>';
     }
     if (t === 'watch') {
-      return '<article class="card watch"><div class="art" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Watch ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Video</span></div></div></article>';
+      return '<article class="card watch"><div class="art" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Watch ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Video</span></div></div></article>';
     }
     return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
   }
@@ -290,7 +294,7 @@
         var l = a[0], VS = a[1];
         var rows = l.map(function (i) {
           var v = i.voice || {};
-          return '<article class="ep listen"><div class="cvr">' + fi(v) + '</div><div class="tx"><span class="kick">' + esc(v.name) + '</span><h3>' + esc(i.title) + '</h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '<span>Audio</span></div><div class="acts"><button class="btn sm" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play</button><button class="btn line sm" type="button" data-queue="' + esc(i.id) + '">Add to queue</button><a class="btn line sm" href="#/voice/' + esc(v.slug) + '">Show page</a></div>' + shareRow(i.url, i.title) + '</div></article>';
+          return '<article class="ep listen"><div class="cvr">' + fi(v) + '</div><div class="tx">' + kick(v) + '<h3>' + esc(i.title) + '</h3><p class="ex">' + esc(i.excerpt) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '<span>Audio</span></div><div class="acts"><button class="btn sm" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play</button><button class="btn line sm" type="button" data-queue="' + esc(i.id) + '">Add to queue</button><a class="btn line sm" href="#/voice/' + esc(v.slug) + '">Show page</a></div>' + shareRow(i.url, i.title) + '</div></article>';
         }).join('');
         return '<section class="sec listen" style="padding-top:26px">' + sech('listen', 'Listen', 'Audio-only podcasts. Press play and keep browsing, the player stays at the bottom.', ['/api/rss?format=listen', 'RSS']) + (l.length ? '<div class="grid g1" style="gap:14px 3px">' + rows + '</div>' : empty('Nothing here yet.')) + '</section>' + VS;
       });
@@ -328,7 +332,7 @@
         r.feeds.forEach(function (f) { kinds[f.format] = 1; });
         var links = r.feeds.map(function (f) { return '<div class="rw"><span class="dot" style="background:var(--' + f.format + ')"></span><a href="' + esc(safeUrl(f.url)) + '" target="_blank" rel="noopener">' + esc(f.kind) + '</a></div>'; }).join('');
         var tabs = '<nav class="tabs" style="margin-top:6px"><a class="plain on" data-f="all" href="#" style="background:var(--ink)">All</a>' + ['read', 'listen', 'watch', 'social'].filter(function (t) { return kinds[t]; }).map(function (t) { return '<a class="' + t + '" data-f="' + t + '" href="#">' + TYPES[t] + '</a>'; }).join('') + '</nav>';
-        var feed = r.items.length ? grid(r.items, 'g2') : empty('No items yet.');
+        HIDEV = true; var feed = r.items.length ? grid(r.items, 'g2') : empty('No items yet.'); HIDEV = false;
         return '<div class="prof"><span class="big">' + fi(v) + '</span><div class="tx"><h1>' + esc(v.name) + '</h1><p class="ex">' + esc(v.short_bio) + '</p>' + (v.bio ? v.bio.split(/\n\s*\n/).map(function (p) { return '<p class="lbio">' + esc(p) + '</p>'; }).join('') : '') + '<div class="meta">' + (v.topics || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' + (v.website ? '<a class="btn line" href="' + esc(safeUrl(v.website)) + '" target="_blank" rel="noopener">Visit site</a>' : '') + '</div>' + tabs + '<div id="vfeed" style="margin-top:18px">' + feed + '</div><div class="grid g2" style="margin-top:22px"><div class="panel"><h3>follow and subscribe</h3><div class="pb">' + (links || '<p class="ex">No feeds listed.</p>') + '</div></div><div class="panel"><h3>about this listing</h3><div class="pb"><p class="ex">Items link to the creator\'s own pages. Only headlines and short excerpts are shown here.</p></div></div></div>';
       });
     },
@@ -441,7 +445,7 @@
 
   function wireVoice() {
     var tabs = document.querySelectorAll('.tabs a[data-f]');
-    tabs.forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); tabs.forEach(function (b) { b.classList.remove('on'); }); a.classList.add('on'); var f = a.dataset.f; var list = Object.keys(ITEMS).map(function (k) { return ITEMS[k]; }).filter(function (i) { return (i.voice || {}).slug === location.hash.split('/')[2] && (f === 'all' || i.format === f); }); list.sort(function (x, y) { return y.published_at.localeCompare(x.published_at); }); $('#vfeed').innerHTML = list.length ? grid(list, 'g2') : empty('No items yet.'); }); });
+    tabs.forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); tabs.forEach(function (b) { b.classList.remove('on'); }); a.classList.add('on'); var f = a.dataset.f; var list = Object.keys(ITEMS).map(function (k) { return ITEMS[k]; }).filter(function (i) { return (i.voice || {}).slug === location.hash.split('/')[2] && (f === 'all' || i.format === f); }); list.sort(function (x, y) { return y.published_at.localeCompare(x.published_at); }); HIDEV = true; $('#vfeed').innerHTML = list.length ? grid(list, 'g2') : empty('No items yet.'); HIDEV = false; }); });
   }
   function wireSubmit() {
     var f = $('#subf'); if (!f) return;
