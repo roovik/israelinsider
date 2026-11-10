@@ -163,7 +163,8 @@ export default {
     }
     // Admin routes
     if (p.startsWith('/api/admin/')) {
-      if (!admin(req, env)) return J({ error: 'unauthorized' }, 401, { 'cache-control': 'no-store' });
+      if (!env.ADMIN_KEY) return J({ error: 'No ADMIN_KEY secret is set on this Worker yet. Add it in Cloudflare under Settings, Variables and Secrets, then try again.' }, 503, { 'cache-control': 'no-store' });
+      if (!admin(req, env)) return J({ error: 'Wrong key. It must match the ADMIN_KEY secret exactly, with no spaces.' }, 401, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voices') return J({ voices }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/items') { const it = await getJson(env, 'items', []); return J({ items: it.slice(0, 200), total: it.length }, 200, { 'cache-control': 'no-store' }); }
