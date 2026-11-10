@@ -66,7 +66,7 @@
     }
     return '<article class="card social"><div class="post"><div class="by"><span class="av">' + esc(initials(v.name)) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
   }
-  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + shareRow(i.url, i.title) + h.slice(k); }
+  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + shareRow(i.url, i.title) + h.slice(k); }
   function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g4') + '">' + items.map(card).join('') + '</div>' : ''; }
   function section(type, items, h, d, cls, limit) {
     return '<section class="sec ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
@@ -85,23 +85,38 @@
   function subForm(id) {
     return '<form class="subf" novalidate><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
   }
+  function browsePanel() {
+    var cats = (TAXIDX.raw && TAXIDX.raw.cats) || [];
+    if (!cats.length) return '';
+    return '<div class="panel"><h3>browse</h3><div class="pb"><ul class="nlist cl">' + cats.map(function (c) { return '<li><a href="#/cat/' + esc(c.slug) + '">' + esc(c.name) + '</a>' + (c.count ? '<span class="n">' + c.count + '</span>' : '') + '</li>'; }).join('') + '</ul><div class="rw"><a href="#/topics">All topics and tags</a></div></div></div>';
+  }
+  function tagsPanel() {
+    var tg = ((TAXIDX.raw && TAXIDX.raw.tags) || []).slice(0, 14);
+    return tg.length ? '<div class="panel"><h3>popular tags</h3><div class="pb">' + chipRow(tg.map(function (g) { return g.slug; }), chipT) + '</div></div>' : '';
+  }
+  function recentVoices(voices) {
+    var l = voices.slice().sort(function (a, b) { return (b.listed_on || '').localeCompare(a.listed_on || ''); }).slice(0, 6);
+    if (!l.length) return '';
+    return '<div class="panel"><h3>recent voices</h3><div class="pb">' + l.map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><div><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' + (v.listed_on ? '<span class="meta">Listed ' + esc(dfmt(v.listed_on)) + '</span>' : '') + '</div></div>'; }).join('') + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>';
+  }
   function sideCol() {
     return sideData().then(function (d) {
       var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
-        '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit Channel</a></div>' +
+        '<div class="cta"><b>Have a voice on Israel?</b><span>Get your content listed.</span><a class="btn big" href="#/submit">Submit Content</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
+        browsePanel() + tagsPanel() +
         '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place') + '</div></div>' +
         '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
         (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
-        (vl ? '<div class="panel"><h3>voices</h3><div class="pb">' + vl + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>' : '') +
+        recentVoices(d.voices) +
         '<div class="panel"><h3>from israel nowlej</h3><div class="pb"><span>News, views, media and sources.</span><a class="btn line sm" href="https://israelnowlej.com" target="_blank" rel="noopener">Visit Israel NOWlej</a></div></div>' +
         '<div class="adslot" data-slot="rect-300x250-b"><a class="adbox alt" data-slot="rect-300x250-b" href="#/submit"><small>Advertisement</small><b>Sponsor Israel Insider</b><span>Reach readers of Israel voices</span></a></div>' +
         '</aside>';
-    }).catch(function () { return ''; });
+    }).catch(function (e) { console.error('sideCol', e); return ''; });
   }
   function shareHome(posts) { return '<section class="sec social">' + sech('social', 'Share', 'Spread the word on every network', ['#/share', 'All sharing']) + '<div class="panel"><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place', true) + '</div></div>' + (posts.length ? '<div style="margin-top:18px">' + grid(posts, 'g3').replace(/^/, '') + '</div>' : '') + '</section>'; }
   var KIND = { petition: 'Petition', event: 'Event', donate: 'Donate', campus: 'Campus', volunteer: 'Volunteer', factcheck: 'Fact-check', correction: 'Correction', tracker: 'Tracker' };
@@ -130,18 +145,87 @@
     var ks = type === 'monitor' ? MONK : ACTK;
     return '<div style="max-width:760px"><section class="sec ' + type + '" style="padding-top:26px">' + sech(type, 'Submit an item', type === 'monitor' ? 'For Monitor' : 'For Act') + '<form class="frm" id="pf" novalidate><input type="hidden" name="type" value="' + type + '"><div class="fld"><label for="pk">Kind</label><select id="pk" name="kind">' + ks.map(function (k) { return '<option value="' + k + '">' + esc(KIND[k]) + '</option>'; }).join('') + '</select></div><div class="fld"><label for="pt">Title</label><input id="pt" name="title" required maxlength="200"></div><div class="fld"><label for="pu">Link (https)' + (type === 'monitor' ? ', the source' : '') + '</label><input id="pu" name="url" type="url" required placeholder="https://"></div><div class="fld"><label for="po">Organization' + (type === 'monitor' ? ' or outlet' : '') + '</label><input id="po" name="org"></div><div class="fld"><label for="ps">Summary, 300 characters</label><textarea id="ps" name="summary" maxlength="300"></textarea></div><div class="fld"><label for="pd">Date' + (type === 'monitor' ? ' of the source' : ': event date or petition deadline') + '</label><input id="pd" name="date" type="date"' + (type === 'monitor' ? ' required' : '') + '></div><div class="fld"><label for="pl">Location</label><input id="pl" name="location"></div><div class="fld"><label for="pe">Your contact email</label><input id="pe" name="email" type="email" required></div>' + (type === 'monitor' ? '<label class="chk" for="psc"><input id="psc" type="checkbox" name="scope_ok" value="1">This item concerns a public organization, outlet, statement or campaign, not a private individual.</label>' : '') + '<label class="chk" for="pc"><input id="pc" type="checkbox" name="consent" value="1">Israel Insider may publish this item with a link to the page above. An editor reviews every submission.</label><div><button class="btn big" type="submit">Send for review</button></div><div id="pmsg" role="status"></div></form></section></div>';
   }
+  var TAXP = null, TAXIDX = { cats: {}, subs: {}, tags: {} }, LASTSUB = null;
+  var DEFCATS = [['security', 'Security'], ['politics', 'Politics'], ['history', 'History'], ['culture', 'Society'], ['faith', 'Faith'], ['business', 'Business'], ['advocacy', 'Antisemitism'], ['diaspora', 'Diaspora']];
+  function taxData() {
+    if (!TAXP) TAXP = api('/api/taxonomy').then(function (t) {
+      TAXIDX = { cats: {}, subs: {}, tags: {}, raw: t };
+      t.cats.forEach(function (c) { TAXIDX.cats[c.slug] = c; c.subs.forEach(function (s) { TAXIDX.subs[s.slug] = { slug: s.slug, name: s.name, count: s.count, parent: c.slug }; }); });
+      t.tags.forEach(function (g) { TAXIDX.tags[g.slug] = g; });
+      if (LASTSUB) renderSub(LASTSUB[0], LASTSUB[1]);
+      return t;
+    }).catch(function () { return { cats: [], tags: [] }; });
+    return TAXP;
+  }
+  function catName(s) { var c = TAXIDX.cats[s]; return c ? c.name : (TAXIDX.subs[s] ? TAXIDX.subs[s].name : s); }
+  function tagName(s) { var g = TAXIDX.tags[s]; return g ? g.name : s.replace(/-/g, ' '); }
+  function chipC(s) { return '<a class="chip sm" href="#/cat/' + esc(s) + '">' + esc(catName(s)) + '</a>'; }
+  function chipT(s) { return '<a class="chip sm tg" href="#/tag/' + esc(s) + '">#' + esc(tagName(s)) + '</a>'; }
+  function itemChips(i) {
+    var c = (i.subs && i.subs[0]) || (i.cats && i.cats[0]), tg = (i.tags || []).slice(0, 2);
+    if (!c && !tg.length) return '';
+    return '<div class="tgrow">' + (c && (TAXIDX.cats[c] || TAXIDX.subs[c]) ? chipC(c) : '') + tg.map(chipT).join('') + '</div>';
+  }
+  function chipRow(list, fn) { return list.length ? '<div class="chips">' + list.map(fn).join('') + '</div>' : ''; }
+  function relBlock(rc, rt) {
+    var rcl = (rc || []).filter(function (s) { return TAXIDX.cats[s]; }), rtl = (rt || []).filter(function (s) { return TAXIDX.tags[s]; });
+    return (rcl.length ? '<h3 class="rl">Related categories</h3>' + chipRow(rcl, chipC) : '') + (rtl.length ? '<h3 class="rl">Related tags</h3>' + chipRow(rtl, chipT) : '');
+  }
+  function catPage(slug) {
+    return taxData().then(function () {
+      var sub = TAXIDX.subs[slug], cat = TAXIDX.cats[sub ? sub.parent : slug];
+      if (!cat) return '<section class="sec" style="padding-top:26px">' + sech('', 'Category not found', '') + empty('This category does not exist. See all topics.') + '</section>';
+      return items('cat=' + encodeURIComponent(slug) + '&limit=60').then(function (l) {
+        var name = sub ? sub.name : cat.name;
+        var crumb = '<p class="crumb"><a href="#/topics">Topics</a> &rsaquo; ' + (sub ? '<a href="#/cat/' + esc(cat.slug) + '">' + esc(cat.name) + '</a> &rsaquo; ' + esc(sub.name) : esc(cat.name)) + '</p>';
+        var subs = cat.subs.length ? '<h3 class="rl">' + (sub ? 'In ' + esc(cat.name) : 'Subcategories') + '</h3>' + chipRow(cat.subs, function (s) { return '<a class="chip' + (sub && s.slug === slug ? ' on' : '') + '" href="#/cat/' + esc(s.slug) + '">' + esc(s.name) + (s.count ? ' ' + s.count : '') + '</a>'; }) : '';
+        return '<section class="sec" style="padding-top:26px">' + crumb + sech('', name, sub ? '' : cat.desc) + subs + relBlock(cat.related_cats.filter(function (s) { return s !== cat.slug; }), cat.related_tags) + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing in this category yet.')) + '</div></section>';
+      });
+    });
+  }
+  function tagPage(slug) {
+    return taxData().then(function () {
+      var g = TAXIDX.tags[slug];
+      return items('tag=' + encodeURIComponent(slug) + '&limit=60').then(function (l) {
+        var name = g ? g.name : slug.replace(/-/g, ' ');
+        return '<section class="sec" style="padding-top:26px"><p class="crumb"><a href="#/topics">Topics</a> &rsaquo; Tags &rsaquo; #' + esc(name) + '</p>' + sech('', '#' + name, g ? g.count + ' ' + (g.count === 1 ? 'item' : 'items') : '') + (g ? relBlock(g.related_cats, g.related_tags.filter(function (s) { return s !== slug; })) : '') + '<div style="margin-top:22px">' + (l.length ? grid(l, 'g3') : empty('Nothing tagged this yet.')) + '</div></section>';
+      });
+    });
+  }
+  function topicsPage() {
+    return taxData().then(function (t) {
+      var cats = t.cats.map(function (c) { return '<div class="panel"><h3><a href="#/cat/' + esc(c.slug) + '">' + esc(c.name) + '</a></h3><div class="pb"><p class="ex">' + esc(c.desc) + '</p>' + (c.subs.length ? '<ul class="nlist">' + c.subs.map(function (s) { return '<li><a href="#/cat/' + esc(s.slug) + '">' + esc(s.name) + '</a>' + (s.count ? ' <span class="meta" style="display:inline">' + s.count + '</span>' : '') + '</li>'; }).join('') + '</ul>' : '') + '</div></div>'; }).join('');
+      return '<section class="sec" style="padding-top:26px">' + sech('', 'Topics', 'Browse by category, subcategory and tag') + '<div class="grid g3">' + cats + '</div>' + (t.tags.length ? sech('', 'Tags', 'Most used first') + chipRow(t.tags, function (g) { return '<a class="chip tg" href="#/tag/' + esc(g.slug) + '">#' + esc(g.name) + ' ' + g.count + '</a>'; }) : '') + '</section>';
+    });
+  }
+  var DRAFT = '<p class="draftnote">Draft text. This page is standard boilerplate and is being reviewed by counsel.</p>';
+  var STATIC = {
+    about: ['About', 'Israel Insider is where voices on Israel meet', '<p>Israel Insider gathers writers, podcasters, video creators and public voices who support Israel in one place. Every item links to the creator\'s own page, channel or feed.</p><p>It was once Israel\'s daily newsmagazine. It returns as a home for opinion. It carries no news of its own and no encyclopedia. For news, views, maps and reference, see Israel NOWlej, the family site it belongs to.</p><h2>How it works</h2><ul><li><b>Read, Listen, Watch.</b> Items from listed voices, with a headline, a short excerpt and a link back to the creator.</li><li><b>Share.</b> Every item and the site itself can be shared to every major network.</li><li><b>Act.</b> Petitions, events, donations and campus resources, listed after review.</li><li><b>Monitor.</b> Fact-checks, corrections and trackers on public claims, each with a source and a date.</li></ul><p>Want to take part? <a href="#/submit">Submit content</a> or <a href="#/subscribe">subscribe</a>.</p>'],
+    standards: ['Standards', 'Our standards', '<h2>What we list</h2><p>Voices that support Israel and meet basic standards of accuracy and civility. An editor reviews every voice before it is listed.</p><h2>How we use your work</h2><ul><li>We show headlines, excerpts of up to 300 characters and thumbnails, always with credit and a link to the original.</li><li>We show full text only where the creator gives written permission.</li><li>Creators can edit their profile or leave at any time through <a href="#/opt-out">Opt out</a>.</li></ul><h2>What we do not do</h2><ul><li>We do not publish news or encyclopedic content. Israel NOWlej covers that.</li><li>We do not profile private individuals.</li></ul><h2>Act</h2><p>Listings are submitted by organizations and reviewed before they appear. A listing is not an endorsement.</p><h2>Monitor</h2><p>Monitor covers public organizations, media outlets, official statements and documented campaigns. Every entry cites a source and a date. See <a href="#/corrections">Corrections</a> to report an error.</p>'],
+    terms: ['Terms', 'Terms of use', DRAFT + '<h2>1. About these terms</h2><p>By using Israel Insider (the site) you accept these terms. If you do not accept them, please do not use the site.</p><h2>2. What the site is</h2><p>Israel Insider lists voices that support Israel and links to their own pages. It shows headlines, short excerpts and thumbnails from their public feeds, with credit and a link to the original. It is not a news service.</p><h2>3. Third-party content</h2><p>Opinions belong to the voices who publish them. Listing a voice or linking to an item is not an endorsement of every statement. We do not control third-party sites and are not responsible for them.</p><h2>4. Submissions</h2><p>When you submit a channel, event, petition, fact-check or message, you confirm that you have the right to submit it and that it is accurate. We may edit, decline, hide or remove any submission. Submitting does not guarantee listing.</p><h2>5. Permissions and opt-out</h2><p>Creators may ask to edit or remove their listing at any time through the <a href="#/opt-out">Opt out</a> page. We act on such requests promptly.</p><h2>6. Names and logos</h2><p>The Israel Insider name, logo and design belong to the publisher. Third-party names and logos belong to their owners and appear only to identify them or to offer sharing.</p><h2>7. Acceptable use</h2><p>Do not misuse the site, try to disrupt it, collect data from it by automated means other than the public feeds we offer, or use it to harass or target private individuals.</p><h2>8. Disclaimer</h2><p>The site is provided as is, without warranties of any kind. Information may be incomplete or out of date.</p><h2>9. Limitation of liability</h2><p>To the fullest extent the law allows, the publisher is not liable for losses arising from use of the site or of any linked content.</p><h2>10. Changes</h2><p>We may update these terms. The date below shows the latest version.</p><p class="ex">Last updated: November 10, 2026. Questions? <a href="#/contact">Contact us</a>.</p>'],
+    privacy: ['Privacy', 'Privacy', DRAFT + '<h2>What we collect</h2><ul><li>Your email address, if you subscribe.</li><li>The details you give in submission and contact forms.</li><li>Standard server logs kept by our host, such as IP address, browser type and pages requested, for security and reliability.</li></ul><h2>What we do not do</h2><p>We do not sell personal data. At present the site uses no advertising cookies and no cross-site tracking. If that changes, we will update this page first.</p><h2>On your device</h2><p>Your browser may store the audio player\'s position and settings on your own device. We do not receive them.</p><h2>How we use it</h2><p>To send the digest you subscribed to, review submissions, answer messages and keep the site secure.</p><h2>Other services</h2><ul><li>The site is hosted on Cloudflare.</li><li>Embedded videos load from YouTube\'s privacy-enhanced domain only when you press play.</li><li>Share buttons open the network you choose, which applies its own privacy policy.</li></ul><h2>Your choices</h2><p>You can unsubscribe at any time or ask us to delete what we hold about you through the <a href="#/contact">contact form</a>.</p><h2>Keeping data</h2><p>Subscriber addresses are kept until you unsubscribe. Messages and submissions are kept as long as needed to respond and keep records.</p><p class="ex">Last updated: November 10, 2026.</p>']
+  };
+  var CTOPICS = ['General', 'Correction', 'Opt out', 'Sponsorship and advertising', 'Press', 'Technical problem'];
+  function contactForm(topic, heading, intro) {
+    return '<div style="max-width:640px"><section class="sec" style="padding-top:26px">' + sech('', heading, '') + '<p class="ex" style="font-size:16px;margin-bottom:16px">' + intro + '</p><form class="frm" id="cf" novalidate><div class="fld"><label for="cn">Name</label><input id="cn" name="name"></div><div class="fld"><label for="ce">Your email</label><input id="ce" name="email" type="email" required><small>We reply by email.</small></div><div class="fld"><label for="ct">Topic</label><select id="ct" name="topic">' + CTOPICS.map(function (t) { return '<option' + (t === topic ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div><div class="fld"><label for="cm">Message</label><textarea id="cm" name="message" required maxlength="3000" style="min-height:140px"></textarea></div><div><button class="btn big" type="submit">Send message</button></div><div id="cmsg" role="status"></div></form></section></div>';
+  }
+  function staticPage(key) {
+    var s = STATIC[key];
+    return '<section class="sec prose" style="padding-top:26px">' + sech('', s[1], '') + s[2] + '</section>';
+  }
   function nlList(title, list, more) {
     return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, 5).map(function (i) { return '<li><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
   }
   function nlBlock(nl) {
     return '<section class="sec">' + sech('', 'From Israel NOWlej', 'The latest news and views, from israelnowlej.com', ['#/nowlej', 'All sections']) + '<div class="nlcols">' + nlList('news', nl.news || [], '/news/') + nlList('views', nl.views || [], '/views/') + '</div></section>';
   }
+  var CURARG = '', CURQ = '';
   var routes = {
     home: function () {
       return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; })]).then(function (a) {
         var all = a[0], voices = a[1].voices, nl = a[2];
         if (!all.length && !voices.length) {
-          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Channel</a></section>' + nlBlock(nl);
+          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Content</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 8).map(voiceTile).join('') + '</div></section>' : '';
@@ -152,6 +236,16 @@
     act: function (q) { return entryPage('act', q); },
     monitor: function (q) { return entryPage('monitor', q); },
     propose: function () { var tm = /type=(act|monitor)/.exec(location.hash); return Promise.resolve(proposeForm(tm ? tm[1] : 'act')); },
+    about: function () { return Promise.resolve(staticPage('about')); },
+    standards: function () { return Promise.resolve(staticPage('standards')); },
+    terms: function () { return Promise.resolve(staticPage('terms')); },
+    privacy: function () { return Promise.resolve(staticPage('privacy')); },
+    contact: function () { return Promise.resolve(contactForm('General', 'Contact', 'Questions, sponsorship, press or a technical problem? Write to us here.')); },
+    corrections: function () { return Promise.resolve(contactForm('Correction', 'Corrections', 'Tell us about an error in a listing, excerpt or Monitor entry. Include the page and what should change.')); },
+    'opt-out': function () { return Promise.resolve(contactForm('Opt out', 'Opt out', 'Creators can ask to edit or remove a listing at any time. Tell us which voice or feed and we will act promptly.')); },
+    cat: function () { return catPage(CURARG); },
+    tag: function () { return tagPage(CURARG); },
+    topics: function () { return topicsPage(); },
     nowlej: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Israel NOWlej', 'News, views, media, the NOWlej glossary and sources') + '<p class="ex" style="max-width:62ch">Israel Insider is the opinion cousin of Israel NOWlej. For news, reference and sources, use the main sections of Israel NOWlej.</p><div class="nl">' + NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener"><b>' + x[0] + '</b><span class="ex">israelnowlej.com' + x[1] + '</span></a>'; }).join('') + '</div></section>'); },
     read: function (q) { return items('format=read&limit=60' + q).then(function (l) { return '<section class="sec read" style="padding-top:26px">' + sech('read', 'Read', 'Essays, columns, Substack and blog posts') + (l.length ? grid(l) : empty('Nothing here yet.')) + '</section>'; }); },
     share: function (q) {
@@ -194,7 +288,16 @@
       });
     },
     submit: function () {
-      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink)">' + sech('', 'Submit Channel', 'For writers, podcasters, video creators and public voices') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to your own site, channel or feed. You choose your excerpt, you can edit your profile, and you can opt out any time.</p><div id="subok"></div>' +
+      if (CURARG === 'channel') return routes.submitChannel();
+      var card = function (h, t, d) { return '<a href="' + h + '"><b>' + t + '</b><span class="ex">' + d + '</span></a>'; };
+      return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Submit Content', 'An editor reviews everything before it appears') + '<p class="ex" style="font-size:16px;max-width:64ch">Israel Insider lists voices that support Israel and links to their own pages. Choose what you want to submit.</p><div class="nl" style="margin-bottom:22px">' +
+        card('#/submit/channel', 'A channel or feed', 'A blog, newsletter, podcast, YouTube channel or social account. Your items then appear automatically, with a link back to you.') +
+        card('#/propose?type=act', 'An event, petition or donation page', 'Listed under Act with your own link and date.') +
+        card('#/propose?type=monitor', 'A fact-check, correction or tracker', 'Listed under Monitor. It must concern a public organization, outlet, statement or campaign, and cite a source.') +
+        '</div><p class="ex">Single articles, episodes and videos arrive through the channel they come from. Questions? <a href="#/contact">Contact us</a>.</p></section>');
+    },
+    submitChannel: function () {
+      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink)">' + sech('', 'Submit a channel', 'For writers, podcasters, video creators and public voices') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to your own site, channel or feed. You choose your excerpt, you can edit your profile, and you can opt out any time.</p><div id="subok"></div>' +
         '<form class="frm" id="subf" novalidate><div class="fld"><label for="nm">Name of the voice, show or channel</label><input id="nm" name="name" required></div><div class="fld"><label for="em">Contact email</label><input id="em" name="email" type="email" required><small>Used only to reach you about your listing.</small></div><div class="fld"><label for="wb">Website</label><input id="wb" name="website" type="url" placeholder="https://"></div><div class="fld"><label for="rss">Feeds: blog or newsletter, podcast RSS, YouTube channel, Substack</label><textarea id="rss" name="feeds" placeholder="One address per line"></textarea></div><div class="fld"><label for="xh">Social accounts</label><input id="xh" name="social" placeholder="X, Bluesky, Threads handles"></div><div class="fld"><label for="fm">Formats you publish</label><select id="fm" name="formats"><option>Writing</option><option>Audio podcast</option><option>Video podcast or vlog</option><option>More than one</option></select></div><div class="fld"><label for="bio">Short bio, two lines</label><textarea id="bio" name="bio" maxlength="500"></textarea></div><div class="fld"><label for="tp">Main topics</label><input id="tp" name="topics" placeholder="Security, diplomacy, campus, culture"></div><label class="chk" for="c2"><input id="c2" name="consent_excerpt" type="checkbox">Israel Insider may show my headlines, short excerpts and thumbnails with links to my own pages.</label><label class="chk" for="c3"><input id="c3" name="consent_full_text" type="checkbox">Optional: I give permission to show full text of my posts on Israel Insider.</label><div><button class="btn" type="submit">Send for review</button></div></form></section></div>');
     }
   };
@@ -226,14 +329,15 @@
   }
   function closeSitePop() { var pop = document.getElementById('sitepop'), b = document.getElementById('sharesite'); if (pop) pop.hidden = true; if (b) b.setAttribute('aria-expanded', 'false'); }
   function renderSub(name, topic) {
+    LASTSUB = [name, topic];
     var n = name === 'voice' ? 'voices' : name, L;
     if (n === 'nowlej') L = NL.map(function (x) { return '<a href="https://israelnowlej.com' + x[1] + '" target="_blank" rel="noopener">' + x[0] + '</a>'; });
-    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit Channel', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (n === 'voices' || n === 'submit') L = [['#/voices', 'All voices', n === 'voices'], ['#/submit', 'Submit Content', n === 'submit'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (n === 'act' || n === 'monitor') { var ks = n === 'act' ? ACTK : MONK; L = [['', 'All ' + n]].concat(ks.map(function (k) { return [k, KPLURAL[k]]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?kind=' + x[0] : '') + '">' + x[1] + '</a>'; }); L.push('<a href="#/propose?type=' + n + '">Submit an item</a>'); }
     else if (n === 'propose') L = [['#/act', 'Act'], ['#/monitor', 'Monitor']].map(function (x) { return '<a href="' + x[0] + '">' + x[1] + '</a>'; });
     else if (n === 'share') L = [['#/share', 'Share the site', 1], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
-    else if (TYPES[n]) L = [['', 'All ' + n]].concat(TOPICS.map(function (t) { return [t, t.charAt(0).toUpperCase() + t.slice(1)]; })).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?topic=' + x[0] : '') + '">' + x[1] + '</a>'; });
-    else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit Channel'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
+    else if (TYPES[n]) { var cl = (TAXIDX.raw && TAXIDX.raw.cats.length) ? TAXIDX.raw.cats.map(function (c) { return [c.slug, c.name.split(' & ')[0]]; }) : DEFCATS; L = [['', 'All ' + n]].concat(cl).map(function (x) { return '<a' + (x[0] === topic ? ' class="on"' : '') + ' href="#/' + n + (x[0] ? '?cat=' + x[0] : '') + '">' + x[1] + '</a>'; }); }
+    else L = [['#/', 'Latest', 1], ['#/voices', 'All voices'], ['#/submit', 'Submit Content'], ['/api/rss', 'RSS']].map(function (x) { return '<a' + (x[2] ? ' class="on"' : '') + ' href="' + x[0] + '">' + x[1] + '</a>'; });
     L.push('<button class="sharesite" id="sharesite" type="button" aria-expanded="false" aria-controls="sitepop">Share Site</button>');
     var el = document.getElementById('sublinks'); el.innerHTML = L.join('');
     el.parentNode.style.setProperty('--sc', SUBCOL[n] || 'var(--blue)');
@@ -242,18 +346,19 @@
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('?')[0].split('/');
     var name = parts[0] || 'home', arg = parts[1] ? decodeURIComponent(parts[1]) : '';
-    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '');
+    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), cm = /[?&]cat=([^&]*)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '') + (cm ? '&cat=' + cm[1] : '');
+    CURARG = arg; CURQ = q;
     if (name === 'social') name = 'share';
     if (!routes[name]) name = 'home';
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
-    renderSub(name, km ? decodeURIComponent(km[1]) : (tm ? decodeURIComponent(tm[1]) : ''));
+    renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')));
     var t = ++token;
     view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
-    Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]).then(function (r) {
+    taxData().then(function () { return Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]); }).then(function (r) {
       if (t !== token) return;
       var html = r[0];
       view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
-      if (name === 'submit') wireSubmit();
+      if (name === 'submit' && arg === 'channel') wireSubmit();
       if (name === 'voice') wireVoice();
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
   }
@@ -318,6 +423,8 @@
   }
 
   document.addEventListener('submit', function (e) {
+    var cf = e.target.closest('#cf');
+    if (cf) { e.preventDefault(); var cd = {}; new FormData(cf).forEach(function (v, k) { cd[k] = v; }); var cm = document.getElementById('cmsg'); fetch('/api/contact', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(cd) }).then(function (r) { if (r.ok) { cf.hidden = true; cm.innerHTML = '<div class="ok">Thank you. We will reply by email.</div>'; } else r.json().then(function (x) { cm.innerHTML = '<div class="err">' + esc(x.error || 'Could not send.') + '</div>'; }); }).catch(function () { cm.innerHTML = '<div class="err">Could not send. Check your connection.</div>'; }); return; }
     var pf = e.target.closest('#pf');
     if (pf) { e.preventDefault(); var d = {}; new FormData(pf).forEach(function (v, k) { d[k] = v; }); var m = document.getElementById('pmsg'); fetch('/api/propose', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then(function (r) { if (r.ok) { pf.hidden = true; m.innerHTML = '<div class="ok">Thank you. Your item is in the review queue.</div>'; } else r.json().then(function (x) { m.innerHTML = '<div class="err">' + esc(x.error || 'Could not send.') + '</div>'; }); }).catch(function () { m.innerHTML = '<div class="err">Could not send. Check your connection.</div>'; }); return; }
     var f = e.target.closest('.subf'); if (!f) return; e.preventDefault();

@@ -263,3 +263,30 @@ body{margin:0;background:#fff}
 
 .sh svg{width:14px;height:14px;fill:#fff;flex:none}
 .share.big .sh b svg{width:19px;height:19px}
+
+.chip.sm{min-height:26px;padding:2px 10px;font-size:12px}
+.chip.tg{background:#fff;border-color:#c5d3e6;color:var(--ink2);font-weight:600}
+.pg a.chip{text-decoration:none}.pg a.chip:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tgrow{display:flex;flex-wrap:wrap;gap:5px;padding:0 14px 8px}
+.card .bd+.tgrow{margin-top:-4px}
+.crumb{font-size:12px;color:var(--ink2);margin-bottom:6px}.crumb a{color:var(--bluedk);font-weight:700}
+.rl{font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:14px 0 8px}
+.cl li{display:flex;justify-content:space-between;gap:10px}.cl .n{font-size:12px;color:var(--ink2)}
+.panel h3 a{color:inherit}
+.prose{max-width:760px}.prose h2{font:800 20px var(--logo);color:var(--bluedk);margin:22px 0 6px}
+.prose p,.prose li{font-size:15px;line-height:1.65;margin:0 0 10px}.prose ul{padding-left:20px;margin:0 0 10px}.prose a{color:var(--bluedk);font-weight:700;text-decoration:underline}
+.draftnote{background:#fff3c9;border:1px solid #e6cf7a;color:#5b4300;padding:8px 12px;font-size:13px}
+.foot{background:var(--strip);padding:30px 0 22px}
+.fcols{display:flex;flex-wrap:wrap;gap:24px 40px}
+.fc{display:flex;flex-direction:column;gap:6px;min-width:130px}
+.fc h4{font:800 14px var(--logo);color:var(--bluedk);text-transform:lowercase;margin:0 0 4px}
+.fc a{color:var(--ink);font-size:13px}
+.fabout{flex:1 1 260px;max-width:340px;font-size:13px;color:var(--ink2)}
+.fabout p{margin:6px 0 0}
+.fl{font:800 24px var(--logo);color:var(--blue)}.fl i{font-style:normal;font-weight:400;color:var(--gray)}
+.fine{margin:22px 0 0;padding-top:14px;border-top:1px dotted #9aa8b8;font-size:12px;color:var(--ink2);line-height:1.6;max-width:900px}
+.fine a{color:var(--bluedk);text-decoration:underline}
+.pg a.chip{color:var(--bluedk);border-color:var(--blue)}
+.pg a.chip.tg{color:var(--ink2);border-color:#c5d3e6}
+.pg a.chip.on{color:#fff}
+.chips+.rl{margin-top:18px}

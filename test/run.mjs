@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
+import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
 import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
@@ -74,3 +75,23 @@ console.log('nowlej ok');
   assert.equal((await (await call('/api/entries?type=monitor', {}, false)).json()).entries.length, 0);
 }
 console.log('entries ok');
+
+{
+  const c1 = classify({ title: 'IDF reservists return as Hezbollah threat grows', excerpt: 'A note on Lebanon and the army.' }, { topics: ['Security'] }, DEFAULT_TAXONOMY);
+  assert.ok(c1.cats.includes('security') && c1.subs.includes('idf') && c1.subs.includes('terrorism') && c1.tags.includes('hezbollah'));
+  const c2 = classify({ title: 'Startup funding in Tel Aviv', excerpt: '' }, { topics: ['culture'] }, DEFAULT_TAXONOMY);
+  assert.ok(c2.cats.includes('business') && c2.cats.includes('culture'));
+  const none = classify({ title: 'Plain title', excerpt: 'Nothing special' }, { topics: [] }, DEFAULT_TAXONOMY); assert.equal(none.cats.length, 0);
+  const T = buildTaxonomy(DEFAULT_TAXONOMY, [{ ...c1 }, { ...c1 }, { ...c2 }]);
+  assert.equal(T.cats.find(c => c.slug === 'security').count, 2);
+  assert.ok(T.cats.find(c => c.slug === 'security').related_tags.includes('hezbollah'));
+  assert.ok(T.tags.find(t => t.slug === 'hezbollah').count === 2);
+  assert.equal(validTaxonomy(DEFAULT_TAXONOMY), '');
+  assert.ok(validTaxonomy({ cats: [{ slug: 'a', name: 'A', subs: [{ slug: 'a', name: 'A2' }] }] }));
+  assert.equal((await call('/api/contact', { method: 'POST', body: JSON.stringify({ message: 'hi' }) }, false)).status, 422);
+  assert.equal((await call('/api/contact', { method: 'POST', body: JSON.stringify({ email: 'a@b.co', message: 'hi', topic: 'Correction' }) }, false)).status, 201);
+  assert.equal((await (await call('/api/admin/messages', {}, true)).json()).messages[0].topic, 'Correction');
+  assert.equal((await call('/api/taxonomy', {}, false)).status, 200);
+  assert.equal((await call('/api/admin/taxonomy', { method: 'POST', body: JSON.stringify({ taxonomy: { cats: [] } }) }, true)).status, 422);
+}
+console.log('taxonomy ok');

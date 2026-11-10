@@ -1,5 +1,6 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
 import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss } from './lib.js';
+import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -7,6 +8,9 @@ const MAX_ITEMS = 1500;
 
 async function getJson(env, key, dflt) { const v = await env.STORE.get(key, 'json'); return v ?? dflt; }
 const putJson = (env, key, v) => env.STORE.put(key, JSON.stringify(v));
+
+async function getTax(env) { return (await getJson(env, 'taxonomy', null)) || DEFAULT_TAXONOMY; }
+async function itemsC(env, vb) { const [items, tax] = await Promise.all([getJson(env, 'items', []), getTax(env)]); return items.map(i => ({ ...i, ...classify(i, vb[i.voice_id], tax) })); }
 
 async function listVoices(env) { return getJson(env, 'voices', []); }
 async function listFeeds(env) { return getJson(env, 'feeds', []); }
@@ -56,6 +60,8 @@ function filter(items, q, voicesById) {
   let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed');
   if (q.get('format')) out = out.filter(i => i.format === q.get('format'));
   if (q.get('voice')) out = out.filter(i => voicesById[i.voice_id]?.slug === q.get('voice'));
+  if (q.get('cat')) out = out.filter(i => (i.cats || []).includes(q.get('cat')) || (i.subs || []).includes(q.get('cat')));
+  if (q.get('tag')) out = out.filter(i => (i.tags || []).includes(q.get('tag')));
   if (q.get('topic')) out = out.filter(i => (i.topics || []).includes(q.get('topic')));
   if (q.get('q')) { const k = q.get('q').toLowerCase(); out = out.filter(i => (i.title + ' ' + i.excerpt).toLowerCase().includes(k)); }
   const limit = Math.min(+q.get('limit') || 30, 100), offset = +q.get('offset') || 0;
@@ -87,16 +93,16 @@ export default {
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req);
     const voices = await listVoices(env); const vb = Object.fromEntries(voices.map(v => [v.id, v]));
 
-    if (p === '/api/items') { const items = filter(await getJson(env, 'items', []), u.searchParams, vb); return J({ items: items.map(i => publicItem(i, vb[i.voice_id])) }); }
+    if (p === '/api/items') { const items = filter(await itemsC(env, vb), u.searchParams, vb); return J({ items: items.map(i => publicItem(i, vb[i.voice_id])) }); }
     if (p === '/api/voices') return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => v) });
     if (p.startsWith('/api/voice/')) {
       const v = voices.find(x => x.slug === p.slice(11) && x.status === 'listed'); if (!v) return J({ error: 'not found' }, 404);
       const feeds = (await listFeeds(env)).filter(f => f.voice_id === v.id).map(f => ({ kind: f.kind, url: f.url, format: f.format }));
-      const items = filter(await getJson(env, 'items', []), new URLSearchParams({ voice: v.slug, limit: '60' }), vb);
+      const items = filter(await itemsC(env, vb), new URLSearchParams({ voice: v.slug, limit: '60' }), vb);
       const { consent, ...pub } = v; return J({ voice: pub, feeds, items: items.map(i => publicItem(i, v)) });
     }
     if (p === '/api/rss') {
-      const items = filter(await getJson(env, 'items', []), u.searchParams, vb);
+      const items = filter(await itemsC(env, vb), u.searchParams, vb);
       return new Response(toRss(items, 'Israel Insider ' + (u.searchParams.get('format') || 'all'), u.origin), { headers: { 'content-type': 'application/rss+xml; charset=utf-8', 'cache-control': 'public, max-age=300' } });
     }
     if (p === '/api/submit' && req.method === 'POST') {
@@ -111,6 +117,18 @@ export default {
       const get = async path => { try { const r = await fetch('https://israelnowlej.com' + path, { headers: { 'user-agent': 'IsraelInsider/1.0' }, cf: { cacheTtl: 600, cacheEverything: true } }); if (!r.ok) return []; return nlItems((await r.json()).items); } catch { return []; } };
       const [news, views] = await Promise.all([get('/api/news?v=2'), get('/api/news?views=1&v=2')]);
       return J({ news, views }, 200, { 'cache-control': 'public, max-age=600' });
+    }
+    if (p === '/api/taxonomy') {
+      const tax = await getTax(env), all = (await itemsC(env, vb)).filter(i => !i.hidden && vb[i.voice_id]?.status === 'listed');
+      return J({ ...buildTaxonomy(tax, all) }, 200, { 'cache-control': 'public, max-age=300' });
+    }
+    if (p === '/api/contact' && req.method === 'POST') {
+      let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
+      const topics = ['General', 'Correction', 'Opt out', 'Sponsorship and advertising', 'Press', 'Technical problem'];
+      if (!String(b.message || '').trim() || !/^\S+@\S+\.\S+$/.test(b.email || '')) return J({ error: 'A valid email and a message are required' }, 422);
+      const m = await getJson(env, 'messages', []); if (m.length > 500) return J({ error: 'inbox full' }, 429);
+      m.push({ id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name || '').slice(0, 120), email: String(b.email).slice(0, 200), topic: topics.includes(b.topic) ? b.topic : 'General', message: String(b.message).slice(0, 3000) });
+      await putJson(env, 'messages', m); return J({ ok: true }, 201, { 'cache-control': 'no-store' });
     }
     if (p === '/api/entries') {
       const type = u.searchParams.get('type'), kind = u.searchParams.get('kind'), lim = Math.min(+u.searchParams.get('limit') || 30, 100), today = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
@@ -145,6 +163,15 @@ export default {
       if (p === '/api/admin/feed/delete' && req.method === 'POST') { const b = await req.json(); const feeds = (await listFeeds(env)).filter(f => f.id !== b.id); await putJson(env, 'feeds', feeds); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/voice/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'voices', voices.filter(v => v.id !== b.id)); await putJson(env, 'feeds', (await listFeeds(env)).filter(f => f.voice_id !== b.id)); await putJson(env, 'items', (await getJson(env, 'items', [])).filter(i => i.voice_id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/submission/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'submissions', (await getJson(env, 'submissions', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/messages') return J({ messages: await getJson(env, 'messages', []) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/message/delete' && req.method === 'POST') { const b = await req.json(); await putJson(env, 'messages', (await getJson(env, 'messages', [])).filter(x => x.id !== b.id)); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/taxonomy' && req.method !== 'POST') return J({ taxonomy: await getTax(env), is_default: !(await getJson(env, 'taxonomy', null)) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/taxonomy' && req.method === 'POST') {
+        const b = await req.json();
+        if (b.reset) { await env.STORE.delete('taxonomy'); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+        const err = validTaxonomy(b.taxonomy); if (err) return J({ error: err }, 422);
+        await putJson(env, 'taxonomy', b.taxonomy); return J({ ok: true }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/entries') return J({ entries: await getJson(env, 'entries', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/proposals') return J({ proposals: await getJson(env, 'proposals', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/entry' && req.method === 'POST') {
