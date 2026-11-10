@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Israel Insider</title>
+<meta name="description" content="Pro-Israel voices in one place: writers, podcasters, video creators and public figures. Links to the creator's own pages.">
+<link rel="canonical" href="https://israelinsider.org/">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:wght@600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<link rel="alternate" type="application/rss+xml" title="Israel Insider" href="/api/rss">
+</head>
+<body style="margin:0">
+<div class="pg" id="shell">
+<header class="mast"><div class="wrap">
+<div class="top">
+<a class="logo" href="#/"><span class="tiles"><b>I</b><b class="d">N</b><b>S</b></span><span><span class="word">Israel Insider</span><br><span class="sub">Voices on Israel · cousin of Israel NOWlej</span></span></a>
+<span class="sp"></span>
+<form class="search" id="sf"><input type="search" id="q" aria-label="Search voices and items" placeholder="Search voices, shows, topics"><button type="submit">Search</button></form>
+<a class="btn" href="#/submit">Submit your feed</a>
+</div>
+<nav class="tabs" id="tabs" aria-label="Sections">
+<a class="plain" data-r="home" href="#/">Home</a><a class="read" data-r="read" href="#/read">Read</a><a class="listen" data-r="listen" href="#/listen">Listen</a><a class="watch" data-r="watch" href="#/watch">Watch</a><a class="social" data-r="social" href="#/social">Social</a><a class="plain" data-r="voices" href="#/voices">Voices</a>
+</nav></div></header>
+<main><div class="wrap" id="view" aria-live="polite"></div></main>
+<div class="pbar" id="pbar" hidden><div class="wrap"><div class="in">
+<div class="cv" id="pcv"></div>
+<div class="ti"><b id="ptitle"></b><span id="pshow"></span></div>
+<div class="ctl"><button class="cb" id="pback" type="button" aria-label="Back 15 seconds">-15</button><button class="cb main" id="ppp" type="button" aria-label="Play or pause">Play</button><button class="cb" id="pfwd" type="button" aria-label="Forward 30 seconds">+30</button><button class="cb" id="pspd" type="button" aria-label="Playback speed">1x</button></div>
+<div class="prog"><span id="pcur">0:00</span><input type="range" id="pseek" min="0" max="1000" value="0" aria-label="Seek" style="flex:1;min-width:80px"><span id="pdur">0:00</span></div>
+<audio id="aud" preload="none"></audio>
+</div></div></div>
+<footer class="foot"><div class="wrap"><div class="row">
+<span><b>Israel Insider</b> links to every voice and credits it. Items open on the creator's own site, channel or feed.</span>
+<span><a href="#/submit">Submit your feed</a></span><span><a href="/api/rss">RSS</a></span><span><a href="https://israelnowlej.com">Israel NOWlej</a></span>
+</div></div></footer>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
