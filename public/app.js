@@ -313,14 +313,11 @@
           return l.length ? '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + '<div class="grid g3 vdir">' + l.map(vcard).join('') + '</div></section>' : '';
         }).join('');
         return items('limit=100' + (only ? '&section=' + only : '')).then(function (its) {
-          var seenV = {}, recent = [];
-          its.forEach(function (i) { if (i.voice && !seenV[i.voice.slug]) { seenV[i.voice.slug] = 1; recent.push(i); } });
-          var rv = recent.length ? '<section class="sec">' + sech('', 'Recent voices', 'Who posted last, with their latest post') + '<div class="grid g3 vdir">' + recent.slice(0, 12).map(function (i) {
-            var x = i.voice, face = x.avatar && /^https:\/\//.test(x.avatar) ? '<img src="' + esc(x.avatar) + '" alt="" loading="lazy" referrerpolicy="no-referrer">' : fi(x);
-            return '<div class="rvc"><a class="face" href="#/voice/' + esc(x.slug) + '">' + face + '</a><div class="rb"><a class="rn" href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a><a class="rt" href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a><span class="meta">' + ago(i.published_at) + ' &middot; ' + esc(SLONE[i.section] || 'Post') + '</span></div></div>';
-          }).join('') + '</div></section>' : '';
-          var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + grid(its.slice(0, 15), 'g3') + '</section>' : '';
-          return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'A directory of writers, shows and channels') + jump + '</section>' + rv + blocks + lp;
+          var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + '<ul class="lpl">' + its.slice(0, 25).map(function (i) {
+            var x = i.voice || {};
+            return '<li><a class="face" href="#/voice/' + esc(x.slug) + '" tabindex="-1" aria-hidden="true">' + fi(x) + '</a><div><a class="t" href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a><span class="meta"><a href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a> &middot; ' + ago(i.published_at) + '</span></div></li>';
+          }).join('') + '</ul></section>' : '';
+          return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Latest posts first, then every voice') + jump + '</section>' + lp + blocks;
         });
       });
     },
@@ -362,8 +359,7 @@
     submitChannel: function () { return routes.submit(); }
   };
   function vcard(v) {
-    var lt = (v.latest || []).map(function (p) { return '<li><a href="' + esc(safeUrl(p.u)) + '" target="_blank" rel="noopener">' + esc(p.t) + '</a><span class="when">' + ago(p.d) + '</span></li>'; }).join('');
-    return '<div class="vcard"><a class="big" href="#/voice/' + esc(v.slug) + '" tabindex="-1" aria-hidden="true">' + fi(v) + '</a><div class="vb"><a class="vn" href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' &middot; ') + '</span>' : '') + (lt ? '<ul class="vlat">' + lt + '</ul>' : '<span class="vs">' + esc(v.short_bio || '') + '</span>') + '</div></div>';
+    return '<a class="vcard vmin" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vn">' + esc(v.name) + '</span></a>';
   }
   function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
   // a strip of voices that belong to a tab, shown on the tab page

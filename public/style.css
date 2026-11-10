@@ -381,3 +381,12 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .vlat li a:hover{color:var(--bluedk)}
 .vlat .when{font-size:11px;color:var(--gray);margin-top:1px}
 .vcard:hover{background:var(--card)}
+
+.lpl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:3px}
+.lpl li{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);padding:9px 14px}
+.lpl .face{flex:none;width:36px;height:36px;border-radius:50%;background:var(--bluedk);color:#fff;display:flex;align-items:center;justify-content:center;font:800 13px var(--head);overflow:hidden;text-decoration:none}
+.lpl .t{font:700 15px/1.3 var(--head);color:var(--bluedk);display:block}
+.lpl .meta{display:block;font-size:12px;color:var(--gray);margin-top:2px}
+.lpl .meta a{color:var(--gray);font-weight:700}
+.vmin{align-items:center}
+.vmin .vn{font:800 15px var(--head);color:var(--bluedk)}
