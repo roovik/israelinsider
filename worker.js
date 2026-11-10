@@ -1,5 +1,5 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
-import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed } from './lib.js';
+import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
@@ -56,8 +56,10 @@ export async function runIngest(env, fetcher = fetch) {
   return { added, total: all.length };
 }
 
+const PER_VOICE = 3;
 function filter(items, q, voicesById) {
-  let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed');
+  let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed' && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
+  if (!q.get('voice')) { const n = {}; out = out.filter(i => (n[i.voice_id] = (n[i.voice_id] || 0) + 1) <= PER_VOICE); } // diversity: newest 3 per source, except on a voice's own page
   if (q.get('format')) out = out.filter(i => i.format === q.get('format'));
   if (q.get('section')) out = out.filter(i => i.section === q.get('section'));
   if (q.get('voice')) out = out.filter(i => voicesById[i.voice_id]?.slug === q.get('voice'));
@@ -124,7 +126,7 @@ export default {
       return J({ news, views }, 200, { 'cache-control': 'public, max-age=600' });
     }
     if (p === '/api/taxonomy') {
-      const tax = await getTax(env), all = (await itemsC(env, vb)).filter(i => !i.hidden && vb[i.voice_id]?.status === 'listed');
+      const tax = await getTax(env), all = (await itemsC(env, vb)).filter(i => !i.hidden && vb[i.voice_id]?.status === 'listed' && isRelevant(i));
       return J({ ...buildTaxonomy(tax, all) }, 200, { 'cache-control': 'public, max-age=300' });
     }
     if (p === '/api/contact' && req.method === 'POST') {

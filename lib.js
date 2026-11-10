@@ -110,6 +110,7 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
       voice_id: voice.id, feed_id: feed.id, format: feed.format, section: sectionOf(feed),
       title: r.title, url, published_at: new Date(published).toISOString(),
       excerpt: excerpt(src, 300),
+      rel: RELEVANT.test(String(r.title) + ' ' + String(r.desc || '') + ' ' + String(r.encoded || '')),
       thumbnail_url: r.thumb || '',
       duration_seconds: r.duration || 0,
       audio_url: feed.format === 'listen' ? r.audio : '',
@@ -157,6 +158,9 @@ export function itunesFeed(json, name) {
   const r = (json && json.results || []).find(x => x.feedUrl && String(x.collectionName || '').toLowerCase().replace(/[^a-z0-9]/g, '').includes(want.slice(0, 12)));
   return r ? r.feedUrl : '';
 }
+// Owner rule: only posts that mention one of these words are shown.
+export const RELEVANT = /\b(israel|israeli|israelis|jewish|jews|jerusalem)\b/i;
+export const isRelevant = i => (typeof i.rel === 'boolean') ? i.rel : RELEVANT.test((i.title || '') + ' ' + (i.excerpt || ''));
 export function youtubeFeedUrl(channelId) { return `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`; }
 export function toRss(items, title, site) {
   const e = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

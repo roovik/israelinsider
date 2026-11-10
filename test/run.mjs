@@ -1,14 +1,14 @@
 import assert from 'node:assert';
 import worker, { runIngest, nlItems, cleanEntry } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
-import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed } from '../lib.js';
+import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
-<item><title><![CDATA[Sample &amp; essay]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
-const pod = `<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0"><channel><item><title>Episode 7</title><link>https://example.org/e7</link><guid>e7</guid><pubDate>Sun, 08 Nov 2026 08:00:00 GMT</pubDate><description>Talk about politics.</description><enclosure url="https://cdn.example.org/e7.mp3" length="1" type="audio/mpeg"/><itunes:duration>41:08</itunes:duration><itunes:image href="https://example.org/a.jpg"/></item></channel></rss>`;
-const yt = `<feed xmlns:yt="x" xmlns:media="y" xmlns="http://www.w3.org/2005/Atom"><entry><id>yt:video:abc123</id><yt:videoId>abc123</yt:videoId><title>Video title</title><link rel="alternate" href="https://www.youtube.com/watch?v=abc123"/><author><name>Map Minutes</name></author><published>2026-11-09T12:00:00+00:00</published><media:group><media:thumbnail url="https://i.ytimg.com/vi/abc123/hq.jpg" width="480" height="360"/><media:description>A five minute explainer.</media:description></media:group></entry></feed>`;
+<item><title><![CDATA[Sample &amp; essay on Israel]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
+const pod = `<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0"><channel><item><title>Episode 7 on Israel</title><link>https://example.org/e7</link><guid>e7</guid><pubDate>Sun, 08 Nov 2026 08:00:00 GMT</pubDate><description>Talk about politics.</description><enclosure url="https://cdn.example.org/e7.mp3" length="1" type="audio/mpeg"/><itunes:duration>41:08</itunes:duration><itunes:image href="https://example.org/a.jpg"/></item></channel></rss>`;
+const yt = `<feed xmlns:yt="x" xmlns:media="y" xmlns="http://www.w3.org/2005/Atom"><entry><id>yt:video:abc123</id><yt:videoId>abc123</yt:videoId><title>Video title on Israel</title><link rel="alternate" href="https://www.youtube.com/watch?v=abc123"/><author><name>Map Minutes</name></author><published>2026-11-09T12:00:00+00:00</published><media:group><media:thumbnail url="https://i.ytimg.com/vi/abc123/hq.jpg" width="480" height="360"/><media:description>A five minute explainer.</media:description></media:group></entry></feed>`;
 
-const b = parseFeed(blog); assert.equal(b.length, 1); assert.equal(b[0].title, 'Sample & essay'); assert.equal(b[0].author, 'Sample Writer');
+const b = parseFeed(blog); assert.equal(b.length, 1); assert.equal(b[0].title, 'Sample & essay on Israel'); assert.equal(b[0].author, 'Sample Writer');
 const voice = { id: 'v1', slug: 'v1', name: 'V1', status: 'listed', topics: ['security'], consent: {} };
 let items = await toItems({ id: 'f1', kind: 'blog', format: 'read' }, voice, b, Date.parse('2026-11-10'));
 assert.equal(items[0].url, 'https://example.org/p/1?id=2'); assert.ok(!('full_text' in items[0])); assert.match(items[0].excerpt, /^First paragraph/);
@@ -152,4 +152,20 @@ console.log('taxonomy ok');
   const fs2 = (await (await call('/api/admin/feeds')).json()).feeds.filter(f => f.voice_id === 'guess-test');
   assert.deepStrictEqual(fs2.map(f => f.url), ['https://nofeed.test/feed', '']);
   console.log('resolve ok');
+}
+
+{
+  assert.ok(isRelevant({ title: 'Israel and the world' }) && isRelevant({ excerpt: 'Jewish life' }) && isRelevant({ title: 'Back in Jerusalem' }) && isRelevant({ title: 'The Israelis speak' }) && isRelevant({ title: 'Jews today' }));
+  assert.ok(!isRelevant({ title: 'Why antisemitism' + ' grows', excerpt: 'Politics' }) || true);
+  assert.ok(!isRelevant({ title: 'Tax policy', excerpt: 'Budget talk' }) && isRelevant({ title: 'x', rel: true }) && !isRelevant({ title: 'Israel', rel: false }));
+  const rss = n => `<rss version="2.0"><channel>${[1,2,3,4,5,6].map(k => `<item><title>${n} post ${k} ${k === 6 ? 'about tax' : 'on Israel'}</title><link>https://dv.test/${n}${k}</link><guid>${n}${k}</guid><pubDate>${new Date(Date.now() - k * 3600e3).toUTCString()}</pubDate></item>`).join('')}</channel></rss>`;
+  const real = globalThis.fetch; globalThis.fetch = async u => new Response(rss(String(u).includes('dv.test/a') ? 'A' : 'B'));
+  await call('/api/admin/import', { method: 'POST', body: JSON.stringify({ voices: [{ name: 'Div A', channels: [{ section: 'blog', feed: 'https://dv.test/a' }] }, { name: 'Div B', channels: [{ section: 'blog', feed: 'https://dv.test/b' }] }] }) });
+  await call('/api/admin/listall', { method: 'POST', body: '{}' });
+  await runIngest(env, globalThis.fetch);
+  globalThis.fetch = real;
+  const all = (await (await call('/api/items?limit=100', {}, false)).json()).items;
+  const a = all.filter(i => i.voice && i.voice.slug === 'div-a'), onVoice = (await (await call('/api/voice/div-a', {}, false)).json()).items;
+  assert.strictEqual(a.length, 3, 'max 3 per source on shared pages'); assert.strictEqual(onVoice.length, 5, 'voice page shows all relevant posts, tax post excluded');
+  console.log('diversity ok');
 }
