@@ -81,10 +81,11 @@
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + esc(initials(v.name)) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
+        '<form class="searchw sf"><input type="search" aria-label="Search voices and items" placeholder="Search voices, shows, topics"><button type="submit">Search</button></form>' +
         '<div class="cta"><b>Have a voice on Israel?</b><span>Get your blog, podcast or channel listed.</span><a class="btn big" href="#/submit">Submit your feed</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
-        (latest ? '<div class="panel"><h3>latest</h3><div class="pb">' + latest + '</div></div>' : '') +
+        (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
         (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
         (vl ? '<div class="panel"><h3>voices</h3><div class="pb">' + vl + '<div class="rw"><a href="#/voices">All voices</a></div></div></div>' : '') +
         '<div class="panel"><h3>from israel nowlej</h3><div class="pb"><span>News, views, media and sources.</span><a class="btn line sm" href="https://israelnowlej.com" target="_blank" rel="noopener">Visit Israel NOWlej</a></div></div>' +
@@ -92,20 +93,22 @@
         '</aside>';
     }).catch(function () { return ''; });
   }
+  function nlList(title, list, more) {
+    return '<div class="panel"><h3>' + title + '</h3><div class="pb">' + (list.length ? '<ul class="nlist">' + list.slice(0, 5).map(function (i) { return '<li><a href="' + esc(safeUrl(i.u)) + '" target="_blank" rel="noopener">' + esc(i.t) + '</a><span class="meta">' + esc(i.src) + ' · ' + ago(i.d) + '</span></li>'; }).join('') + '</ul>' : '<p class="ex">Nothing to show right now.</p>') + '<div class="rw"><a href="https://israelnowlej.com' + more + '" target="_blank" rel="noopener">All ' + title + ' on Israel NOWlej</a></div></div></div>';
+  }
+  function nlBlock(nl) {
+    return '<section class="sec">' + sech('', 'From Israel NOWlej', 'The latest news and views, from israelnowlej.com', ['#/nowlej', 'All sections']) + '<div class="nlcols">' + nlList('news', nl.news || [], '/news/') + nlList('views', nl.views || [], '/views/') + '</div></section>';
+  }
   var routes = {
     home: function () {
-      return Promise.all([items('limit=60'), api('/api/voices')]).then(function (a) {
-        var all = a[0], voices = a[1].voices;
+      return Promise.all([items('limit=60'), api('/api/voices'), api('/api/nowlej').catch(function () { return { news: [], views: [] }; })]).then(function (a) {
+        var all = a[0], voices = a[1].voices, nl = a[2];
         if (!all.length && !voices.length) {
-          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn" href="#/submit">Submit your feed</a></section>';
+          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit your feed</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
-        var lead = by('read')[0] || all[0];
-        var rest = all.filter(function (i) { return i !== lead; }).slice(0, 5);
-        var feat = '<div class="feat"><article class="big ' + lead.format + '"><div class="bd"><span class="kick" style="color:var(--' + lead.format + ')">' + TYPES[lead.format] + ' · Latest</span><h2><a href="' + (lead.format === 'read' || lead.format === 'social' ? esc(safeUrl(lead.url)) + '" target="_blank" rel="noopener' : '#/' + lead.format) + '">' + esc(lead.title) + '</a></h2><p class="ex">' + esc(lead.excerpt) + '</p><div class="meta">' + byline(lead) + '<span>' + ago(lead.published_at) + '</span></div></div></article><div class="list">' +
-          rest.map(function (i) { return '<div class="it ' + i.format + '"><span class="ty">' + ICON[i.format] + '</span><div><span class="kick">' + TYPES[i.format] + '</span><h4><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a></h4><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('') + '</div></div>';
-        var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
-        return feat + section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts') + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app') + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo;
+        var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 8).map(voiceTile).join('') + '</div></section>' : '';
+        return section('read', by('read'), 'Read', 'Essays, columns, Substack and blog posts', 'g3', 3) + section('listen', by('listen'), 'Listen', 'Audio-only podcasts, played here or in your app', 'g3', 3) + section('watch', by('watch'), 'Watch', 'Video podcasts, vlogs, talks and explainers', 'g3', 3) + (by('social').length ? section('social', by('social'), 'Social', 'Short posts from voices', 'g3', 3) : '') + vo + nlBlock(nl);
       });
     },
     subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },
@@ -185,7 +188,7 @@
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
   }
   window.addEventListener('hashchange', route);
-  $('#sf').addEventListener('submit', function (e) { e.preventDefault(); var v = $('#q').value.trim(); location.hash = v ? '#/read?q=' + encodeURIComponent(v) : '#/'; });
+  document.addEventListener('submit', function (e) { var f = e.target.closest('.sf'); if (!f) return; e.preventDefault(); var v = f.querySelector('input').value.trim(); location.hash = v ? '#/read?q=' + encodeURIComponent(v) : '#/'; });
 
   function wireVoice() {
     var tabs = document.querySelectorAll('.tabs a[data-f]');

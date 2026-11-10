@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import worker, { runIngest } from '../worker.js';
+import worker, { runIngest, nlItems } from '../worker.js';
 import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
@@ -53,3 +53,6 @@ assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringif
 assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 's@ex.org', consent: true }) }, false)).status, 201);
 { const sl = await (await call('/api/admin/subscribers', {}, true)).json(); assert.equal(sl.subscribers.length, 1); }
 console.log('all tests passed');
+
+{ const o = nlItems([{ t: 'A', u: 'https://x.org/a', src: 'S', d: '2026-11-09T10:00:00Z' }, { t: 'B', k: 'k1', s: 'src', d: '2026-11-10T10:00:00Z' }, { t: 'no date', u: 'https://x.org/c' }, { t: 'bad', u: 'javascript:1', d: '2026-11-10T10:00:00Z' }]); assert.equal(o.length, 2); assert.equal(o[0].t, 'B'); assert.match(o[0].u, /^https:\/\/israelnowlej.com\/news\/item\/k1\//); }
+console.log('nowlej ok');

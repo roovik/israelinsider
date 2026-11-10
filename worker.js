@@ -65,6 +65,10 @@ const publicItem = (i, v) => ({ ...i, full_text: undefined, voice: v ? { slug: v
 
 function admin(req, env) { return env.ADMIN_KEY && req.headers.get('authorization') === `Bearer ${env.ADMIN_KEY}`; }
 
+export function nlItems(list) {
+  return (list || []).filter(i => i && i.t && (i.u || i.k) && i.d).map(i => ({ t: String(i.t).slice(0, 200), u: i.k ? 'https://israelnowlej.com/news/item/' + i.k + '/?s=' + encodeURIComponent(i.s || '') + (i.ch ? '&c=' + encodeURIComponent(i.ch) : '') : i.u, src: String(i.src || ''), d: i.d }))
+    .filter(i => /^https?:\/\//.test(i.u)).sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
+}
 export default {
   async fetch(req, env) {
     const u = new URL(req.url); const p = u.pathname;
@@ -91,6 +95,11 @@ export default {
       if (s.length > 500) return J({ error: 'queue full' }, 429);
       s.push({ id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name).slice(0, 120), email: String(b.email).slice(0, 200), website: String(b.website || '').slice(0, 300), feeds: String(b.feeds || '').slice(0, 2000), social: String(b.social || '').slice(0, 300), formats: String(b.formats || '').slice(0, 100), bio: String(b.bio || '').slice(0, 500), topics: String(b.topics || '').slice(0, 200), consent_full_text: !!b.consent_full_text });
       await putJson(env, 'submissions', s); return J({ ok: true }, 201, { 'cache-control': 'no-store' });
+    }
+    if (p === '/api/nowlej') {
+      const get = async path => { try { const r = await fetch('https://israelnowlej.com' + path, { headers: { 'user-agent': 'IsraelInsider/1.0' }, cf: { cacheTtl: 600, cacheEverything: true } }); if (!r.ok) return []; return nlItems((await r.json()).items); } catch { return []; } };
+      const [news, views] = await Promise.all([get('/api/news?v=2'), get('/api/news?views=1&v=2')]);
+      return J({ news, views }, 200, { 'cache-control': 'public, max-age=600' });
     }
     if (p === '/api/subscribe' && req.method === 'POST') {
       let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }

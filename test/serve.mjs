@@ -1,6 +1,8 @@
 // Local dev server: serves public/ and the Worker API with an in-memory store seeded from sample feeds.
 import http from 'node:http'; import fs from 'node:fs'; import path from 'node:path';
 import worker, { runIngest } from '../worker.js';
+const _f = globalThis.fetch;
+globalThis.fetch = async (u, o) => String(u).startsWith('https://israelnowlej.com/api/news') ? new Response(JSON.stringify({ items: [1, 2, 3, 4, 5, 6].map(n => ({ t: 'Sample NOWlej headline ' + n, u: 'https://example.org/n' + n, src: String(u).includes('views') ? 'Sample Columnist' : 'Sample Wire', d: new Date(Date.now() - n * 3600e3).toISOString() })) })) : _f(u, o);
 const kv = new Map();
 const env = { ADMIN_KEY: 'dev', ASSETS: null, STORE: { get: async (k, t) => kv.has(k) ? (t === 'json' ? JSON.parse(kv.get(k)) : kv.get(k)) : null, put: async (k, v) => kv.set(k, v) } };
 const now = Date.now(), rfc = h => new Date(now - h * 3600e3).toUTCString(), iso = h => new Date(now - h * 3600e3).toISOString();
