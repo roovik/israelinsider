@@ -48,7 +48,7 @@ assert.equal((await (await call('/api/items', {}, false)).json()).items.length, 
 const r304 = await runIngest(env, async () => new Response(null, { status: 304 })); assert.equal(r304.added, 0);
 // submit
 assert.equal((await call('/api/submit', { method: 'POST', body: JSON.stringify({ name: 'X' }) }, false)).status, 422);
-assert.equal((await call('/api/submit', { method: 'POST', body: JSON.stringify({ name: 'X', email: 'a@b.co', consent_excerpt: true }) }, false)).status, 201);
+assert.equal((await call('/api/submit', { method: 'POST', body: JSON.stringify({ name: 'X', email: 'a@b.co', consent_excerpt: true, feeds: 'https://x.test/feed' }) }, false)).status, 201);
 assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'bad' }) }, false)).status, 422);
 assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 'S@Ex.org', consent: true }) }, false)).status, 201);
 assert.equal((await call('/api/subscribe', { method: 'POST', body: JSON.stringify({ email: 's@ex.org', consent: true }) }, false)).status, 201);
@@ -191,4 +191,16 @@ console.log('taxonomy ok');
   globalThis.fetch = real;
   assert.strictEqual(vs2.find(v => v.id === 'jane-blogger').avatar, 'https://img.test/jane.jpg'); assert.strictEqual(vs2.find(v => v.id === 'av-site').avatar, 'https://img.test/site.jpg');
   console.log('discover and avatars ok');
+}
+
+{
+  const post = b => call('/api/submit', { method: 'POST', body: JSON.stringify(b) }, false);
+  assert.strictEqual((await post({ name: 'A', email: 'a@b.co', kind: 'podcast', link: 'https://p.test/feed', title: 'Show', apply_voice: true })).status, 422, 'voice application needs the excerpt consent');
+  assert.strictEqual((await post({ name: 'A', email: 'a@b.co', kind: 'podcast', link: 'ftp://x', apply_voice: false })).status, 422);
+  assert.strictEqual((await post({ name: 'A', email: 'a@b.co', kind: 'act', link: 'https://x.test' })).status, 422);
+  assert.strictEqual((await post({ name: 'A', email: 'a@b.co', kind: 'podcast', link: 'https://p.test/feed', title: 'Show <b>', apply_voice: true, consent_excerpt: true, relation: 'reader', category: 'security' })).status, 201);
+  assert.strictEqual((await post({ name: 'Bot', email: 'a@b.co', kind: 'blog', link: 'https://s.test', hp: 'x' })).status, 201);
+  const sb = (await (await call('/api/admin/submissions')).json()).submissions; const last = sb[sb.length - 1];
+  assert.strictEqual(last.title, 'Show b'); assert.strictEqual(last.apply_voice, true); assert.strictEqual(last.relation, 'reader'); assert.ok(!sb.some(x => x.name === 'Bot'), 'honeypot submissions are dropped');
+  console.log('submit ok');
 }

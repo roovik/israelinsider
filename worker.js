@@ -174,10 +174,17 @@ export default {
     }
     if (p === '/api/submit' && req.method === 'POST') {
       let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
-      if (!b.name || !/^\S+@\S+\.\S+$/.test(b.email || '') || !b.consent_excerpt) return J({ error: 'name, valid email and excerpt consent are required' }, 422);
+      if (b.hp) return J({ ok: true }, 201, { 'cache-control': 'no-store' }); // honeypot: bots fill hidden fields
+      const KINDS = ['blog', 'substack', 'oped', 'editorial', 'podcast', 'vlog', 'item'], kind = KINDS.includes(b.kind) ? b.kind : (b.kind ? '' : 'blog'), link = String(b.link || b.feeds || '').trim();
+      if (!b.name || !/^\S+@\S+\.\S+$/.test(b.email || '')) return J({ error: 'Your name and a valid email are required' }, 422);
+      if (!kind) return J({ error: 'Choose what you are submitting' }, 422);
+      if (!/^https?:\/\/\S+/i.test(link.split(/\s/)[0] || '')) return J({ error: 'Add a link that starts with http or https' }, 422);
+      const apply = b.apply_voice === true || (b.apply_voice === undefined && !!b.consent_excerpt);
+      if (apply && !b.consent_excerpt) return J({ error: 'To be listed as a voice, please agree to the excerpt permission' }, 422);
       const s = await getJson(env, 'submissions', []);
       if (s.length > 500) return J({ error: 'queue full' }, 429);
-      s.push({ id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name).slice(0, 120), email: String(b.email).slice(0, 200), website: String(b.website || '').slice(0, 300), feeds: String(b.feeds || '').slice(0, 2000), social: String(b.social || '').slice(0, 300), formats: String(b.formats || '').slice(0, 100), bio: String(b.bio || '').slice(0, 500), topics: String(b.topics || '').slice(0, 200), consent_full_text: !!b.consent_full_text });
+      const clip = (x, n) => String(x || '').replace(/[<>]/g, '').slice(0, n);
+      s.push({ id: crypto.randomUUID(), at: new Date().toISOString(), kind, link: clip(link, 2000), title: clip(b.title, 160), category: clip(b.category, 60), relation: b.relation === 'reader' ? 'reader' : 'creator', apply_voice: apply, name: clip(b.name, 120), email: clip(b.email, 200), website: clip(b.website, 300), feeds: clip(link, 2000), social: clip(b.social, 300), formats: kind, bio: clip(b.bio, 500), topics: clip(b.category || b.topics, 200), consent_excerpt: !!b.consent_excerpt, consent_full_text: !!b.consent_full_text });
       await putJson(env, 'submissions', s); return J({ ok: true }, 201, { 'cache-control': 'no-store' });
     }
     if (p === '/api/nowlej') {

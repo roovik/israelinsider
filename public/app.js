@@ -325,18 +325,30 @@
       });
     },
     submit: function () {
-      if (CURARG === 'channel') return routes.submitChannel();
-      var card = function (h, t, d) { return '<a href="' + h + '"><b>' + t + '</b><span class="ex">' + d + '</span></a>'; };
-      return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Submit Content', 'An editor reviews everything before it appears') + '<p class="ex" style="font-size:16px;max-width:64ch">Israel Insider lists voices that support Israel and links to their own pages. Choose what you want to submit.</p><div class="nl" style="margin-bottom:22px">' +
-        card('#/submit/channel', 'A channel or feed', 'A blog, newsletter, podcast, YouTube channel or social account. Your items then appear automatically, with a link back to you.') +
-        card('#/propose?type=act', 'An event, petition or donation page', 'Listed under Act with your own link and date.') +
-        card('#/propose?type=monitor', 'A fact-check, correction or tracker', 'Listed under Monitor. It must concern a public organization, outlet, statement or campaign, and cite a source.') +
-        '</div><p class="ex">Single articles, episodes and videos arrive through the channel they come from. Questions? <a href="#/contact">Contact us</a>.</p></section>');
+      var cats = (TAXIDX.raw && TAXIDX.raw.cats && TAXIDX.raw.cats.length) ? TAXIDX.raw.cats.map(function (c) { return [c.slug, c.name]; }) : DEFCATS;
+      var opt = function (v, t) { return '<option value="' + v + '">' + t + '</option>'; };
+      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink);padding-top:26px">' + sech('', 'Submit Content', 'An editor reviews everything before it appears') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to the creator\'s own site, channel or feed. Send us a feed, a channel or a single piece, and tick the box if you want to be listed as a voice.</p><div id="subok"></div>' +
+        '<form class="frm" id="subf" novalidate>' +
+        '<div class="fld"><label for="kd">What are you submitting?</label><select id="kd" name="kind" required>' + opt('', 'Choose one') + opt('blog', 'A blog') + opt('substack', 'A Substack or newsletter') + opt('oped', 'Op-eds or a column') + opt('editorial', 'An outlet, editorial page or institution') + opt('podcast', 'A podcast') + opt('vlog', 'A vlog or video channel') + opt('item', 'A single article, episode or video') + opt('act', 'An event, petition or donation page (goes to Act)') + opt('monitor', 'A fact-check, correction or tracker (goes to Monitor)') + '</select></div>' +
+        '<div id="kdnote" class="ex" hidden></div>' +
+        '<div id="mainf">' +
+        '<div class="fld"><label for="lk">Link to the feed, channel or piece</label><input id="lk" name="link" type="url" placeholder="https://" required><small>An RSS or podcast feed, a Substack or YouTube address, or the page itself.</small></div>' +
+        '<div class="fld"><label for="ti">Name of the voice, show, channel or piece</label><input id="ti" name="title" required></div>' +
+        '<div class="fld"><label for="ct">Main category</label><select id="ct" name="category">' + opt('', 'Not sure') + cats.map(function (c) { return opt(esc(c[0]), esc(c[1])); }).join('') + '</select></div>' +
+        '<div class="fld"><label for="nm">Your name</label><input id="nm" name="name" required></div>' +
+        '<div class="fld"><label for="em">Your email</label><input id="em" name="email" type="email" required><small>Used only to reach you about this submission.</small></div>' +
+        '<div class="fld"><label for="rl">You are</label><select id="rl" name="relation">' + opt('creator', 'The creator, or I speak for them') + opt('reader', 'A reader suggesting it') + '</select></div>' +
+        '<label class="chk" for="av"><input id="av" name="apply_voice" type="checkbox">Apply to be listed as a voice. All posts from this feed then appear on Israel Insider with a link back to the source.</label>' +
+        '<div id="vfields" hidden>' +
+        '<div class="fld"><label for="wb">Website</label><input id="wb" name="website" type="url" placeholder="https://"></div>' +
+        '<div class="fld"><label for="xh">Social accounts</label><input id="xh" name="social" placeholder="X, Bluesky, Threads handles"></div>' +
+        '<div class="fld"><label for="bio">Short bio, two lines</label><textarea id="bio" name="bio" maxlength="500"></textarea></div>' +
+        '<label class="chk" for="c2"><input id="c2" name="consent_excerpt" type="checkbox">Israel Insider may show my headlines, short excerpts and thumbnails with links to my own pages.</label>' +
+        '<label class="chk" for="c3"><input id="c3" name="consent_full_text" type="checkbox">Optional: I give permission to show full text of my posts on Israel Insider.</label></div>' +
+        '<input name="hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">' +
+        '<div><button class="btn" type="submit">Send for review</button></div></div></form></section></div>');
     },
-    submitChannel: function () {
-      return Promise.resolve('<div style="max-width:880px;margin:0 auto"><section class="sec" style="--c:var(--ink)">' + sech('', 'Submit a channel', 'For writers, podcasters, video creators and public voices') + '<p class="ex" style="font-size:17px;margin-bottom:18px">Israel Insider lists voices that support Israel. Every item links to your own site, channel or feed. You choose your excerpt, you can edit your profile, and you can opt out any time.</p><div id="subok"></div>' +
-        '<form class="frm" id="subf" novalidate><div class="fld"><label for="nm">Name of the voice, show or channel</label><input id="nm" name="name" required></div><div class="fld"><label for="em">Contact email</label><input id="em" name="email" type="email" required><small>Used only to reach you about your listing.</small></div><div class="fld"><label for="wb">Website</label><input id="wb" name="website" type="url" placeholder="https://"></div><div class="fld"><label for="rss">Feeds: blog or newsletter, podcast RSS, YouTube channel, Substack</label><textarea id="rss" name="feeds" placeholder="One address per line"></textarea></div><div class="fld"><label for="xh">Social accounts</label><input id="xh" name="social" placeholder="X, Bluesky, Threads handles"></div><div class="fld"><label for="fm">Formats you publish</label><select id="fm" name="formats"><option>Writing</option><option>Audio podcast</option><option>Video podcast or vlog</option><option>More than one</option></select></div><div class="fld"><label for="bio">Short bio, two lines</label><textarea id="bio" name="bio" maxlength="500"></textarea></div><div class="fld"><label for="tp">Main topics</label><input id="tp" name="topics" placeholder="Security, diplomacy, campus, culture"></div><label class="chk" for="c2"><input id="c2" name="consent_excerpt" type="checkbox">Israel Insider may show my headlines, short excerpts and thumbnails with links to my own pages.</label><label class="chk" for="c3"><input id="c3" name="consent_full_text" type="checkbox">Optional: I give permission to show full text of my posts on Israel Insider.</label><div><button class="btn" type="submit">Send for review</button></div></form></section></div>');
-    }
+    submitChannel: function () { return routes.submit(); }
   };
   function vcard(v) {
     return '<a class="vcard" href="#/voice/' + esc(v.slug) + '"><span class="big">' + esc(initials(v.name)) + '</span><span class="vb"><b>' + esc(v.name) + '</b><span class="vs">' + esc(v.short_bio || '') + '</span>' + ((v.sections || []).length ? '<span class="vt">' + v.sections.map(function (s) { return esc(SLONE[s]); }).join(' · ') + '</span>' : '') + '</span></a>';
@@ -409,7 +421,7 @@
       if (t !== token) return;
       var html = r[0];
       view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
-      if (name === 'submit' && arg === 'channel') wireSubmit();
+      if (name === 'submit') wireSubmit();
       if (name === 'voice') wireVoice();
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
   }
@@ -423,14 +435,25 @@
     tabs.forEach(function (a) { a.addEventListener('click', function (e) { e.preventDefault(); tabs.forEach(function (b) { b.classList.remove('on'); }); a.classList.add('on'); var f = a.dataset.f; var list = Object.keys(ITEMS).map(function (k) { return ITEMS[k]; }).filter(function (i) { return (i.voice || {}).slug === location.hash.split('/')[2] && (f === 'all' || i.format === f); }); list.sort(function (x, y) { return y.published_at.localeCompare(x.published_at); }); $('#vfeed').innerHTML = list.length ? grid(list, 'g2') : empty('No items yet.'); }); });
   }
   function wireSubmit() {
-    var f = $('#subf');
+    var f = $('#subf'); if (!f) return;
+    var FEEDY = { blog: 1, substack: 1, oped: 1, editorial: 1, podcast: 1, vlog: 1 };
+    function sync() {
+      var k = f.kind.value, redirect = k === 'act' || k === 'monitor', n = $('#kdnote');
+      n.hidden = !redirect; $('#mainf').hidden = redirect || !k;
+      if (redirect) n.innerHTML = 'Events, petitions, donation pages, fact-checks and trackers have their own short form. <a href="#/propose?type=' + k + '">Open the ' + (k === 'act' ? 'Act' : 'Monitor') + ' form</a>.';
+      if (k && !redirect) f.apply_voice.checked = !!FEEDY[k] && f.relation.value === 'creator';
+      $('#vfields').hidden = redirect || !f.apply_voice.checked;
+    }
+    $('#mainf').hidden = true;
+    f.kind.addEventListener('change', sync); f.relation.addEventListener('change', sync); f.apply_voice.addEventListener('change', sync);
     f.addEventListener('submit', function (e) {
       e.preventDefault();
       var d = {}; new FormData(f).forEach(function (v, k) { d[k] = v; });
-      d.consent_excerpt = f.consent_excerpt.checked; d.consent_full_text = f.consent_full_text.checked;
+      d.apply_voice = f.apply_voice.checked; d.consent_excerpt = f.consent_excerpt.checked; d.consent_full_text = f.consent_full_text.checked;
       var box = $('#subok'); box.innerHTML = '';
+      if (!d.kind || d.kind === 'act' || d.kind === 'monitor') { box.innerHTML = '<div class="err">Choose what you are submitting.</div>'; return; }
       fetch('/api/submit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(d) }).then(function (r) {
-        if (r.ok) { f.hidden = true; box.innerHTML = '<div class="ok">Thank you. Your submission is in the review queue. An editor will write to the email you gave.</div>'; }
+        if (r.ok) { f.hidden = true; box.innerHTML = '<div class="ok">Thank you' + (d.name ? ', ' + esc(d.name.split(' ')[0]) : '') + '. Your submission is in the review queue. An editor will write to the email you gave.</div>'; window.scrollTo(0, 0); }
         else r.json().then(function (j) { box.innerHTML = '<div class="err">' + esc(j.error || 'Could not send. Check the form and try again.') + '</div>'; });
       }).catch(function () { box.innerHTML = '<div class="err">Could not send. Check your connection and try again.</div>'; });
     });
