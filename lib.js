@@ -107,7 +107,7 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
     const src = r.desc || r.encoded;
     const item = {
       id: await sha(feed.id + '|' + (r.guid || url)),
-      voice_id: voice.id, feed_id: feed.id, format: feed.format, section: sectionOf(feed),
+      voice_id: voice.id, feed_id: feed.id, format: fixFormat(feed.format, !!r.audio, !!r.videoId), section: sectionOf(feed),
       title: r.title, url, published_at: new Date(published).toISOString(),
       excerpt: excerpt(src, 300),
       rel: RELEVANT.test(String(r.title) + ' ' + String(r.desc || '') + ' ' + String(r.encoded || '')),
@@ -163,6 +163,8 @@ export function ogImage(html, base) {
   if (!m) return '';
   try { const u = new URL(m[1].replace(/&amp;/g, '&'), base); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; }
 }
+// A "podcast" feed item with no audio, or a "video" item with no video, is really an article.
+export const fixFormat = (fmt, hasAudio, hasVideo) => (fmt === 'listen' && !hasAudio) || (fmt === 'watch' && !hasVideo) ? 'read' : fmt;
 export const looksLikeFeed = t => /<(rss|feed|rdf:RDF)\b/i.test(String(t || '').slice(0, 2000));
 // Likely feed addresses for a site when the page itself does not advertise one.
 export function feedGuesses(site) {

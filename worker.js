@@ -1,5 +1,5 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
-import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant, channelImage, ogImage } from './lib.js';
+import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant, channelImage, ogImage, fixFormat } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
@@ -62,7 +62,7 @@ export function humanUrl(u) {
   try { const x = new URL(u); if (/(^|\/)(feed|feeds|rss|atom)(\/|\.|$)|\.(xml|rss|atom)$|posts\/default|videos\.xml/i.test(x.pathname + x.search)) return x.origin; return u; } catch { return u || ''; }
 }
 function filter(items, q, voicesById) {
-  let out = items.filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed' && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
+  let out = items.map(i => ({ ...i, format: fixFormat(i.format, !!i.audio_url, !!i.embed_id) })).filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed' && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
   if (!q.get('voice')) { const n = {}; out = out.filter(i => (n[i.voice_id] = (n[i.voice_id] || 0) + 1) <= PER_VOICE); } // diversity: newest 3 per source, except on a voice's own page
   if (q.get('format')) out = out.filter(i => i.format === q.get('format'));
   if (q.get('section')) out = out.filter(i => i.section === q.get('section'));

@@ -399,3 +399,7 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 @media(max-width:700px){.lpl{grid-template-columns:minmax(0,1fr)}}
 
 .panel .rw a.rss{font-size:11px;font-weight:700;color:var(--gray);border:1px solid var(--line);padding:0 6px;margin-left:6px}
+
+.card.listen .art.sq{aspect-ratio:16/9}
+.card.listen .thumbimg{object-fit:contain;background:var(--c)}
+.vo .big{overflow:hidden}

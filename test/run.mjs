@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import worker, { runIngest, nlItems, cleanEntry, avatarBatch, discoverBatch, humanUrl } from '../worker.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../taxonomy.js';
-import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT, channelImage, ogImage, firstImg } from '../lib.js';
+import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, fixFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT, channelImage, ogImage, firstImg } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
 <item><title><![CDATA[Sample &amp; essay on Israel]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
@@ -229,4 +229,13 @@ console.log('taxonomy ok');
   assert.strictEqual(d.voice.website, 'https://fs.test'); assert.strictEqual(d.feeds[0].url, 'https://fs.test');
   const all = (await (await call('/api/voices', {}, false)).json()).voices; assert.ok(all.every(v => !/\/feeds?\/|\.xml$/.test(v.website || '')));
   console.log('human links ok');
+}
+
+{
+  const { fixFormat } = await import('../lib.js');
+  assert.strictEqual(fixFormat('listen', false, false), 'read'); assert.strictEqual(fixFormat('listen', true, false), 'listen');
+  assert.strictEqual(fixFormat('watch', false, false), 'read'); assert.strictEqual(fixFormat('watch', false, true), 'watch'); assert.strictEqual(fixFormat('read', false, false), 'read');
+  const items = await toItems({ id: 'f', kind: 'podcast', format: 'listen' }, { id: 'v', consent: {} }, [{ title: 'Article not episode', link: 'https://a.test/p', guid: 'g', date: new Date().toUTCString(), desc: 'About Israel' }]);
+  assert.strictEqual(items[0].format, 'read', 'a podcast-feed item without audio is not shown as an episode');
+  console.log('format ok');
 }
