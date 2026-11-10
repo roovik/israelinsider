@@ -394,3 +394,6 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .vmin .vb{display:flex;flex-direction:column;gap:2px;min-width:0}
 .vmin .vs{font-size:13px;line-height:1.35;color:var(--gray)}
 .lbio{max-width:68ch;font-size:16px;line-height:1.55;margin:10px 0 0}
+.lpl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px}
+.lpl li{align-items:flex-start}
+@media(max-width:700px){.lpl{grid-template-columns:minmax(0,1fr)}}
