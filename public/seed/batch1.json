@@ -965,8 +965,9 @@
     {
      "section": "podcast",
      "site": "https://www.callmebackpodcast.com",
-     "guess": true,
-     "term": "Call Me Back with Dan Senor"
+     "guess": false,
+     "term": "Call Me Back with Dan Senor",
+     "feed": "https://rss.beehiiv.com/podcasts/01a0599f-c7dc-725e-a326-2afd78c94e7e.xml"
     }
    ]
   },
@@ -1000,8 +1001,9 @@
     {
      "section": "podcast",
      "site": "https://www.thefp.com/podcasts",
-     "guess": true,
-     "term": "Honestly with Bari Weiss"
+     "guess": false,
+     "term": "Honestly with Bari Weiss",
+     "feed": "https://feeds.megaphone.fm/rsv2347142881"
     }
    ]
   },
@@ -1052,7 +1054,8 @@
     {
      "section": "podcast",
      "site": "https://www.timesofisrael.com/podcasts/",
-     "guess": true
+     "guess": false,
+     "feed": "https://anchor.fm/s/100cf5c64/podcast/rss"
     },
     {
      "section": "vlog",
@@ -1073,8 +1076,9 @@
     {
      "section": "podcast",
      "site": "https://www.dailywire.com/show/the-ben-shapiro-show",
-     "guess": true,
-     "term": "The Ben Shapiro Show"
+     "guess": false,
+     "term": "The Ben Shapiro Show",
+     "feed": "https://feeds.megaphone.fm/WWO3519750118"
     }
    ]
   },
@@ -1456,6 +1460,61 @@
      "site": "https://israeldailynewspodcast.com",
      "guess": true,
      "term": "Israel Daily News Podcast"
+    }
+   ]
+  },
+  {
+   "name": "Yishai Fleisher",
+   "short_bio": "Spokesman for the Jewish community of Hebron, host of the Israel National News show.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://yishaifleisher.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://yishaifleisher.com",
+     "guess": false,
+     "term": "Yishai Fleisher",
+     "feed": "https://feeds.buzzsprout.com/1271258.rss"
+    }
+   ]
+  },
+  {
+   "name": "The Times of Israel Daily Briefing",
+   "short_bio": "Daily audio briefing on the news from The Times of Israel.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.timesofisrael.com/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.timesofisrael.com/podcasts/",
+     "guess": true,
+     "term": "The Times of Israel Daily Briefing"
+    }
+   ]
+  },
+  {
+   "name": "What Matters Now",
+   "short_bio": "Weekly Times of Israel podcast on the issues shaping Israel and the Jewish world.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "https://www.timesofisrael.com/podcasts/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "https://www.timesofisrael.com/podcasts/",
+     "guess": true,
+     "term": "What Matters Now"
     }
    ]
   }
