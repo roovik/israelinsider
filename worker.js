@@ -157,10 +157,84 @@ export async function discoverBatch(env) {
   await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); await putJson(env, 'discovered', [...seen].slice(-5000));
   return { added, checked, remaining };
 }
+
+// ---------------------------------------------------------------- email: welcome, unsubscribe, weekly digest
+// Needs the secret RESEND_KEY and the variable MAIL_FROM (an address on a domain verified with Resend). Without them nothing is sent.
+const SITE = 'https://israelinsider.org';
+async function sendBatch(env, msgs) {
+  if (!env.RESEND_KEY || !env.MAIL_FROM) return { ok: false, sent: 0, note: 'Mail is not set up yet.' };
+  let sent = 0, note = '';
+  for (let i = 0; i < msgs.length; i += 100) {
+    const chunk = msgs.slice(i, i + 100).map(m => ({ from: env.MAIL_FROM, to: [m.to], subject: m.subject, text: m.text, ...(m.headers ? { headers: m.headers } : {}) }));
+    try {
+      const r = await fetch('https://api.resend.com/emails/batch', { method: 'POST', headers: { Authorization: 'Bearer ' + env.RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(chunk) });
+      if (r.ok) sent += chunk.length; else note = 'Mail service said ' + r.status;
+    } catch (e) { note = String(e); }
+  }
+  return { ok: sent === msgs.length, sent, note };
+}
+// Unsubscribe links are signed with UNSUB_KEY, or with ADMIN_KEY when that is not set.
+async function unsubToken(env, email) {
+  const secret = env.UNSUB_KEY || env.ADMIN_KEY || '';
+  if (!secret) return '';
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', k, new TextEncoder().encode('unsub:' + email));
+  return [...new Uint8Array(sig)].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 40);
+}
+async function unsubUrl(env, email) { const t = await unsubToken(env, email); return t ? SITE + '/unsubscribe?e=' + encodeURIComponent(email) + '&t=' + t : ''; }
+async function unsubHeaders(env, email) { const u = await unsubUrl(env, email); return u ? { 'List-Unsubscribe': '<' + u + '>', 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } : undefined; }
+async function mailTo(env, email, subject, body) {
+  const uu = await unsubUrl(env, email);
+  return { to: email, subject, text: body + '\n' + (uu ? 'To stop receiving these emails: ' + uu : 'To stop receiving these emails, reply and say so.') + '\n', headers: await unsubHeaders(env, email) };
+}
+const pageHtml = (title, body) => new Response('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>' + title + ' | Israel Insider</title><style>body{font:18px/1.55 Georgia,serif;max-width:520px;margin:12vh auto;padding:0 20px;color:#1b2a3a}button{font:600 16px system-ui,sans-serif;background:#0b3d6b;color:#fff;border:0;border-radius:999px;padding:12px 22px;cursor:pointer}a{color:#0b3d6b}</style></head><body><h1>' + title + '</h1>' + body + '</body></html>', { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+async function unsubscribeRoute(req, env) {
+  const u = new URL(req.url), email = String(u.searchParams.get('e') || '').trim().toLowerCase().slice(0, 200), tok = u.searchParams.get('t') || '';
+  const safe = email.replace(/[<>&"]/g, '');
+  if (!email || !tok || tok !== await unsubToken(env, email)) return pageHtml('That link is not valid', '<p>Reply to any email from us and we will remove you by hand, or use the contact page at <a href="/#/contact">israelinsider.org</a>.</p>');
+  if (req.method === 'POST') {
+    const s = await getJson(env, 'subscribers', []), r = s.find(x => x.email === email);
+    if (r) { r.status = 'unsubscribed'; r.unsubscribed_at = new Date().toISOString(); await putJson(env, 'subscribers', s); }
+    return pageHtml('You are unsubscribed', '<p>We have removed <b>' + safe + '</b> from the digest. You will not hear from us again unless you subscribe again.</p><p><a href="/">Back to Israel Insider</a></p>');
+  }
+  return pageHtml('Unsubscribe', '<p>Stop sending the Israel Insider digest to <b>' + safe + '</b>?</p><form method="post"><button>Yes, unsubscribe me</button></form><p><a href="/">No, take me back</a></p>');
+}
+// Weekly digest of the newest items from listed voices. Off until the variable DIGEST is set to "on".
+// DIGEST_DAY is the UTC weekday (0 is Sunday, the default) and DIGEST_HOUR the UTC hour (default 6).
+async function digestContent(env) {
+  const voices = (await listVoices(env)).filter(v => v.status === 'listed'), vb = Object.fromEntries(voices.map(v => [v.id, v]));
+  const cutoff = Date.now() - 8 * 86400000, seen = new Set(), pick = [];
+  const items = (await getJson(env, 'items', [])).filter(i => !i.hidden && vb[i.voice_id] && i.published_at && new Date(i.published_at).getTime() >= cutoff);
+  items.sort((a, b) => String(b.published_at).localeCompare(String(a.published_at)));
+  for (const i of items) { const k = (i.title || '').toLowerCase().slice(0, 60); if (seen.has(k)) continue; seen.add(k); pick.push(i); if (pick.length >= 20) break; }
+  if (pick.length < 3) return null;
+  const date = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jerusalem' });
+  return { subject: 'Israel Insider, new voices this week (' + date + ')', body: 'New from the voices on Israel Insider, week of ' + date + '.\n\n' + pick.map(i => '* ' + i.title + ' (' + vb[i.voice_id].name + ')\n  ' + i.url).join('\n\n') + '\n\nMore at ' + SITE + '/\n' };
+}
+export async function runDigest(env, opts = {}) {
+  const day = new Date().toISOString().slice(0, 10);
+  if (!opts.force) {
+    if (env.DIGEST !== 'on') return { ok: false, note: 'digest is off' };
+    const n = new Date();
+    if (n.getUTCDay() !== (env.DIGEST_DAY === undefined ? 0 : parseInt(env.DIGEST_DAY, 10)) || n.getUTCHours() !== (parseInt(env.DIGEST_HOUR || '6', 10) || 6)) return { ok: false, note: 'not the digest time' };
+    if ((await env.STORE.get('digest_last')) === day) return { ok: false, note: 'already sent today' };
+  }
+  const c = await digestContent(env);
+  if (!c) return { ok: false, note: 'not enough fresh items' };
+  if (opts.previewOnly) return { ok: true, preview: c };
+  const people = opts.testTo ? [{ email: opts.testTo }] : (await getJson(env, 'subscribers', [])).filter(p => p.status !== 'unsubscribed' && p.email);
+  if (!opts.testTo) await env.STORE.put('digest_last', day);
+  const msgs = []; for (const p of people) msgs.push(await mailTo(env, p.email, c.subject, c.body));
+  const res = msgs.length ? await sendBatch(env, msgs) : { ok: true, sent: 0, note: '' };
+  if (!opts.testTo) await env.STORE.put('digest_log', JSON.stringify({ day, recipients: msgs.length, sent: res.sent, note: res.note }));
+  return { ok: res.ok, recipients: msgs.length, sent: res.sent, note: res.note };
+}
+
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const u = new URL(req.url); const p = u.pathname;
     if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type' } });
+    if (p === '/unsubscribe') return unsubscribeRoute(req, env);
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req);
     const voices = await listVoices(env); const vb = Object.fromEntries(voices.map(v => [v.id, v]));
 
@@ -237,14 +311,24 @@ export default {
     }
     if (p === '/api/subscribe' && req.method === 'POST') {
       let b; try { b = await req.json(); } catch { return J({ error: 'bad json' }, 400); }
+      if (b.website) return J({ ok: true, name: '', returning: false }, 201, { 'cache-control': 'no-store' });   // honeypot
       const em = String(b.email || '').trim().toLowerCase();
       if (!/^\S+@\S+\.\S+$/.test(em) || em.length > 200 || !b.consent) return J({ error: 'A valid email and your consent are required' }, 422);
+      const rk = 'rl_' + (req.headers.get('CF-Connecting-IP') || 'x') + '_' + new Date().toISOString().slice(0, 13), hits = parseInt(await env.STORE.get(rk) || '0', 10);
+      if (hits >= 8) return J({ error: 'That is enough for this hour. Try again later.' }, 429);
+      await env.STORE.put(rk, String(hits + 1), { expirationTtl: 3700 });
       const s = await getJson(env, 'subscribers', []);
       if (s.length > 20000) return J({ error: 'list full' }, 429);
       const name = String(b.name || '').replace(/[<>\n\r]/g, '').trim().slice(0, 40), had = s.find(x => x.email === em);
-      if (!had) { s.push({ email: em, name, at: new Date().toISOString() }); await putJson(env, 'subscribers', s); }
-      else if (name && !had.name) { had.name = name; await putJson(env, 'subscribers', s); }
-      return J({ ok: true, name: name || (had && had.name) || '', returning: !!had }, 201, { 'cache-control': 'no-store' });
+      const wasOut = !!had && had.status === 'unsubscribed';
+      if (!had) { s.push({ email: em, name, at: new Date().toISOString(), status: 'active' }); await putJson(env, 'subscribers', s); }
+      else if ((name && !had.name) || wasOut) { if (name && !had.name) had.name = name; if (wasOut) { had.status = 'active'; had.resubscribed_at = new Date().toISOString(); } await putJson(env, 'subscribers', s); }
+      if (!had || wasOut) {
+        const hello = (name || (had && had.name)) ? 'Hello ' + (name || had.name) + ',' : 'Hello,';
+        const job = (async () => { const m = await mailTo(env, em, 'Welcome to Israel Insider', hello + '\n\nThank you for subscribing to Israel Insider. Once a week we send the newest items from the writers, podcasters and video creators we list, each linking to their own page.\n\nBrowse the voices at ' + SITE + '/\n'); await sendBatch(env, [m]); })();
+        if (ctx && ctx.waitUntil) ctx.waitUntil(job); else await job;
+      }
+      return J({ ok: true, name: name || (had && had.name) || '', returning: !!had && !wasOut }, 201, { 'cache-control': 'no-store' });
     }
     // Admin routes
     if (p.startsWith('/api/admin/')) {
@@ -337,9 +421,10 @@ export default {
         if (!it) return J({ error: 'not found' }, 404); if (typeof b.hidden === 'boolean') it.hidden = b.hidden; if (typeof b.featured === 'boolean') it.featured = b.featured;
         await putJson(env, 'items', items); return J({ ok: true }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/digest') { const q = u.searchParams; if (q.get('log')) return J(JSON.parse((await env.STORE.get('digest_log')) || '{"note":"no digest has been sent yet"}'), 200, { 'cache-control': 'no-store' }); if (q.get('test')) return J(await runDigest(env, { force: true, testTo: env.NOTIFY_TO || 'rkoret@gmail.com' }), 200, { 'cache-control': 'no-store' }); return J(await runDigest(env, { force: true, previewOnly: true }), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/ingest' && req.method === 'POST') return J(await runIngest(env), 200, { 'cache-control': 'no-store' });
     }
     return J({ error: 'not found' }, 404);
   },
-  async scheduled(_evt, env, ctx) { ctx.waitUntil((async () => { await runIngest(env); for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
+  async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { await runIngest(env); for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
 };

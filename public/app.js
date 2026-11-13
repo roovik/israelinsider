@@ -101,7 +101,7 @@
   }
   function subForm(id) {
     var me = subMe(); if (me) return welcomeHtml(me.name, false);
-    return '<form class="subf" novalidate><input type="text" name="name" maxlength="40" autocomplete="given-name" aria-label="First name (optional)" placeholder="First name (optional)"><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the Israel Insider digest by email. Unsubscribe any time.</label><div class="submsg" role="status"></div></form>';
+    return '<form class="subf" novalidate><input type="text" name="name" maxlength="40" autocomplete="given-name" aria-label="First name (optional)" placeholder="First name (optional)"><input type="email" name="email" required autocomplete="email" aria-label="Email address" placeholder="you@example.com"><button class="btn" type="submit">Subscribe</button><input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;opacity:0;height:0;width:0;overflow:hidden;clip:rect(0 0 0 0);pointer-events:none"><label class="chk"><input type="checkbox" name="consent" value="1" required>Send me the weekly Israel Insider digest by email. I can unsubscribe any time with the link in every email.</label><div class="submsg" role="status"></div></form>';
   }
   function browsePanel() {
     var cats = (TAXIDX.raw && TAXIDX.raw.cats) || [];
@@ -267,7 +267,7 @@
         return rv + section('read', reads, 'Read', 'Latest posts, one per writer', 'g3', 6) + section('listen', pods, 'Listen', 'Latest episodes, one per show', 'g3', 6) + section('watch', vids, 'Watch', 'Latest video, one per channel', 'g3', 6) + shareHome(by('social')) + nlBlock(nl);
       });
     },
-    subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest.</p></div></section>'); },
+    subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A weekly digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest and a welcome message. Every email has an unsubscribe link.</p></div></section>'); },
     act: function (q) { return entryPage('act', q); },
     monitor: function (q) { return entryPage('monitor', q); },
     propose: function () { var tm = /type=(act|monitor)/.exec(location.hash); return Promise.resolve(proposeForm(tm ? tm[1] : 'act')); },
@@ -521,7 +521,7 @@
     var box = f.querySelector('.submsg'), em = f.elements.email.value.trim();
     if (!/^\S+@\S+\.\S+$/.test(em)) { box.textContent = 'Enter a valid email address.'; return; }
     if (!f.elements.consent.checked) { box.textContent = 'Please tick the box to subscribe.'; return; }
-    fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, name: f.elements.name ? f.elements.name.value.trim() : '', consent: true }) }).then(function (r) { if (!r.ok) { box.textContent = 'Could not subscribe. Try again later.'; return; } return r.json().then(function (x) { var nm = x.name || ''; subSave({ name: nm }); topGreet(); document.querySelectorAll('.subf').forEach(function (ff) { var w = document.createElement('div'); w.innerHTML = welcomeHtml(nm, !x.returning); ff.parentNode.replaceChild(w.firstChild, ff); }); }); }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
+    fetch('/api/subscribe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: em, name: f.elements.name ? f.elements.name.value.trim() : '', consent: true, website: f.elements.website ? f.elements.website.value : '' }) }).then(function (r) { if (!r.ok) { box.textContent = 'Could not subscribe. Try again later.'; return; } return r.json().then(function (x) { var nm = x.name || ''; subSave({ name: nm }); topGreet(); document.querySelectorAll('.subf').forEach(function (ff) { var w = document.createElement('div'); w.innerHTML = welcomeHtml(nm, !x.returning); ff.parentNode.replaceChild(w.firstChild, ff); }); }); }).catch(function () { box.textContent = 'Could not subscribe. Check your connection.'; });
   });
   document.addEventListener('click', function (e) {
     var ss = e.target.closest('#sharesite'); if (ss) { e.preventDefault(); openSitePop(ss); return; }
