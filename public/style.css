@@ -459,3 +459,16 @@ body.outopen{overflow:hidden}
 .skel i{display:block;height:210px;background:linear-gradient(90deg,var(--card) 25%,#f4f7fb 50%,var(--card) 75%);background-size:200% 100%;animation:skl 1.3s linear infinite}
 @keyframes skl{0%{background-position:200% 0}100%{background-position:-200% 0}}
 @media(prefers-reduced-motion:reduce){.skel i{animation:none}}
+
+/* media-type accents */
+.mt{display:inline-flex;align-self:flex-start;align-items:center;gap:5px;background:var(--orange);color:#fff;font:800 10.5px var(--sans);letter-spacing:.09em;text-transform:uppercase;padding:3px 8px 3px 6px;border-radius:2px}
+.mt svg{width:12px;height:12px;flex:none}
+.card.read,.card.listen,.card.watch,.card.social{border-top:3px solid var(--orange)}
+.card .post{display:flex;flex-direction:column;gap:8px;padding:12px 14px 14px}
+.card:hover{border-color:var(--orange);box-shadow:0 2px 0 var(--orange)}
+.card h3 a:hover,.card h3:hover{color:var(--orange);text-decoration:none}
+.art .pl .play{background:var(--orange)!important;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.art .dur{background:var(--orange);color:#fff}
+.card .kick{color:var(--bluedk)}
+.sec .more:hover{color:var(--orange)}
+.tabs a.on,.tabs a:hover{box-shadow:inset 0 -3px 0 var(--orange)}

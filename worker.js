@@ -1,6 +1,7 @@
 // Israel Insider Worker: feed ingestion, JSON API, RSS output. Storage is KV (binding STORE).
 import { parseFeed, toItems, feedFormat, youtubeFeedUrl, toRss, sectionOf, discoverFeed, SECTIONS, looksLikeFeed, feedGuesses, itunesFeed, isRelevant, channelImage, ogImage, fixFormat } from './lib.js';
 import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from './taxonomy.js';
+import { traffic } from './cfstats.js';
 
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
@@ -370,6 +371,7 @@ const W = {
     if (p.startsWith('/api/admin/')) {
       if (!env.ADMIN_KEY) return J({ error: 'No ADMIN_KEY secret is set on this Worker yet. Add it in Cloudflare under Settings, Variables and Secrets, then try again.' }, 503, { 'cache-control': 'no-store' });
       if (!admin(req, env)) return J({ error: 'Wrong key. It must match the ADMIN_KEY secret exactly, with no spaces.' }, 401, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/traffic') return J(await traffic(env, u.searchParams.get('site') || 'insider', u.searchParams.get('days')), 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voices') return J({ voices }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/items') { const it = await getJson(env, 'items', []); return J({ items: it.slice(0, 200), total: it.length }, 200, { 'cache-control': 'no-store' }); }
