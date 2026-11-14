@@ -550,6 +550,7 @@ const W = {
             const r = await fetch(x, { headers: ua, redirect: 'follow' }), t = await r.text(), ty = r.headers.get('content-type') || '';
             const items = looksLikeFeed(t) ? parseFeed(t) : [], newest = items.map(i => i.date || '').filter(Boolean).map(d => { try { return new Date(d).toISOString(); } catch { return ''; } }).sort().pop() || '';
             const ch = (t.match(/"channelId":"(UC[\w-]{22})"/) || t.match(/channel\/(UC[\w-]{22})/) || [])[1] || '';
+            if (/json/.test(ty)) return { url: x, status: r.status, type: 'json', json: t.slice(0, 6000) };
             return { url: x, status: r.status, final: r.url, type: ty.split(';')[0], feed: items.length > 0, n: items.length, newest, title: ((t.match(/<title[^>]*>([^<]{0,140})/i) || [])[1] || '').trim(), channel_id: ch, alt: (discoverFeed(t, r.url) || '') };
           } catch (e) { return { url: x, error: String(e).slice(0, 120) }; }
         }));
