@@ -258,7 +258,7 @@ console.log('taxonomy ok');
   await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', x: 'Other', notes: 'met at conference' }) });
   await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', log: { via: 'email', what: 'Blessing request' } }) });
   o = (await (await call('/api/admin/outreach')).json()).outreach['out-reach'];
-  assert.equal(o.x, 'Other'); assert.equal(o.status, 'contacted'); assert.equal(o.log.length, 1); assert.equal(o.log[0].via, 'email');
+  assert.equal(o.x, 'Other'); assert.equal(o.status, 'contacted'); assert.ok(o.log.some(l => l.via === 'email' && l.what === 'Blessing request')); assert.ok(o.log.some(l => l.what === 'x: RealWriter \u2192 Other'), 'edits are timestamped in the history'); assert.ok(o.log.every(l => /^\d{4}-\d\d-\d\dT/.test(l.at)));
   await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', status: 'blessed' }) });
   assert.equal((await (await call('/api/admin/outreach')).json()).outreach['out-reach'].status, 'blessed');
   assert.equal((await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'nobody' }) })).status, 422);
@@ -282,4 +282,35 @@ console.log('taxonomy ok');
   const r = await runIngest(env2, async () => new Response(`<rss version="2.0"><channel><item><title>Back on Israel</title><link>https://q.test/p</link><guid>q1</guid><pubDate>${today}</pubDate><description>New.</description></item></channel></rss>`));
   assert.deepEqual(r.thawed, ['q']); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'listed', 'a frozen voice that publishes again is listed again');
   console.log('freezer ok');
+}
+
+// Replies: one personal link per voice, answers stored with timestamps, status updated, removal honored at once
+{
+  const o0 = (await (await call('/api/admin/outreach')).json()).outreach;
+  const tok = o0['sample-writer'].token; assert.match(tok, /^[a-z0-9]{8,20}$/, 'every listed voice gets a reply link');
+  const page = await (await call('/r/' + tok, {}, false)).text(); assert.match(page, /Your page on Israel Insider/); assert.match(page, /joint venture or sponsorship/);
+  assert.match(await (await call('/r/nosuchtoken1', {}, false)).text(), /not valid/);
+  const post = (t, fields) => worker.fetch(new Request('https://x.test/r/' + t, { method: 'POST', body: new URLSearchParams(fields) }), env);
+  assert.match(await (await post(tok, { choice: 'changes', guest: '1', venture: '1', text: 'Please add my podcast' })).text(), /Thank you/);
+  let rs = (await (await call('/api/admin/responses')).json()).responses; assert.equal(rs[0].voice_id, 'sample-writer'); assert.equal(rs[0].handled, false); assert.ok(rs[0].venture && rs[0].guest); assert.match(rs[0].at, /T/);
+  let ow = (await (await call('/api/admin/outreach')).json()).outreach['sample-writer']; assert.equal(ow.status, 'replied'); assert.ok(ow.wants_venture); assert.ok(ow.log.some(l => /status: .* → replied/.test(l.what)));
+  await post(tok, { choice: 'yes' }); rs = (await (await call('/api/admin/responses')).json()).responses; assert.equal(rs[0].handled, true, 'a plain yes needs nothing from you');
+  assert.equal((await (await call('/api/admin/outreach')).json()).outreach['sample-writer'].status, 'blessed');
+  await call('/api/admin/response', { method: 'POST', body: JSON.stringify({ id: rs[1].id }) }); assert.equal((await (await call('/api/admin/responses')).json()).responses[1].handled, true);
+  assert.equal((await post(tok, { choice: 'yes', website_url: 'spam' })).status, 200);
+  await call('/api/admin/response/log', { method: 'POST', body: JSON.stringify({ voice_id: 'sample-writer', via: 'Instagram DM', choice: 'question', text: 'Who are you?' }) });
+  assert.equal((await (await call('/api/admin/responses')).json()).responses[0].via, 'Instagram DM');
+  const tok2 = (await (await call('/api/admin/outreach')).json()).outreach['out-reach'].token;
+  await post(tok2, { choice: 'remove' }); const vs = (await (await call('/api/admin/voices')).json()).voices; assert.equal(vs.find(v => v.id === 'out-reach').status, 'removed', 'a removal request takes the page down at once');
+  assert.equal((await call('/api/admin/outreach/settings', { method: 'POST', body: JSON.stringify({ alert: 'not an email' }) })).status, 422);
+  assert.equal((await call('/api/admin/outreach/settings', { method: 'POST', body: JSON.stringify({ alert: 'me@example.org' }) })).status, 200);
+  console.log('replies ok');
+}
+// Plan: first notes spread over working days, never Friday or Saturday
+{
+  const { planOutreach } = await import('../worker.js');
+  const r = await planOutreach(env, { start: '2026-11-15', days: 14, per_day: 1 }, Date.parse('2026-11-14T12:00:00Z'));
+  for (const d of Object.keys(r.days)) assert.ok(![5, 6].includes(new Date(d + 'T12:00:00Z').getUTCDay()), 'no Friday or Saturday: ' + d);
+  assert.ok(r.planned >= 1);
+  console.log('plan ok');
 }

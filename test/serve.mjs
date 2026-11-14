@@ -20,7 +20,7 @@ for (const e of [{ type: 'act', kind: 'event', title: 'Sample rally for Israel',
 await runIngest(env, async u => new Response(u.includes('pod') ? pod : u.includes('youtube') ? yt : blog));
 http.createServer(async (req, res) => {
   const u = new URL(req.url, 'http://x');
-  if (u.pathname.startsWith('/api/')) {
+  if (u.pathname.startsWith('/api/') || u.pathname.startsWith('/r/')) {
     const body = ['GET', 'HEAD'].includes(req.method) ? undefined : await new Promise(r => { let b = ''; req.on('data', c => b += c); req.on('end', () => r(b)); });
     const r = await worker.fetch(new Request('http://x' + req.url, { method: req.method, headers: req.headers, body }), env);
     res.writeHead(r.status, Object.fromEntries(r.headers)); return res.end(Buffer.from(await r.arrayBuffer()));

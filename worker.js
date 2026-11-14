@@ -182,6 +182,19 @@ export async function contactBatch(env, ids, fetcher = getOk, force = false) {
   await putJson(env, 'outreach', O);
   return { checked: todo.length, found, remaining: Math.max(0, want.length - todo.length) };
 }
+// Spread first notes over working days, best pages first. No sends on Friday or Saturday.
+export async function planOutreach(env, b = {}, now = Date.now()) {
+  const voices = (await listVoices(env)).filter(v => v.status === 'listed'), O = await getJson(env, 'outreach', {}), items = await getJson(env, 'items', []);
+  const n = {}, last = {}; for (const i of items) if (!i.hidden) { n[i.voice_id] = (n[i.voice_id] || 0) + 1; if ((i.published_at || '') > (last[i.voice_id] || '')) last[i.voice_id] = i.published_at; }
+  const sc = v => Math.min(n[v.id] || 0, 20) + (v.avatar ? 6 : 0) + (v.short_bio ? 2 : 0) + (last[v.id] && now - Date.parse(last[v.id]) < 30 * 864e5 ? 6 : 0);
+  const todo = voices.filter(v => !(O[v.id] && O[v.id].status)).sort((a, z) => sc(z) - sc(a) || a.name.localeCompare(z.name));
+  const days = []; let d = new Date(b.start ? b.start + 'T12:00:00Z' : now + 864e5); const span = Math.max(1, Math.min(60, +b.days || 14));
+  for (let k = 0; k < span; k++, d = new Date(d.getTime() + 864e5)) if (d.getUTCDay() !== 5 && d.getUTCDay() !== 6) days.push(d.toISOString().slice(0, 10));
+  const per = Math.max(1, Math.min(40, +b.per_day || Math.ceil(todo.length / Math.max(1, days.length))));
+  const plan = {}; todo.forEach((v, i) => { const day = days[Math.floor(i / per)]; const o = O[v.id] = O[v.id] || {}; if (day) { if (o.plan !== day) olog(o, 'plan', 'first note planned for ' + day); o.plan = day; plan[day] = (plan[day] || 0) + 1; } else delete o.plan; });
+  await putJson(env, 'outreach', O);
+  return { planned: Object.values(plan).reduce((a, c) => a + c, 0), unplanned: Math.max(0, todo.length - per * days.length), per_day: per, days: plan };
+}
 const OSTAT = ['', 'contacted', 'replied', 'blessed', 'linked', 'guest', 'declined', 'no-contact'];
 const OFIELDS = ['email', 'x', 'instagram', 'facebook', 'linkedin', 'telegram', 'whatsapp', 'youtube', 'contact_url', 'next', 'notes'];
 // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
@@ -308,6 +321,56 @@ async function mailTo(env, email, subject, body) {
   return { to: email, subject, text: body + '\n' + (uu ? 'To stop receiving these emails: ' + uu : 'To stop receiving these emails, reply and say so.') + '\n', headers: await unsubHeaders(env, email) };
 }
 const pageHtml = (title, body) => new Response('<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>' + title + ' | Israel Insider</title><style>body{font:18px/1.55 Georgia,serif;max-width:520px;margin:12vh auto;padding:0 20px;color:#1b2a3a}button{font:600 16px system-ui,sans-serif;background:#0b3d6b;color:#fff;border:0;border-radius:999px;padding:12px 22px;cursor:pointer}a{color:#0b3d6b}</style></head><body><h1>' + title + '</h1>' + body + '</body></html>', { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+// ---------------------------------------------------------------- outreach replies
+// Every outreach note carries a personal link, /r/<token>. Answers land in one store with a timestamp, update the voice's outreach
+// status, and are emailed to the alert address so they can be processed with email replies in one place.
+const RCHOICE = { yes: 'Happy to be included', changes: 'Please make changes', remove: 'Please remove me', question: 'A question or comment' };
+const rtoken = () => [...crypto.getRandomValues(new Uint8Array(9))].map(b => b.toString(36).padStart(2, '0')).join('').slice(0, 14);
+function olog(o, via, what) { o.log = (o.log || []).concat([{ at: new Date().toISOString(), via: String(via).slice(0, 30), what: String(what).slice(0, 160) }]).slice(-60); }
+export async function recordResponse(env, voiceId, r) {
+  const voices = await listVoices(env), v = voices.find(x => x.id === voiceId); if (!v) return { error: 'Unknown voice' };
+  const O = await getJson(env, 'outreach', {}), o = O[voiceId] = O[voiceId] || {}, R = await getJson(env, 'responses', []);
+  const rec = { id: crypto.randomUUID(), at: new Date().toISOString(), voice_id: voiceId, name: v.name, via: String(r.via || 'reply page').slice(0, 30), choice: RCHOICE[r.choice] ? r.choice : 'question', link: !!r.link, guest: !!r.guest, venture: !!r.venture, text: String(r.text || '').slice(0, 4000), contact: String(r.contact || '').slice(0, 200), handled: false };
+  const before = o.status || '';
+  if (rec.choice === 'yes') o.status = 'blessed';
+  else if (rec.choice === 'remove') { o.status = 'declined'; if (v.status !== 'removed') { v.status = 'removed'; v.removed_on = rec.at.slice(0, 10); await putJson(env, 'voices', voices); } }
+  else if (!before || before === 'contacted') o.status = 'replied';
+  if (rec.link) o.wants_link = true; if (rec.guest) o.wants_guest = true; if (rec.venture) o.wants_venture = true;
+  if (rec.choice === 'yes' && !rec.text && !rec.guest && !rec.venture) rec.handled = true; // a plain yes needs nothing from you
+  olog(o, rec.via, 'Reply: ' + RCHOICE[rec.choice] + (rec.link ? ', will link' : '') + (rec.guest ? ', open to guest or topic' : '') + (rec.venture ? ', interested in a joint venture or sponsorship' : '') + (rec.text ? ', with a note' : ''));
+  if (before !== (o.status || '')) olog(o, 'system', 'status: ' + (before || 'not contacted') + ' → ' + o.status);
+  R.unshift(rec); await putJson(env, 'responses', R.slice(0, 2000)); await putJson(env, 'outreach', O);
+  const set = await getJson(env, 'outreach_settings', {});
+  if (set.alert) { try { await sendBatch(env, [{ to: set.alert, subject: '[Outreach reply] ' + v.name + ': ' + RCHOICE[rec.choice] + (rec.handled ? '' : ' (needs you)'), text: v.name + ' answered through ' + rec.via + ' at ' + rec.at.replace('T', ' ').slice(0, 16) + ' UTC.\n\nAnswer: ' + RCHOICE[rec.choice] + '\nWill link or mention us: ' + (rec.link ? 'yes' : 'no') + '\nOpen to a guest spot or topic: ' + (rec.guest ? 'yes' : 'no') + '\nInterested in a joint venture or sponsorship: ' + (rec.venture ? 'yes' : 'no') + (rec.contact ? '\nContact: ' + rec.contact : '') + '\n\nTheir note:\n' + (rec.text || '(none)') + '\n\nTheir page: ' + SITE + '/#/voice/' + v.slug + '\nOpen in the admin: ' + SITE + '/admin.html#o=' + v.id + '\n' }]); } catch { /* the reply is stored either way */ } }
+  return { ok: true, response: rec, status: o.status };
+}
+async function replyRoute(req, env) {
+  const tok = new URL(req.url).pathname.split('/')[2] || '', O = await getJson(env, 'outreach', {});
+  const id = /^[a-z0-9]{8,20}$/.test(tok) && Object.keys(O).find(k => O[k].token === tok);
+  const voices = id ? await listVoices(env) : [], v = id && voices.find(x => x.id === id);
+  if (!v) return pageHtml('That link is not valid', '<p>Please reply to the email or message you received instead, and we will take care of it by hand.</p>');
+  const e = s => String(s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  if (req.method === 'POST') {
+    const f = await req.formData(), day = new Date().toISOString().slice(0, 10), o = O[id];
+    if (f.get('website_url')) return pageHtml('Thank you', '<p>Received.</p>'); // bots fill the hidden field
+    if ((o.rday === day ? o.rcount || 0 : 0) >= 5) return pageHtml('Thank you', '<p>We already have your answers for today. Reply to our email if you need anything else.</p>');
+    o.rday = day; o.rcount = (o.rday === day ? (o.rcount || 0) : 0) + 1; await putJson(env, 'outreach', O);
+    const r = await recordResponse(env, id, { via: 'reply page', choice: f.get('choice'), link: f.get('link') === '1', guest: f.get('guest') === '1', venture: f.get('venture') === '1', text: f.get('text'), contact: f.get('contact') });
+    const done = r.status === 'declined' ? '<p>We have taken your page down. Thank you for letting us know.</p>' : '<p>Your answer is with Richard, who reads every one himself.' + (f.get('text') ? ' He will get back to you about your note.' : '') + '</p><p><a href="' + SITE + '/#/voice/' + e(v.slug) + '">See your page</a></p>';
+    return pageHtml('Thank you, ' + e(v.name), done);
+  }
+  const page = SITE + '/#/voice/' + v.slug;
+  return pageHtml('Your page on Israel Insider', '<p><b>' + e(v.name) + '</b>, your page is at <a href="' + e(page) + '" target="_blank" rel="noopener">israelinsider.org</a>. Every item on it links back to your own site.</p>' +
+    '<form method="post" style="font:16px/1.5 system-ui,sans-serif"><fieldset style="border:0;padding:0;margin:0 0 14px"><legend style="font-weight:700;margin-bottom:6px">Your answer</legend>' +
+    [['yes', 'Happy to be included as it is'], ['changes', 'Happy to be included, with some changes (tell us below)'], ['question', 'I have a question or comment'], ['remove', 'Please remove my page']].map((x, i) => '<label style="display:block;margin:6px 0"><input type="radio" name="choice" value="' + x[0] + '"' + (i ? '' : ' checked') + '> ' + x[1] + '</label>').join('') + '</fieldset>' +
+    '<label style="display:block;margin:6px 0"><input type="checkbox" name="link" value="1"> I’m glad to link to my page or mention Israel Insider or Israel NOWlej</label>' +
+    '<label style="display:block;margin:6px 0"><input type="checkbox" name="guest" value="1"> I’d like to talk about having Richard Koret as a guest, or a topic</label>' +
+    '<label style="display:block;margin:6px 0 14px"><input type="checkbox" name="venture" value="1"> I’m interested in a joint venture or sponsorship with Israel Insider’s news or Israel NOWlej’s maps, timelines and tours</label>' +
+    '<label for="t" style="display:block;font-weight:700">Corrections, additions or a note (optional)</label><textarea id="t" name="text" rows="5" style="width:100%;font:16px system-ui;padding:8px;box-sizing:border-box" placeholder="A better photo or bio, a podcast or channel to add, anything else"></textarea>' +
+    '<label for="c" style="display:block;font-weight:700;margin-top:10px">Best way to reach you (optional)</label><input id="c" name="contact" style="width:100%;font:16px system-ui;padding:8px;box-sizing:border-box" placeholder="Email or handle">' +
+    '<input name="website_url" tabindex="-1" autocomplete="off" style="position:absolute;left:-5000px" aria-hidden="true">' +
+    '<p><button type="submit">Send my answer</button></p><p style="font-size:14px;color:#556">Only Richard sees your answer. Your contact details are never published.</p></form>');
+}
 async function unsubscribeRoute(req, env) {
   const u = new URL(req.url), email = String(u.searchParams.get('e') || '').trim().toLowerCase().slice(0, 200), tok = u.searchParams.get('t') || '';
   const safe = email.replace(/[<>&"]/g, '');
@@ -355,6 +418,7 @@ const W = {
     const u = new URL(req.url); const p = u.pathname;
     if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type' } });
     if (p === '/unsubscribe') return unsubscribeRoute(req, env);
+    if (p.startsWith('/r/')) return replyRoute(req, env);
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req);
     const voices = await listVoices(env); const vb = Object.fromEntries(voices.map(v => [v.id, v]));
 
@@ -459,16 +523,24 @@ const W = {
       if (p === '/api/admin/outreach' && req.method !== 'POST') {
         const its = await getJson(env, 'items', []), st = {};
         for (const i of its) { if (i.hidden) continue; const x = st[i.voice_id] = st[i.voice_id] || { items: 0, last: '', title: '', url: '' }; x.items++; if ((i.published_at || '') > x.last) { x.last = i.published_at || ''; x.title = i.title || ''; x.url = i.url || ''; } }
-        return J({ outreach: await getJson(env, 'outreach', {}), stats: st }, 200, { 'cache-control': 'no-store' });
+        const O = await getJson(env, 'outreach', {}); let nt = 0;
+        for (const v of voices) if (v.status === 'listed') { const o = O[v.id] = O[v.id] || {}; if (!o.token) { o.token = rtoken(); nt++; } }
+        if (nt) await putJson(env, 'outreach', O);
+        return J({ outreach: O, stats: st, settings: await getJson(env, 'outreach_settings', {}) }, 200, { 'cache-control': 'no-store' });
       }
       if (p === '/api/admin/outreach' && req.method === 'POST') {
         const b = await req.json(); if (!b.id || !voices.some(v => v.id === b.id)) return J({ error: 'Unknown voice' }, 422);
         const O = await getJson(env, 'outreach', {}), o = O[b.id] = O[b.id] || {};
-        for (const k of OFIELDS) if (b[k] !== undefined) o[k] = String(b[k] || '').trim().slice(0, k === 'notes' ? 4000 : 300);
-        if (b.status !== undefined && OSTAT.includes(b.status)) o.status = b.status;
-        if (b.log) { o.log = (o.log || []).concat([{ at: new Date().toISOString(), via: String(b.log.via || '').slice(0, 30), what: String(b.log.what || '').slice(0, 120) }]).slice(-50); if (!o.status) o.status = 'contacted'; }
+        for (const k of OFIELDS) if (b[k] !== undefined) { const nv = String(b[k] || '').trim().slice(0, k === 'notes' ? 4000 : 300); if ((o[k] || '') !== nv) { if (k !== 'notes') olog(o, 'edit', k + ': ' + (o[k] || '–') + ' → ' + (nv || '–')); else olog(o, 'edit', 'notes changed'); } o[k] = nv; }
+        if (b.status !== undefined && OSTAT.includes(b.status) && (o.status || '') !== b.status) { olog(o, 'edit', 'status: ' + (o.status || 'not contacted') + ' → ' + (b.status || 'not contacted')); o.status = b.status; }
+        if (b.log) { olog(o, b.log.via || '', b.log.what || ''); if (!o.status) { o.status = 'contacted'; olog(o, 'system', 'status: not contacted → contacted'); } if (b.log.sent) { o.sent = (o.sent || 0) + 1; delete o.plan; } }
         await putJson(env, 'outreach', O); return J({ ok: true, outreach: o }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/responses') return J({ responses: await getJson(env, 'responses', []) }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/response' && req.method === 'POST') { const b = await req.json(); const R = await getJson(env, 'responses', []), x = R.find(r => r.id === b.id); if (!x) return J({ error: 'Not found' }, 404); x.handled = b.handled !== false; x.handled_at = new Date().toISOString(); await putJson(env, 'responses', R); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/response/log' && req.method === 'POST') { const b = await req.json(); const r = await recordResponse(env, b.voice_id, b); return J(r, r.error ? 422 : 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/outreach/settings' && req.method === 'POST') { const b = await req.json(); const a = String(b.alert || '').trim().slice(0, 200); if (a && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(a)) return J({ error: 'That alert address does not look like an email address' }, 422); await putJson(env, 'outreach_settings', { alert: a, at: new Date().toISOString() }); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/outreach/plan' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await planOutreach(env, b), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/freeze' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await freezeQuiet(env, b.dry === true), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/outreach/find' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await contactBatch(env, b.ids, getOk, b.force === true && Array.isArray(b.ids) && b.ids.length <= 3), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
