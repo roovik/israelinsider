@@ -317,7 +317,9 @@
         var jump = '<nav class="jump" aria-label="Directory sections"><a' + (only ? '' : ' class="on"') + ' href="#/voices">All</a>' + order.map(function (s) { var n = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).length; return n ? '<a' + (only === s ? ' class="on"' : '') + ' href="#/voices?section=' + s + '">' + SL[s] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>';
         var blocks = order.filter(function (s) { return !only || only === s; }).map(function (s) {
           var l = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).sort(function (x, y) { var dx = ((x.latest || [])[0] || {}).d || '', dy = ((y.latest || [])[0] || {}).d || ''; return dx === dy ? x.name.localeCompare(y.name) : (dx < dy ? 1 : -1); });
-          return l.length ? '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + '<div class="grid g3 vdir">' + l.map(vcard).join('') + '</div></section>' : '';
+          if (!l.length) return '';
+          var gl = { toi: 'Times of Israel bloggers', jj: 'Jewish Journal writers' }, own = l.filter(function (v) { return !v.group; }), sub = Object.keys(gl).map(function (g) { var m = l.filter(function (v) { return v.group === g; }); return m.length ? '<h3 class="vgrp" id="dir-' + s + '-' + g + '">' + gl[g] + ' <i>' + m.length + '</i></h3><div class="grid g3 vdir">' + m.map(vcard).join('') + '</div>' : ''; }).join('');
+          return '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + (own.length ? '<div class="grid g3 vdir">' + own.map(vcard).join('') + '</div>' : '') + sub + '</section>';
         }).join('');
         return items('limit=100' + (only ? '&section=' + only : '')).then(function (its) {
           var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + '<ul class="lpl">' + its.slice(0, 25).map(function (i) {

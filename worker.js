@@ -127,6 +127,13 @@ export async function avatarBatch(env) {
   }
   await putJson(env, 'voices', voices); return { found: got, remaining: Math.max(0, todo.length - 8) };
 }
+// A voice belongs to an outlet's blog platform when its page or feed lives on the platform's author pages. The outlet's own staff, podcasts and channels stay ungrouped.
+const GROUPS = [{ id: 'toi', re: /^https?:\/\/blogs\.timesofisrael\.com\//i }, { id: 'jj', re: /^https?:\/\/jewishjournal\.com\/(author|category\/blogs)\//i }];
+export function groupOf(v, feeds) {
+  const urls = [v.website].concat((feeds || []).filter(f => f.voice_id === v.id).flatMap(f => [f.site, f.url]));
+  for (const g of GROUPS) if (urls.some(u => u && g.re.test(u))) return g.id;
+  return v.group || '';
+}
 const PLATFORMS = [
   { id: 'toi', label: 'The Times of Israel blogs', feeds: ['https://blogs.timesofisrael.com/feed/', 'https://blogs.timesofisrael.com/feed/?paged=2', 'https://blogs.timesofisrael.com/feed/?paged=3'], author: s => `https://blogs.timesofisrael.com/author/${s}/`, bio: 'Blogger on The Times of Israel platform.' },
   { id: 'jj', label: 'Jewish Journal', feeds: ['https://jewishjournal.com/category/blogs/feed/', 'https://jewishjournal.com/feed/'], author: s => `https://jewishjournal.com/author/${s}/`, bio: 'Writer at the Jewish Journal.', firstOnly: true },
@@ -244,7 +251,7 @@ const W = {
       for (const f of fs) { const s = sectionOf(f); if (s) (sec[f.voice_id] = sec[f.voice_id] || new Set()).add(s); }
       const its = (await getJson(env, 'items', [])).filter(i => !i.hidden && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
       for (const i of its) { const l = (last[i.voice_id] = last[i.voice_id] || []); if (l.length < 2) l.push({ t: i.title, u: i.url, d: i.published_at }); }
-      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, website: humanUrl(v.website), sections: SECTIONS.filter(s => sec[v.id]?.has(s)), latest: last[v.id] || [] })) });
+      return J({ voices: voices.filter(v => v.status === 'listed').map(({ consent, ...v }) => ({ ...v, website: humanUrl(v.website), sections: SECTIONS.filter(s => sec[v.id]?.has(s)), group: groupOf(v, fs), latest: last[v.id] || [] })) });
     }
     if (p.startsWith('/api/voice/')) {
       const v = voices.find(x => x.slug === p.slice(11) && x.status === 'listed'); if (!v) return J({ error: 'not found' }, 404);
