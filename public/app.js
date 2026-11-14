@@ -62,7 +62,8 @@
   function card0(i) {
     var t = i.format, v = i.voice || {};
     if (t === 'read') {
-      return '<article class="card read"><div class="bd">' + kick(v) + '<h3><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a></h3>' + (i.excerpt ? '<p class="ex">' + esc(i.excerpt) + '</p>' : '') + '<div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span><span>' + mins(i) + ' min read</span></div></div></article>';
+      var ih = '#/item/' + esc(i.id), tm = i.thumbnail_url && /^https:/.test(i.thumbnail_url) ? '<a class="rthumb" tabindex="-1" aria-hidden="true" href="' + ih + '"><img loading="lazy" alt="" referrerpolicy="no-referrer" src="' + esc(i.thumbnail_url) + '" onerror="this.parentNode.remove()"></a>' : '';
+      return '<article class="card read">' + tm + '<div class="bd">' + kick(v) + '<h3><a href="' + ih + '">' + esc(i.title) + '</a></h3><div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span></div></div></article>';
     }
     if (t === 'listen') {
       return '<article class="card listen"><div class="art sq">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-play="' + esc(i.id) + '" aria-label="Play ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Audio</span></div></div></article>';
@@ -70,9 +71,10 @@
     if (t === 'watch') {
       return '<article class="card watch"><div class="art" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Watch ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Video</span></div></div></article>';
     }
-    return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(i.excerpt || i.title) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">Open original</a></div></div></article>';
+    var sx = String(i.excerpt || i.title || ''); if (sx.length > 160) sx = sx.slice(0, 157).replace(/\s+\S*$/, '') + '...';
+    return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(sx) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="#/item/' + esc(i.id) + '">Open post</a></div></div></article>';
   }
-  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + '<button class="sharei" type="button" aria-label="Share this item" title="Share"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg></button>' + shareRow(i.url, i.title) + h.slice(k); }
+  function card(i) { var h = card0(i), k = h.lastIndexOf('</article>'); return k < 0 ? h : h.slice(0, k) + itemChips(i) + h.slice(k); }
   function grid(items, cls) { return items.length ? '<div class="grid ' + (cls || 'g3') + '">' + items.map(card).join('') + '</div>' : ''; }
   function section(type, items, h, d, cls, limit) {
     return '<section class="sec nob ' + type + '">' + sech(type, h, d, ['#/' + type, 'All ' + h.toLowerCase()]) + (items.length ? grid(items.slice(0, limit || 4), cls) : empty('Nothing here yet.')) + '</section>';
@@ -119,7 +121,7 @@
   }
   function sideCol() {
     return sideData().then(function (d) {
-      var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? esc(safeUrl(i.url)) + '" target="_blank" rel="noopener' : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
+      var latest = d.items.slice(0, 5).map(function (i) { return '<div class="rw"><span class="dot" style="background:var(--' + i.format + ')"></span><div><a href="' + (i.format === 'read' || i.format === 'social' ? '#/item/' + esc(i.id) : '#/' + i.format) + '">' + esc(i.title) + '</a><span class="meta">' + esc((i.voice || {}).name) + ' · ' + ago(i.published_at) + '</span></div></div>'; }).join('');
       var pod = d.items.filter(function (i) { return i.format === 'listen' && i.audio_url; })[0];
       var vl = d.voices.slice(0, 8).map(function (v) { return '<div class="rw"><span class="av">' + fi(v) + '</span><a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a></div>'; }).join('');
       return '<aside class="side" aria-label="Widgets">' +
@@ -270,6 +272,19 @@
     subscribe: function () { return Promise.resolve('<section class="sec" style="padding-top:26px">' + sech('', 'Subscribe', 'A weekly digest of new voices by email, or follow by RSS') + '<div style="max-width:520px">' + subForm() + '<p class="ex" style="margin-top:14px">We use your address only for the Israel Insider digest and a welcome message. Every email has an unsubscribe link.</p></div></section>'); },
     act: function (q) { return entryPage('act', q); },
     monitor: function (q) { return entryPage('monitor', q); },
+    item: function (id) {
+      var show = function (i) {
+        if (!i) return '<section class="sec" style="padding-top:26px"><p class="crumb"><a href="#/" data-back>&larr; Back</a></p>' + empty('This item is no longer listed.') + '</section>';
+        var v = i.voice || {}, h = host(i.url), big = i.thumbnail_url && /^https:/.test(i.thumbnail_url) ? '<img class="itemimg" alt="" referrerpolicy="no-referrer" src="' + esc(i.thumbnail_url) + '" onerror="this.remove()">' : '';
+        var media = '', verb = 'Read on ' + h;
+        if (i.format === 'watch' && i.embed_id) { media = '<div class="art theater itemvid" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Play">' + PLAY + '</button></div>'; verb = 'Watch on ' + h; }
+        else if (i.format === 'listen') { media = big + (i.audio_url ? '<p><button class="btn" type="button" style="background:var(--listen);color:#fff" data-play="' + esc(i.id) + '">Play here</button></p>' : ''); verb = 'Listen on ' + h; }
+        else media = big;
+        return '<section class="sec itempage ' + esc(i.format) + '" style="padding-top:26px"><p class="crumb"><a href="#/" data-back>&larr; Back</a></p><span class="kick">' + esc(v.name || '') + '</span><h1>' + esc(i.title) + '</h1><div class="meta"><span class="by">' + (v.slug ? '<a href="#/voice/' + esc(v.slug) + '">' + esc(v.name) + '</a>' : '') + '</span><span>' + ago(i.published_at) + '</span>' + (i.duration_seconds ? '<span>' + dur(i.duration_seconds) + '</span>' : '') + '</div>' + media + (i.excerpt ? '<p class="itemex">' + esc(i.excerpt) + '</p>' : '') + '<p class="outnote">This is a short excerpt, shown with credit. The full piece belongs to the creator and lives on their own page.</p><div class="itemgo"><a class="btn big" href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(verb) + ' &rarr;</a></div><h2 class="rl">Share this page</h2>' + shareRow(SITE + '#/item/' + i.id, i.title, true) + '</section>';
+      };
+      if (ITEMS[id]) return Promise.resolve(show(ITEMS[id]));
+      return items('id=' + encodeURIComponent(id)).then(function () { return show(ITEMS[id]); });
+    },
     propose: function () { var tm = /type=(act|monitor)/.exec(location.hash); return Promise.resolve(proposeForm(tm ? tm[1] : 'act')); },
     about: function () { return Promise.resolve(staticPage('about')); },
     standards: function () { return Promise.resolve(staticPage('standards')); },
@@ -324,7 +339,7 @@
         return items('limit=100' + (only ? '&section=' + only : '')).then(function (its) {
           var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + '<ul class="lpl">' + its.slice(0, 25).map(function (i) {
             var x = i.voice || {};
-            return '<li><a class="face" href="#/voice/' + esc(x.slug) + '" tabindex="-1" aria-hidden="true">' + fi(x) + '</a><div><a class="t" href="' + esc(safeUrl(i.url)) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a><span class="meta"><a href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a> &middot; ' + ago(i.published_at) + '</span></div></li>';
+            return '<li><a class="face" href="#/voice/' + esc(x.slug) + '" tabindex="-1" aria-hidden="true">' + fi(x) + '</a><div><a class="t" href="#/item/' + esc(i.id) + '">' + esc(i.title) + '</a><span class="meta"><a href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a> &middot; ' + ago(i.published_at) + '</span></div></li>';
           }).join('') + '</ul></section>' : '';
           return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Latest posts first, then every voice') + jump + '</section>' + lp + blocks;
         });
@@ -435,12 +450,13 @@
     renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')), sm ? sm[1] : '');
     var t = ++token;
     view.innerHTML = '<div class="ldg" role="status"><span class="ldt">Loading<i></i><i></i><i></i></span><span class="ldb"></span></div>';
-    taxData().then(function () { return Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]); }).then(function (r) {
+    taxData().then(function () { return Promise.all([routes[name](name === 'voice' || name === 'item' ? arg : q), sideCol()]); }).then(function (r) {
       if (t !== token) return;
       var html = r[0];
       view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
       if (name === 'submit') wireSubmit();
       if (name === 'voice') wireVoice();
+      if (name === 'item' && ITEMS[arg]) document.title = ITEMS[arg].title + ' · Israel Insider';
     }).catch(function () { if (t === token) view.innerHTML = '<div class="err" style="margin-top:26px">Could not load this page. Try again in a moment.</div>'; });
   }
   window.addEventListener('hashchange', function () { closeSitePop(); });
@@ -567,13 +583,14 @@
     var g = m.querySelector('[data-outgo]'); if (g) g.focus();
   }
   document.addEventListener('click', function (e) {
+    var bk = e.target.closest('[data-back]'); if (bk) { e.preventDefault(); if (history.length > 1) history.back(); else location.hash = '#/'; return; }
     var c = e.target.closest('[data-outclose]'); if (c) { e.preventDefault(); closeOut(); return; }
     if (e.target.id === 'outpop') { closeOut(); return; }
     var go = e.target.closest('[data-outgo]');
     if (go) { var q = document.getElementById('outq'); if (q && q.checked) { try { sessionStorage.setItem('ii_out', '1'); } catch (x) {} } setTimeout(closeOut, 50); return; }
     var a = e.target.closest('a[target=_blank]');
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
-    if (a.closest('.share,.sharei,.adslot,.adbox,#sitepop,#outpop,footer,.player') || a.classList.contains('sh') || a.classList.contains('hb') || a.classList.contains('rss')) return;
+    if (a.closest('.itempage,.share,.sharei,.adslot,.adbox,#sitepop,#outpop,footer,.player') || a.classList.contains('sh') || a.classList.contains('hb') || a.classList.contains('rss')) return;
     var h = outHost(a); if (!h || OUTSKIP.test(h) || outSeen()) return;
     var it = null; for (var k in ITEMS) { if (ITEMS[k].url === a.href || safeUrl(ITEMS[k].url) === a.getAttribute('href')) { it = ITEMS[k]; break; } }
     if (!it && !a.closest('.card,.nlist,.rw,.vfeed,#vfeed,.rl,li')) return;

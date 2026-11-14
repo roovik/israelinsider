@@ -67,6 +67,7 @@ export function humanUrl(u) {
 function filter(items, q, voicesById) {
   let out = items.map(i => ({ ...i, format: fixFormat(i.format, !!i.audio_url, !!i.embed_id) })).filter(i => !i.hidden && voicesById[i.voice_id]?.status === 'listed' && isRelevant(i)).sort((a, b) => b.published_at.localeCompare(a.published_at));
   if (!q.get('voice')) { const n = {}; out = out.filter(i => (n[i.voice_id] = (n[i.voice_id] || 0) + 1) <= PER_VOICE); } // diversity: newest 3 per source, except on a voice's own page
+  if (q.get('id')) out = out.filter(i => i.id === q.get('id'));
   if (q.get('format')) out = out.filter(i => i.format === q.get('format'));
   if (q.get('section')) out = out.filter(i => i.section === q.get('section'));
   if (q.get('voice')) out = out.filter(i => voicesById[i.voice_id]?.slug === q.get('voice'));

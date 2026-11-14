@@ -438,3 +438,15 @@ body.outopen{overflow:hidden}
 .outnote,.outto,.outask{font-size:13px;color:var(--ink2);margin:6px 0}
 .outact{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .outask{display:block}
+
+/* item pages and thumb cards */
+.card.read{overflow:hidden}
+.card.read .rthumb{display:block;aspect-ratio:16/9;background:var(--line);overflow:hidden}
+.card.read .rthumb img{display:block;width:100%;height:100%;object-fit:cover}
+.itempage{max-width:760px}
+.itempage h1{margin:6px 0 8px;font-size:30px;line-height:1.2}
+.itempage .itemimg{display:block;width:100%;height:auto;max-height:520px;object-fit:contain;margin:16px 0;background:var(--line)}
+.itempage .itemvid{margin:16px 0}
+.itempage .itemex{font-size:18px;line-height:1.55;margin:14px 0 6px}
+.itempage .itemgo{margin:18px 0 10px}
+.itempage .share{margin-top:8px}
