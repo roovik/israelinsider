@@ -127,12 +127,12 @@
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         browsePanel() + tagsPanel() +
         '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place') + '</div></div>' +
-        '<div class="adslot" data-slot="rect-300x250">' + houseAd('rect-300x250', '') + '</div>' +
+        '<div class="adslot" data-slot="rect-320x250-a"><a class="hb" href="https://www.amazon.com/ISRAEL-NOWLEJ-Graphs-Timelines-Knowledge/dp/B0HPCTLJX7/" target="_blank" rel="noopener"><img src="/img/ad/israel-nowlej-320x250.webp" width="320" height="250" alt="Israel NOWlej by Richard J. Koret. Get it on Amazon" loading="lazy"></a></div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
         (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
         recentVoices(d.voices) +
         '<div class="panel"><h3>from israel nowlej</h3><div class="pb"><span>News, views, media and sources.</span><a class="btn line sm" href="https://israelnowlej.com" target="_blank" rel="noopener">Visit Israel NOWlej</a></div></div>' +
-        '<div class="adslot" data-slot="rect-300x250-b"><a class="adbox alt" data-slot="rect-300x250-b" href="#/submit"><small>Advertisement</small><b>Sponsor Israel Insider</b><span>Reach readers of Israel voices</span></a></div>' +
+        '<div class="adslot" data-slot="rect-320x250-b"><a class="hb" href="https://www.amazon.com/dp/B0HRJX879T/" target="_blank" rel="noopener"><img src="/img/ad/israel-maps-320x250.webp" width="320" height="250" alt="Israel in Maps by Richard J. Koret. Get the paperback on Amazon" loading="lazy"></a></div>' +
         '</aside>';
     }).catch(function (e) { console.error('sideCol', e); return ''; });
   }

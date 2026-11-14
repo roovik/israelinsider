@@ -415,3 +415,5 @@ img.hs{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
 .nob .card .share{display:none}
 .nob .card.shopen .share{display:flex}
 .nob .card .tgrow{padding-right:36px}
+
+.hb{display:block;max-width:100%}.adlb a.hb{display:flex;align-items:center;height:90px}.adlb a.hb img{display:block;width:100%;max-width:970px;height:auto}.admb a.hb img{display:block;width:320px;height:50px}.adslot a.hb{width:320px}.adslot a.hb img{display:block;width:100%;height:auto}
