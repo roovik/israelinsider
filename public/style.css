@@ -450,3 +450,12 @@ body.outopen{overflow:hidden}
 .itempage .itemex{font-size:18px;line-height:1.55;margin:14px 0 6px}
 .itempage .itemgo{margin:18px 0 10px}
 .itempage .share{margin-top:8px}
+
+/* polish: nav fit, titles, loading */
+@media(min-width:901px) and (max-width:1240px){.tabs a[data-r=voices],.tabs a[data-r=nowlej]{flex:1 1 90px;width:auto}.tabs a[data-r=voices]{margin-left:0}}
+.card.read h3,.card.watch h3,.card.listen h3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card.social .tx{display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical;overflow:hidden}
+.skel{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;margin-top:22px}
+.skel i{display:block;height:210px;background:linear-gradient(90deg,var(--card) 25%,#f4f7fb 50%,var(--card) 75%);background-size:200% 100%;animation:skl 1.3s linear infinite}
+@keyframes skl{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skel i{animation:none}}

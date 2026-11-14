@@ -62,7 +62,7 @@
   function card0(i) {
     var t = i.format, v = i.voice || {};
     if (t === 'read') {
-      var ih = '#/item/' + esc(i.id), tm = i.thumbnail_url && /^https:/.test(i.thumbnail_url) ? '<a class="rthumb" tabindex="-1" aria-hidden="true" href="' + ih + '"><img loading="lazy" alt="" referrerpolicy="no-referrer" src="' + esc(i.thumbnail_url) + '" onerror="this.parentNode.remove()"></a>' : '';
+      var ih = '#/item/' + esc(i.id), tm = i.thumbnail_url && /^https:/.test(i.thumbnail_url) ? '<a class="rthumb" tabindex="-1" aria-hidden="true" href="' + ih + '"><img loading="lazy" alt="" referrerpolicy="no-referrer" src="' + esc(i.thumbnail_url) + '" onload="if(this.naturalWidth<80||this.naturalHeight<45)this.parentNode.remove()" onerror="this.parentNode.remove()"></a>' : '';
       return '<article class="card read">' + tm + '<div class="bd">' + kick(v) + '<h3><a href="' + ih + '">' + esc(i.title) + '</a></h3><div class="meta">' + byline(i) + '<span>' + ago(i.published_at) + '</span></div></div></article>';
     }
     if (t === 'listen') {
@@ -449,11 +449,11 @@
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')), sm ? sm[1] : '');
     var t = ++token;
-    view.innerHTML = '<div class="ldg" role="status"><span class="ldt">Loading<i></i><i></i><i></i></span><span class="ldb"></span></div>';
+    view.innerHTML = '<div class="ldg" role="status"><span class="ldt">Loading<i></i><i></i><i></i></span><span class="ldb"></span></div><div class="skel" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>';
     taxData().then(function () { return Promise.all([routes[name](name === 'voice' || name === 'item' ? arg : q), sideCol()]); }).then(function (r) {
       if (t !== token) return;
       var html = r[0];
-      view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = (name === 'home' ? '' : name.charAt(0).toUpperCase() + name.slice(1) + ' · ') + 'Israel Insider';
+      view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = name === 'home' ? 'Israel Insider: Pro-Israel voices in one place' : name.charAt(0).toUpperCase() + name.slice(1) + ' · Israel Insider';
       if (name === 'submit') wireSubmit();
       if (name === 'voice') wireVoice();
       if (name === 'item' && ITEMS[arg]) document.title = ITEMS[arg].title + ' · Israel Insider';
