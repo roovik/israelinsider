@@ -371,7 +371,7 @@ const W = {
         const b = await req.json(); const feeds = await listFeeds(env); let nv = 0, nf = 0;
         for (const x of (b.voices || []).slice(0, 200)) {
           if (!x.name) continue; const id = slug(x.name); const i = voices.findIndex(v => v.id === id);
-          const rec = { id, slug: id, name: String(x.name).slice(0, 120), short_bio: String(x.short_bio || '').slice(0, 300), avatar: '', website: humanUrl(x.website || ''), topics: x.topics || [], position_tag: x.position_tag || '', status: i >= 0 ? voices[i].status : 'pending', listed_on: i >= 0 ? voices[i].listed_on : '', consent: i >= 0 ? voices[i].consent : { excerpt_ok: true, full_text_ok: false, date: '', note: 'Candidate. Not contacted yet.' } };
+          const rec = { id, slug: id, name: String(x.name).slice(0, 120), short_bio: String(x.short_bio || '').slice(0, 300), avatar: x.avatar || (i >= 0 ? voices[i].avatar || '' : ''), website: humanUrl(x.website || ''), topics: x.topics || [], position_tag: x.position_tag || '', status: i >= 0 ? voices[i].status : 'pending', listed_on: i >= 0 ? voices[i].listed_on : '', consent: i >= 0 ? voices[i].consent : { excerpt_ok: true, full_text_ok: false, date: '', note: 'Candidate. Not contacted yet.' } };
           if (i >= 0) voices[i] = { ...voices[i], ...rec }; else { voices.push(rec); nv++; }
           for (const c of (x.channels || [])) {
             const fid = slug(id + '-' + c.section + '-' + (c.feed || c.external_id || c.site || '').slice(-14));

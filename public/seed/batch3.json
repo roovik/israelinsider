@@ -1,0 +1,651 @@
+{
+ "voices": [
+  {
+   "name": "Future of Jewish",
+   "short_bio": "Daily newsletter on Judaism and Israel by Joshua Hoffman, Tel Aviv based.",
+   "topics": [
+    "news",
+    "culture"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.futureofjewish.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://www.futureofjewish.com",
+     "guess": false,
+     "feed": "https://www.futureofjewish.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Uri Kurlianchik",
+   "short_bio": "Israeli author who writes daily on war, history and politics.",
+   "topics": [
+    "politics",
+    "history"
+   ],
+   "position_tag": "right",
+   "website": "https://urikurlianchik.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://urikurlianchik.substack.com",
+     "guess": false,
+     "feed": "https://urikurlianchik.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Fisch Files",
+   "short_bio": "Eitan Fischberger, pro-Israel creator and Daily Wire contributor.",
+   "topics": [
+    "advocacy",
+    "media"
+   ],
+   "position_tag": "right",
+   "website": "https://fischfiles.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://fischfiles.substack.com",
+     "guess": false,
+     "feed": "https://fischfiles.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Weekly Zionist",
+   "short_bio": "Z3 Project weekly reader on renewing Zionism and Jewish peoplehood.",
+   "topics": [
+    "zionism"
+   ],
+   "position_tag": "center",
+   "website": "https://weeklyzionist.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://weeklyzionist.substack.com",
+     "guess": false,
+     "feed": "https://weeklyzionist.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Dena Tauber, As a Jew",
+   "short_bio": "New York attorney writing on Israel and Zionism.",
+   "topics": [
+    "zionism",
+    "advocacy"
+   ],
+   "position_tag": "center",
+   "website": "https://denacohen.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://denacohen.substack.com",
+     "guess": false,
+     "feed": "https://denacohen.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The New Zionist Times",
+   "short_bio": "Bob Goldberg, twice weekly newsletter on resurgent Zionism.",
+   "topics": [
+    "zionism"
+   ],
+   "position_tag": "center-right",
+   "website": "https://thenewzionisttimes.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://thenewzionisttimes.substack.com",
+     "guess": false,
+     "feed": "https://thenewzionisttimes.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Zionist Voice",
+   "short_bio": "Ted Goldstein and Liza Libes on Israel, antisemitism and the new Zionism.",
+   "topics": [
+    "zionism",
+    "antisemitism"
+   ],
+   "position_tag": "right",
+   "website": "https://thezionistvoice.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://thezionistvoice.substack.com",
+     "guess": false
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Zionism Today",
+   "short_bio": "Newsletter formerly called Voice of Zion, defending Israel.",
+   "topics": [
+    "zionism",
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "https://www.zionismtoday.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://www.zionismtoday.com",
+     "guess": false,
+     "feed": "https://www.zionismtoday.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Judy Lev, Epistles from Israel",
+   "short_bio": "Weekly letter from Israel on life beyond the missiles.",
+   "topics": [
+    "society"
+   ],
+   "position_tag": "center",
+   "website": "https://judylabensohn.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://judylabensohn.substack.com",
+     "guess": false,
+     "feed": "https://judylabensohn.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Israel-is-Incredible",
+   "short_bio": "Winston Siegel on Israeli technology, medicine and agriculture.",
+   "topics": [
+    "innovation"
+   ],
+   "position_tag": "center",
+   "website": "https://winstonsiegel.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://winstonsiegel.substack.com",
+     "guess": false,
+     "feed": "https://winstonsiegel.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Salty Zionist",
+   "short_bio": "Yitzhak Santis argues for an honest Zionism that can take criticism.",
+   "topics": [
+    "zionism"
+   ],
+   "position_tag": "center-left",
+   "website": "https://saltyzionist.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://saltyzionist.substack.com",
+     "guess": false,
+     "feed": "https://saltyzionist.substack.com/feed"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Noted by Nemo",
+   "short_bio": "Nemo Shiff, weekly comic look at loud times.",
+   "topics": [
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "https://notedbynemo.substack.com",
+   "channels": [
+    {
+     "section": "substack",
+     "site": "https://notedbynemo.substack.com",
+     "guess": false
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Unpacking Israeli History",
+   "short_bio": "Dr. Noam Weissman of OpenDor Media on the history behind the headlines.",
+   "topics": [
+    "history"
+   ],
+   "position_tag": "center",
+   "website": "https://unpacked.media/podcast-series/unpacking-israeli-history/",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "feed": "https://feeds.megaphone.fm/unpacking-israeli-history",
+     "term": "Unpacking Israeli History"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Chosen People Problems",
+   "short_bio": "ChayaLeah Sufrin and Yael Bar Tur on Jewish life and Israel, now with Ark Media.",
+   "topics": [
+    "culture",
+    "community"
+   ],
+   "position_tag": "center",
+   "website": "https://arkmedia.org",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Chosen People Problems"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Israel Update",
+   "short_bio": "Gadi Taub and Michael Doran on the war and regional politics.",
+   "topics": [
+    "politics",
+    "security"
+   ],
+   "position_tag": "center-right",
+   "website": "https://feeds.megaphone.fm/israelupdate",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "feed": "https://feeds.megaphone.fm/israelupdate",
+     "term": "Israel Update"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Being Jewish with Jonah Platt",
+   "short_bio": "Weekly interviews on Jewish identity and current events.",
+   "topics": [
+    "culture"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Being Jewish with Jonah Platt"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Jew Oughta Know",
+   "short_bio": "Jason Harris on Jewish and Israeli history.",
+   "topics": [
+    "history"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Jew Oughta Know"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Times of Israel Daily Briefing",
+   "short_bio": "Daily roundup of Israel and Jewish world news.",
+   "topics": [
+    "news"
+   ],
+   "position_tag": "center",
+   "website": "https://www.timesofisrael.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "The Times of Israel Daily Briefing"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Jewish People's Podcast",
+   "short_bio": "Yaakov Katz of JPPI with experts on Israel and diaspora issues.",
+   "topics": [
+    "policy"
+   ],
+   "position_tag": "center",
+   "website": "https://jppi.org.il",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "The Jewish People's Podcast JPPI"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Jerusalem Journal Podcast",
+   "short_bio": "Avi Mayer on Israel, the Middle East and the Jewish world.",
+   "topics": [
+    "news",
+    "politics"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "The Jerusalem Journal Podcast Avi Mayer"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Israel Connection",
+   "short_bio": "Esti Zenati interviews guests with a personal link to Israel.",
+   "topics": [
+    "society"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "The Israel Connection Esti Zenati"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Doron Keidar",
+   "short_bio": "IDF reservist and security professional defending Israel.",
+   "topics": [
+    "security",
+    "advocacy"
+   ],
+   "position_tag": "right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Doron Keidar Podcast"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Yishai Fleisher Israel Podcast",
+   "short_bio": "Long-running English podcast on Israeli life and politics.",
+   "topics": [
+    "politics",
+    "society"
+   ],
+   "position_tag": "right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "feed": "https://rss.buzzsprout.com/1271258.rss",
+     "term": "Yishai Fleisher Israel Podcast"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Boundless Insights with Aviva Klompas",
+   "short_bio": "Interviews on Israel and the region.",
+   "topics": [
+    "politics",
+    "diplomacy"
+   ],
+   "position_tag": "center",
+   "website": "https://www.buzzsprout.com/2411720",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "feed": "https://feeds.buzzsprout.com/2411720.rss",
+     "term": "Boundless Insights Aviva Klompas"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Israel's Enduring Spirit",
+   "short_bio": "Interviews with advocates and Israelis.",
+   "topics": [
+    "society",
+    "advocacy"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Israel's Enduring Spirit"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Inspiration for the Nation, Living Lchaim",
+   "short_bio": "Yaakov Langer's weekly Jewish podcast and long-form video interviews.",
+   "topics": [
+    "culture",
+    "community"
+   ],
+   "position_tag": "center-right",
+   "website": "https://www.livinglchaim.com",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Inspiration for the Nation with Yaakov Langer"
+    },
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@LivingLchaim",
+     "guess": false
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Proclaiming Justice with Laurie Cardoza-Moore",
+   "short_bio": "Christian pro-Israel podcast and TV outlet.",
+   "topics": [
+    "advocacy",
+    "faith"
+   ],
+   "position_tag": "right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Proclaiming Justice to the Nations"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Out of Zion",
+   "short_bio": "ICEJ podcast with Susan Michael on Christian support for Israel.",
+   "topics": [
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Out of Zion Susan Michael"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Pod for Israel",
+   "short_bio": "Short biblical insights from Israel by One for Israel.",
+   "topics": [
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Pod for Israel One for Israel"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "The Land of Israel Guys",
+   "short_bio": "Christian and Israeli hosts on Israel, faith and settlement life.",
+   "topics": [
+    "faith",
+    "society"
+   ],
+   "position_tag": "right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Land of Israel Guys Eve Harow"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Israel Matters",
+   "short_bio": "Stephen Briggs and guests on Israel and the Bible.",
+   "topics": [
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "Israel Matters Stephen Briggs"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Israel365 News",
+   "short_bio": "YouTube channel run by Rabbi Tuly Weisz's team, past 100,000 subscribers.",
+   "topics": [
+    "news",
+    "faith"
+   ],
+   "position_tag": "right",
+   "website": "https://israel365news.com",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@Israel365News",
+     "guess": false
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Gerald McDermott",
+   "short_bio": "Anglican theologian and author of The New Christian Zionism.",
+   "topics": [
+    "faith"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Emily Austin",
+   "short_bio": "Sports broadcaster and host of The Emily Austin Show.",
+   "topics": [
+    "media",
+    "advocacy"
+   ],
+   "position_tag": "center-right",
+   "website": "",
+   "channels": [
+    {
+     "section": "podcast",
+     "site": "",
+     "guess": false,
+     "term": "The Emily Austin Show"
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  },
+  {
+   "name": "Loay Alshareef",
+   "short_bio": "Muslim Zionist, linguist and peace advocate with a YouTube channel since 2012.",
+   "topics": [
+    "peace",
+    "advocacy"
+   ],
+   "position_tag": "center",
+   "website": "",
+   "channels": [
+    {
+     "section": "vlog",
+     "site": "https://www.youtube.com/@LoayAlshareef",
+     "guess": false
+    }
+   ],
+   "source": "Batch 3 research, Nov 2026"
+  }
+ ]
+}
