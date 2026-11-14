@@ -4,6 +4,7 @@
 const API = 'https://api.cloudflare.com/client/v4';
 export const SITES = { nowlej: 'israelnowlej.com', insider: 'israelinsider.org' };
 const zones = {};
+const accts = {};
 const memo = {};
 
 async function cf(token, path, init) {
@@ -22,7 +23,7 @@ async function zoneId(token, domain) {
   const j = await cf(token, '/zones?name=' + encodeURIComponent(domain));
   const z = j.result && j.result[0];
   if (!z) throw new Error('This token cannot see the zone ' + domain + '. Give it access to that zone.');
-  zones[domain] = z.id;
+  zones[domain] = z.id; accts[domain] = z.account && z.account.id;
   return z.id;
 }
 
@@ -49,6 +50,11 @@ const PATHS = `query($z:string!,$a:Time!,$b:Time!){viewer{zones(filter:{zoneTag:
 }}}`;
 const REFS = `query($z:string!,$a:Time!,$b:Time!){viewer{zones(filter:{zoneTag:$z}){
   refs:httpRequestsAdaptiveGroups(limit:15,filter:{datetime_geq:$a,datetime_leq:$b,requestSource:"eyeball",edgeResponseContentTypeName:"html",edgeResponseStatus:200,clientRefererHost_neq:""},orderBy:[count_DESC]){count dimensions{clientRefererHost}}
+}}}`;
+
+// Cloudflare Web Analytics (free on every plan). Used only when the edge table is restricted. Needs Account > Account Analytics > Read on the token and Web Analytics switched on for the site.
+const RUM = (dim) => `query($c:string!,$a:Time!,$b:Time!,$h:string!){viewer{accounts(filter:{accountTag:$c}){
+  rows:rumPageloadEventsAdaptiveGroups(limit:15,filter:{datetime_geq:$a,datetime_leq:$b,requestHost:$h,bot:0},orderBy:[count_DESC]){count dimensions{${dim}}}
 }}}`;
 
 export function shapeDaily(rows) {
@@ -95,6 +101,17 @@ export async function traffic(env, site, daysIn) {
           return { rows: (zz[key] || []).map(x => ({ name: x.dimensions[dim], count: x.count })), note: hrs >= 48 ? 'Last ' + Math.round(hrs / 24) + ' days' : 'Last 24 hours' };
         } catch (e) { last = label + ' is not available on this Cloudflare plan or token.'; }
       }
+      // fall back to Web Analytics page loads, if the token and the site allow it
+      try {
+        const acc = accts[domain];
+        if (!acc) throw new Error('no account');
+        const b = new Date(), a = new Date(b.getTime() - Math.min(days, 7) * 86400000);
+        const rdim = key === 'paths' ? 'requestPath' : 'refererHost';
+        const d3 = await gql(token, RUM(rdim), { c: acc, a: a.toISOString(), b: b.toISOString(), h: domain });
+        const rr = ((((d3 || {}).viewer || {}).accounts || [{}])[0].rows || []).filter(x => x.dimensions[rdim]);
+        if (rr.length) return { rows: rr.map(x => ({ name: x.dimensions[rdim], count: x.count })), note: 'Last ' + Math.min(days, 7) + ' days, from Web Analytics' };
+        last = label + ': Web Analytics has no data yet. Switch it on for this site in Cloudflare.';
+      } catch (e2) { last = label + ' is not on this plan. Switch on Web Analytics (free) and add Account Analytics Read to the token.'; }
       return { rows: [], note: last };
     };
     const [pg, rf] = await Promise.all([part(PATHS, 'paths', 'clientRequestPath', 'pagesNote', 'Top pages'), part(REFS, 'refs', 'clientRefererHost', 'refNote', 'Referrer data')]);
