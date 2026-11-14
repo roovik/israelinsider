@@ -32,8 +32,8 @@
     var k = [[num(t.avgVisitors), 'Visitors per day, average'], [num(t.pageViews), 'Page views'], [num(t.requests), 'Requests, all'], [bytes(t.bytes), 'Data served'], [Math.round(t.cacheRate * 100) + '%', 'Served from cache'], [num(t.threats), 'Threats blocked'], [num(bots), 'Error responses (4xx, 5xx)']];
     return '<div class="kpis">' + k.map(function (x) { return '<div class="k"><b>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></div>'; }).join('') + '</div>' +
       '<div class="c"><h3>Daily traffic, last ' + d.days + ' days</h3>' + chart(d.daily) + '</div>' +
-      '<div class="grid"><div class="c"><h3>Top countries</h3>' + tbl(d.countries) + '</div><div class="c"><h3>Top pages <span class="sm">' + esc(d.pagesNote || '') + '</span></h3>' + tbl(d.paths, d.pagesNote || 'Not available.') + '</div>' +
-      '<div class="c"><h3>Where visitors come from</h3>' + tbl(d.referrers, d.pagesNote || 'Not available.') + '</div><div class="c"><h3>Browsers, by page views</h3>' + tbl(d.browsers) + '</div><div class="c"><h3>Response codes</h3>' + tbl(d.statuses) + '</div></div>' +
+      '<div class="grid"><div class="c"><h3>Top countries</h3>' + tbl(d.countries) + '</div><div class="c"><h3>Top pages</h3>' + tbl(d.paths, d.pagesNote || 'Not available.') + (d.paths && d.paths.length ? '<p class="sm">' + esc(d.pagesNote || '') + '</p>' : '') + '</div>' +
+      '<div class="c"><h3>Where visitors come from</h3>' + tbl(d.referrers, d.refNote || 'Not available.') + (d.referrers && d.referrers.length ? '<p class="sm">' + esc(d.refNote || '') + '</p>' : '') + '</div><div class="c"><h3>Browsers, by page views</h3>' + tbl(d.browsers) + '</div><div class="c"><h3>Response codes</h3>' + tbl(d.statuses) + '</div></div>' +
       '<p class="sm">Source: Cloudflare edge analytics for ' + esc(d.domain) + '. Updated ' + esc(d.updated.slice(0, 16).replace('T', ' ')) + ' UTC. Cloudflare counts visits to the page itself, so single-page sites such as Israel Insider show section clicks inside the page as one visit.</p>';
   }
   function mount(el, o) {

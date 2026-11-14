@@ -44,8 +44,10 @@ const DAILY = `query($z:string!,$s:Date!,$e:Date!){viewer{zones(filter:{zoneTag:
     uniq{uniques}
   }}}}`;
 
-const PAGES = `query($z:string!,$a:Time!,$b:Time!){viewer{zones(filter:{zoneTag:$z}){
+const PATHS = `query($z:string!,$a:Time!,$b:Time!){viewer{zones(filter:{zoneTag:$z}){
   paths:httpRequestsAdaptiveGroups(limit:15,filter:{datetime_geq:$a,datetime_leq:$b,requestSource:"eyeball",edgeResponseContentTypeName:"html",edgeResponseStatus:200},orderBy:[count_DESC]){count dimensions{clientRequestPath}}
+}}}`;
+const REFS = `query($z:string!,$a:Time!,$b:Time!){viewer{zones(filter:{zoneTag:$z}){
   refs:httpRequestsAdaptiveGroups(limit:15,filter:{datetime_geq:$a,datetime_leq:$b,requestSource:"eyeball",edgeResponseContentTypeName:"html",edgeResponseStatus:200,clientRefererHost_neq:""},orderBy:[count_DESC]){count dimensions{clientRefererHost}}
 }}}`;
 
@@ -80,20 +82,23 @@ export async function traffic(env, site, daysIn) {
       site, domain, days, updated: new Date().toISOString(),
       totals: { ...shaped.totals, cacheRate: shaped.totals.requests ? shaped.totals.cached / shaped.totals.requests : 0, avgVisitors: shaped.daily.length ? Math.round(shaped.totals.visitors / shaped.daily.length) : 0 },
       daily: shaped.daily, countries: top(shaped.countries, 12), statuses: top(shaped.statuses, 8), browsers: top(shaped.browsers, 8),
-      paths: [], referrers: [], pagesNote: '',
+      paths: [], referrers: [], pagesNote: '', refNote: '',
     };
-    // Top pages and referrers come from a finer table that some plans keep for a short time only, so try a week and fall back to one day.
-    for (const hrs of [Math.min(days, 7) * 24, 24]) {
-      try {
-        const b = new Date(), a = new Date(b.getTime() - hrs * 3600000);
-        const d2 = await gql(token, PAGES, { z, a: a.toISOString(), b: b.toISOString() });
-        const zz = (((d2 || {}).viewer || {}).zones || [{}])[0];
-        res.paths = (zz.paths || []).map(x => ({ name: x.dimensions.clientRequestPath, count: x.count }));
-        res.referrers = (zz.refs || []).map(x => ({ name: x.dimensions.clientRefererHost, count: x.count }));
-        res.pagesNote = hrs >= 48 ? 'Last ' + Math.round(hrs / 24) + ' days' : 'Last 24 hours';
-        break;
-      } catch (e) { res.pagesNote = 'Top pages and referrers are not available on this plan or token (' + String(e.message).slice(0, 90) + ').'; }
-    }
+    // Pages and referrers come from a finer table that some plans keep briefly or restrict by field, so each is fetched on its own: try a week, fall back to one day.
+    const part = async (query, key, dim, noteKey, label) => {
+      let last = '';
+      for (const hrs of [Math.min(days, 7) * 24, 24]) {
+        try {
+          const b = new Date(), a = new Date(b.getTime() - hrs * 3600000);
+          const d2 = await gql(token, query, { z, a: a.toISOString(), b: b.toISOString() });
+          const zz = (((d2 || {}).viewer || {}).zones || [{}])[0];
+          return { rows: (zz[key] || []).map(x => ({ name: x.dimensions[dim], count: x.count })), note: hrs >= 48 ? 'Last ' + Math.round(hrs / 24) + ' days' : 'Last 24 hours' };
+        } catch (e) { last = label + ' is not available on this Cloudflare plan or token.'; }
+      }
+      return { rows: [], note: last };
+    };
+    const [pg, rf] = await Promise.all([part(PATHS, 'paths', 'clientRequestPath', 'pagesNote', 'Top pages'), part(REFS, 'refs', 'clientRefererHost', 'refNote', 'Referrer data')]);
+    res.paths = pg.rows; res.pagesNote = pg.note; res.referrers = rf.rows; res.refNote = rf.note;
     memo[mk] = { t: Date.now(), v: res };
     return res;
   } catch (e) {
