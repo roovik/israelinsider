@@ -239,3 +239,29 @@ console.log('taxonomy ok');
   assert.strictEqual(items[0].format, 'read', 'a podcast-feed item without audio is not shown as an episode');
   console.log('format ok');
 }
+
+// Outreach: contact finding and the outreach log
+{
+  const { findContacts, contactBatch } = await import('../worker.js');
+  const page = `<a href="mailto:hello@writer.org?subject=hi">Email</a> write to press&#64;writer.org <img src="logo@2x.png">
+  <a href="https://twitter.com/intent/tweet?text=x">share</a><a href="https://x.com/RealWriter">X</a><a href="https://www.instagram.com/real.writer/">IG</a>
+  <a href="https://www.facebook.com/sharer/sharer.php?u=1">fb share</a><a href="https://facebook.com/RealWriterPage">FB</a><a href="https://t.me/realwriterchan">TG</a>
+  <a href="https://www.youtube.com/@RealWriter">YT</a><a href="https://www.linkedin.com/in/real-writer/">in</a><a href="/contact/">Contact</a><a href="https://wa.me/972501234567">wa</a>`;
+  const c = findContacts(page, 'https://writer.org/');
+  assert.equal(c.email, 'hello@writer.org, press@writer.org'); assert.equal(c.x, 'RealWriter'); assert.equal(c.instagram, 'real.writer'); assert.equal(c.facebook, 'RealWriterPage');
+  assert.equal(c.telegram, 'realwriterchan'); assert.equal(c.youtube, '@RealWriter'); assert.equal(c.linkedin, 'in/real-writer'); assert.equal(c.contact_url, 'https://writer.org/contact/'); assert.equal(c.whatsapp, '972501234567');
+  assert.deepEqual(findContacts('<a href="https://twitter.com/share">s</a> no contacts here', 'https://a.b/'), {});
+  await call('/api/admin/voice', { method: 'POST', body: JSON.stringify({ name: 'Out Reach', status: 'listed', website: 'https://writer.org/' }) });
+  const r = await contactBatch(env, ['out-reach'], async () => new Response(page));
+  assert.equal(r.checked, 1); assert.ok(r.found >= 8);
+  let o = await (await call('/api/admin/outreach')).json(); assert.equal(o.outreach['out-reach'].x, 'RealWriter'); assert.ok(o.outreach['out-reach'].found_at);
+  await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', x: 'Other', notes: 'met at conference' }) });
+  await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', log: { via: 'email', what: 'Blessing request' } }) });
+  o = (await (await call('/api/admin/outreach')).json()).outreach['out-reach'];
+  assert.equal(o.x, 'Other'); assert.equal(o.status, 'contacted'); assert.equal(o.log.length, 1); assert.equal(o.log[0].via, 'email');
+  await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'out-reach', status: 'blessed' }) });
+  assert.equal((await (await call('/api/admin/outreach')).json()).outreach['out-reach'].status, 'blessed');
+  assert.equal((await call('/api/admin/outreach', { method: 'POST', body: JSON.stringify({ id: 'nobody' }) })).status, 422);
+  assert.equal((await call('/api/admin/outreach', {}, false)).status, 401);
+  console.log('outreach ok');
+}

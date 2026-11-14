@@ -101,6 +101,53 @@ export function nlItems(list) {
 
 const BOT = { 'user-agent': 'Mozilla/5.0 (compatible; IsraelInsiderBot/1.0; +https://israelinsider.org/bot)', cookie: 'CONSENT=YES+1', 'accept-language': 'en' };
 const getOk = async u => { try { const r = await fetch(u, { headers: BOT, redirect: 'follow' }); return r.ok ? r : null; } catch { return null; } };
+// Outreach: public contact details found on a voice's own pages (email, social profiles, contact page). Nothing is sent from here.
+const NOTMAIL = /(example\.|sentry|wixpress|noreply|no-reply|donotreply|\.png|\.jpg|\.gif|\.webp|\.svg|@2x|domain\.com|email\.com|yourname|u003e)/i;
+const NOTHANDLE = new Set(['share', 'intent', 'home', 'login', 'signup', 'i', 'hashtag', 'search', 'explore', 'sharer', 'sharer.php', 'dialog', 'plugins', 'tr', 'p', 'reel', 'reels', 'stories', 'watch', 'embed', 'shareArticle', 'privacy', 'about', 'legal', 'help', 'policies', 'accounts', 'settings', 'notifications', 'messages', 'compose', 'tos', 'joinchat', 'share.php', 'feed', 'groups', 'pages', 'events', 'profile.php', 'channel', 'c', 'user', 'playlist', 'results', 'substack', 'substackinc', 'wordpress', 'wordpressdotcom', 'jetpack', 'automattic', 'mailchimp', 'ghost', 'beehiiv', 'squarespace', 'wix', 'medium']);
+export function findContacts(html, base) {
+  const out = {}, h = String(html || '').replace(/&#64;|&#x40;|\[at\]|\(at\)/gi, '@').replace(/&amp;/g, '&');
+  const mails = [...h.matchAll(/mailto:([^"'?\s<>]+)/gi)].map(m => decodeURIComponent(m[1])).concat(h.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []);
+  const em = mails.map(x => x.trim().toLowerCase()).filter(x => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(x) && !NOTMAIL.test(x));
+  if (em.length) out.email = [...new Set(em)].slice(0, 3).join(', ');
+  const pick = (re, k, f = x => x) => { for (const m of h.matchAll(re)) { const v = m[1]; if (v && !NOTHANDLE.has(v) && !NOTHANDLE.has(v.toLowerCase()) && v.length > 1) { out[k] = f(v); return; } } };
+  pick(/https?:\/\/(?:www\.|mobile\.)?(?:twitter|x)\.com\/(?:#!\/)?@?([A-Za-z0-9_]{2,15})(?=[\/"'?#\s<]|$)/g, 'x');
+  pick(/https?:\/\/(?:www\.)?instagram\.com\/([A-Za-z0-9_.]{2,30})(?=[\/"'?#\s<]|$)/g, 'instagram');
+  pick(/https?:\/\/(?:www\.|m\.)?(?:facebook|fb)\.com\/([A-Za-z0-9.\-]{3,60})(?=[\/"'?#\s<]|$)/g, 'facebook');
+  pick(/https?:\/\/(?:www\.)?linkedin\.com\/((?:in|company)\/[A-Za-z0-9_\-%]{2,80})(?=[\/"'?#\s<]|$)/g, 'linkedin');
+  pick(/https?:\/\/(?:www\.)?(?:t|telegram)\.me\/([A-Za-z0-9_]{4,32})(?=[\/"'?#\s<]|$)/g, 'telegram');
+  pick(/https?:\/\/(?:www\.)?youtube\.com\/(@[A-Za-z0-9_.\-]{2,40}|channel\/UC[A-Za-z0-9_\-]{20,24})(?=[\/"'?#\s<]|$)/g, 'youtube');
+  pick(/https?:\/\/(?:wa\.me|api\.whatsapp\.com\/send\?phone=)\/?(\+?\d{8,15})/g, 'whatsapp');
+  const c = h.match(/href=["']([^"']*\/(?:contact|contact-us|about|work-with-me|speaking|booking|media|press)\/?)["']/i);
+  if (c) { try { out.contact_url = new URL(c[1], base).href; } catch {} }
+  return out;
+}
+export async function contactBatch(env, ids, fetcher = getOk, force = false) {
+  const voices = await listVoices(env), feeds = await listFeeds(env), O = await getJson(env, 'outreach', {});
+  const want = (ids && ids.length ? voices.filter(v => ids.includes(v.id)) : voices.filter(v => v.status === 'listed'))
+    .filter(v => force || !(O[v.id] && O[v.id].found_at));
+  const todo = want.slice(0, 8); let found = 0;
+  for (const v of todo) {
+    const o = O[v.id] = O[v.id] || {}, got = {};
+    for (const f of feeds.filter(x => x.voice_id === v.id)) {
+      const u = [f.site, f.url].join(' ');
+      if (f.kind === 'x' && f.external_id) got.x = got.x || String(f.external_id).replace(/^@/, '');
+      if (f.kind === 'telegram' && f.external_id) got.telegram = got.telegram || String(f.external_id).replace(/^@/, '');
+      const yt = u.match(/youtube\.com\/(@[A-Za-z0-9_.\-]+|channel\/UC[A-Za-z0-9_\-]{20,24})/); if (yt) got.youtube = got.youtube || yt[1];
+      if (f.kind === 'youtube' && f.external_id && /^UC/.test(f.external_id)) got.youtube = got.youtube || 'channel/' + f.external_id;
+    }
+    const site = v.website;
+    if (site) {
+      const r = await fetcher(site); if (r) Object.assign(got, Object.fromEntries(Object.entries(findContacts(await r.text(), site)).filter(([k]) => !got[k])));
+      if (!got.email && got.contact_url && got.contact_url !== site) { const r2 = await fetcher(got.contact_url); if (r2) { const c2 = findContacts(await r2.text(), got.contact_url); for (const k in c2) if (!got[k] && k !== 'contact_url') got[k] = c2[k]; } }
+    }
+    for (const k in got) if (!o[k]) { o[k] = got[k]; found++; }
+    o.found_at = new Date().toISOString();
+  }
+  await putJson(env, 'outreach', O);
+  return { checked: todo.length, found, remaining: Math.max(0, want.length - todo.length) };
+}
+const OSTAT = ['', 'contacted', 'replied', 'blessed', 'linked', 'guest', 'declined', 'no-contact'];
+const OFIELDS = ['email', 'x', 'instagram', 'facebook', 'linkedin', 'telegram', 'whatsapp', 'youtube', 'contact_url', 'next', 'notes'];
 // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
 export async function resolveBatch(env, retry) {
   const voices = await listVoices(env), feeds = await listFeeds(env), names = Object.fromEntries(voices.map(v => [v.id, v.name]));
@@ -373,6 +420,20 @@ const W = {
       if (!admin(req, env)) return J({ error: 'Wrong key. It must match the ADMIN_KEY secret exactly, with no spaces.' }, 401, { 'cache-control': 'no-store' });
       if (p === '/api/admin/traffic') return J(await traffic(env, u.searchParams.get('site') || 'insider', u.searchParams.get('days')), 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voices') return J({ voices }, 200, { 'cache-control': 'no-store' });
+      if (p === '/api/admin/outreach' && req.method !== 'POST') {
+        const its = await getJson(env, 'items', []), st = {};
+        for (const i of its) { if (i.hidden) continue; const x = st[i.voice_id] = st[i.voice_id] || { items: 0, last: '', title: '', url: '' }; x.items++; if ((i.published_at || '') > x.last) { x.last = i.published_at || ''; x.title = i.title || ''; x.url = i.url || ''; } }
+        return J({ outreach: await getJson(env, 'outreach', {}), stats: st }, 200, { 'cache-control': 'no-store' });
+      }
+      if (p === '/api/admin/outreach' && req.method === 'POST') {
+        const b = await req.json(); if (!b.id || !voices.some(v => v.id === b.id)) return J({ error: 'Unknown voice' }, 422);
+        const O = await getJson(env, 'outreach', {}), o = O[b.id] = O[b.id] || {};
+        for (const k of OFIELDS) if (b[k] !== undefined) o[k] = String(b[k] || '').trim().slice(0, k === 'notes' ? 4000 : 300);
+        if (b.status !== undefined && OSTAT.includes(b.status)) o.status = b.status;
+        if (b.log) { o.log = (o.log || []).concat([{ at: new Date().toISOString(), via: String(b.log.via || '').slice(0, 30), what: String(b.log.what || '').slice(0, 120) }]).slice(-50); if (!o.status) o.status = 'contacted'; }
+        await putJson(env, 'outreach', O); return J({ ok: true, outreach: o }, 200, { 'cache-control': 'no-store' });
+      }
+      if (p === '/api/admin/outreach/find' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await contactBatch(env, b.ids, getOk, b.force === true && Array.isArray(b.ids) && b.ids.length <= 3), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/items') { const it = await getJson(env, 'items', []); return J({ items: it.slice(0, 200), total: it.length }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/feed/delete' && req.method === 'POST') { const b = await req.json(); const feeds = (await listFeeds(env)).filter(f => f.id !== b.id); await putJson(env, 'feeds', feeds); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
