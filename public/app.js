@@ -542,6 +542,45 @@
     }
   });
 
+
+  /* Leaving-site notice: shows the item's excerpt and credit before going to the creator's own page. */
+  var OUTSKIP = /(^|\.)(israelnowlej\.com|israelinmaps\.com|amazon\.com|israelinsider\.org)$/i;
+  function outHost(a) { try { var u = new URL(a.href, location.href); return /^https?:$/.test(u.protocol) ? u.hostname : ''; } catch (e) { return ''; } }
+  function outSeen() { try { return sessionStorage.getItem('ii_out') === '1'; } catch (e) { return false; } }
+  function closeOut() { var m = document.getElementById('outpop'); if (m) m.remove(); document.body.classList.remove('outopen'); }
+  function openOut(a, it) {
+    closeOut();
+    var url = a.href, h = host(url), v = (it && it.voice) || {};
+    var title = it ? it.title : (a.textContent || '').trim() || h;
+    var img = it && it.thumbnail_url && /^https:/.test(it.thumbnail_url) ? it.thumbnail_url : '';
+    if (!img) { var li = a.closest('li'), im = li && li.querySelector('.nth img'); if (im && /^https:/.test(im.src)) img = im.src; }
+    var by = it ? (v.name ? esc(v.name) + ' · ' : '') + ago(it.published_at) : '';
+    var m = document.createElement('div'); m.id = 'outpop'; m.setAttribute('role', 'dialog'); m.setAttribute('aria-modal', 'true'); m.setAttribute('aria-labelledby', 'outt');
+    m.innerHTML = '<div class="outbox"><button class="outx" type="button" data-outclose aria-label="Close">&times;</button><p class="outk">You are leaving Israel Insider</p>' +
+      (img ? '<img class="outimg" alt="" src="' + esc(img) + '" referrerpolicy="no-referrer" onerror="this.remove()">' : '') +
+      '<h3 id="outt">' + esc(title) + '</h3>' + (by ? '<p class="meta">' + by + '</p>' : '') +
+      (it && it.excerpt ? '<p class="outex">' + esc(it.excerpt) + '</p><p class="outnote">Israel Insider shows a short excerpt only. The full piece belongs to the creator and lives on their own page.</p>' : '<p class="outnote">This link goes to a page we do not run.</p>') +
+      '<p class="outto">Opens <b>' + esc(h) + '</b> in a new tab</p>' +
+      '<div class="outact"><a class="btn" href="' + esc(safeUrl(url)) + '" target="_blank" rel="noopener" data-outgo>Continue to ' + esc(h) + '</a><button class="btn line" type="button" data-outclose>Stay here</button></div>' +
+      '<label class="outask"><input type="checkbox" id="outq"> Do not ask again this visit</label></div>';
+    document.body.appendChild(m); document.body.classList.add('outopen');
+    var g = m.querySelector('[data-outgo]'); if (g) g.focus();
+  }
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest('[data-outclose]'); if (c) { e.preventDefault(); closeOut(); return; }
+    if (e.target.id === 'outpop') { closeOut(); return; }
+    var go = e.target.closest('[data-outgo]');
+    if (go) { var q = document.getElementById('outq'); if (q && q.checked) { try { sessionStorage.setItem('ii_out', '1'); } catch (x) {} } setTimeout(closeOut, 50); return; }
+    var a = e.target.closest('a[target=_blank]');
+    if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    if (a.closest('.share,.sharei,.adslot,.adbox,#sitepop,#outpop,footer,.player') || a.classList.contains('sh') || a.classList.contains('hb') || a.classList.contains('rss')) return;
+    var h = outHost(a); if (!h || OUTSKIP.test(h) || outSeen()) return;
+    var it = null; for (var k in ITEMS) { if (ITEMS[k].url === a.href || safeUrl(ITEMS[k].url) === a.getAttribute('href')) { it = ITEMS[k]; break; } }
+    if (!it && !a.closest('.card,.nlist,.rw,.vfeed,#vfeed,.rl,li')) return;
+    e.preventDefault(); openOut(a, it);
+  }, true);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeOut(); });
+
   topGreet();
   route();
 })();
