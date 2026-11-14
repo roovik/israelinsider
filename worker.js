@@ -162,6 +162,34 @@ export async function discoverBatch(env) {
     }
   }
   await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); await putJson(env, 'discovered', [...seen].slice(-5000));
+  try { const n = await discoverNowlej(env); added += n.added; checked += n.checked; remaining += n.remaining; } catch { /* next hour */ }
+  return { added, checked, remaining };
+}
+// Opinion and blog writers who keep appearing in Israel NOWlej's views feed become pending voices.
+// Three or more pieces, no staff or editorial bylines, and Haaretz is left out by editorial choice.
+const NL_SKIP_SRC = new Set(['haaretz']), NL_STAFF = /\b(staff|editorial|editors?|team|desk|jns|jta|reuters|associated press)\b/i;
+const NL_AUTHOR = { toi: s => ({ page: `https://blogs.timesofisrael.com/author/${s}/`, section: 'blog' }), ji: s => ({ page: `https://jewishinsider.com/author/${s}/`, section: 'oped' }) };
+export async function discoverNowlej(env) {
+  const r0 = await getOk('https://israelnowlej.com/api/news?views=1&v=2'); if (!r0) return { added: 0, checked: 0, remaining: 0 };
+  const d = await r0.json().catch(() => null), tally = new Map();
+  for (const i of (d && d.items) || []) {
+    const nm = String(i.by || '').trim(); if (!nm || nm.length > 60 || !/\s/.test(nm) || NL_SKIP_SRC.has(i.s) || NL_STAFF.test(nm)) continue;
+    const k = slug(nm), o = tally.get(k) || { nm, n: 0, s: i.s, src: i.src, u: i.u }; o.n++; tally.set(k, o);
+  }
+  const voices = await listVoices(env), feeds = await listFeeds(env), seen = new Set(await getJson(env, 'discovered', [])), have = new Set(voices.map(v => v.id));
+  let added = 0, checked = 0, remaining = 0;
+  for (const [sl, o] of tally) {
+    if (o.n < 3 || have.has(sl) || seen.has('nl:' + sl)) continue;
+    if (checked >= 12) { remaining++; continue; }
+    checked++; seen.add('nl:' + sl);
+    const a = (NL_AUTHOR[o.s] || (() => ({ page: '', section: 'oped' })))(sl); let fu = '';
+    if (a.page) { const r = await getOk(a.page + 'feed/'); if (r && looksLikeFeed(await r.text())) fu = a.page + 'feed/'; }
+    let site = a.page; if (!site) { try { site = new URL(o.u).origin; } catch { site = ''; } }
+    voices.push({ id: sl, slug: sl, name: o.nm, short_bio: 'Writes for ' + o.src + '.', avatar: '', website: site, topics: [], position_tag: '', status: 'pending', listed_on: '', consent: { excerpt_ok: true, full_text_ok: false, date: '', note: 'Found in Israel NOWlej opinion and blog feeds (' + o.n + ' pieces). Not reviewed yet.' } });
+    const kind = a.section === 'blog' ? 'blog' : 'oped';
+    feeds.push({ id: slug(sl + '-' + a.section + '-nl'), voice_id: sl, kind, section: a.section, url: fu, external_id: '', site, term: '', format: feedFormat(kind), status: 'active', error_count: 0, unverified: true }); have.add(sl); added++;
+  }
+  await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); await putJson(env, 'discovered', [...seen].slice(-5000));
   return { added, checked, remaining };
 }
 
