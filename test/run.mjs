@@ -265,3 +265,21 @@ console.log('taxonomy ok');
   assert.equal((await call('/api/admin/outreach', {}, false)).status, 401);
   console.log('outreach ok');
 }
+
+// Freezer: quiet voices leave the public site and come back when they publish again
+{
+  const { quietVoices, freezeQuiet, runIngest } = await import('../worker.js');
+  const now = Date.parse('2026-11-14T12:00:00Z'), old = '2026-06-01T00:00:00.000Z', fresh = '2026-11-01T00:00:00.000Z';
+  const V = [{ id: 'a', name: 'Active', status: 'listed' }, { id: 'q', name: 'Quiet', status: 'listed' }, { id: 'n', name: 'No feed', status: 'listed' }, { id: 'u', name: 'Unchecked', status: 'listed' }, { id: 'p', name: 'Pending', status: 'pending' }];
+  const F = [{ voice_id: 'a', url: 'x', last_checked: fresh, last_item_at: fresh }, { voice_id: 'q', url: 'y', last_checked: fresh, last_item_at: old }, { voice_id: 'u', url: 'z' }];
+  assert.deepEqual(quietVoices(V, F, [], now).map(x => x.id), ['q', 'n'], 'quiet and feedless voices are frozen, active and never-checked ones are not');
+  assert.deepEqual(quietVoices(V, F, [{ voice_id: 'q', published_at: fresh }], now).map(x => x.id), ['n'], 'a recent stored item counts as activity');
+  const kv2 = new Map(), env2 = { STORE: { get: async (k, t) => kv2.has(k) ? (t === 'json' ? JSON.parse(kv2.get(k)) : kv2.get(k)) : null, put: async (k, v) => kv2.set(k, v) } };
+  kv2.set('voices', JSON.stringify([{ id: 'q', slug: 'q', name: 'Quiet', status: 'listed', consent: {} }])); kv2.set('feeds', JSON.stringify([{ id: 'fq', voice_id: 'q', kind: 'blog', url: 'https://q.test/feed', last_checked: old, last_item_at: old }])); kv2.set('items', '[]');
+  const dry = await freezeQuiet(env2, true); assert.equal(dry.quiet.length, 1); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'listed', 'a dry run changes nothing');
+  await freezeQuiet(env2); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'frozen');
+  const today = new Date().toUTCString();
+  const r = await runIngest(env2, async () => new Response(`<rss version="2.0"><channel><item><title>Back on Israel</title><link>https://q.test/p</link><guid>q1</guid><pubDate>${today}</pubDate><description>New.</description></item></channel></rss>`));
+  assert.deepEqual(r.thawed, ['q']); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'listed', 'a frozen voice that publishes again is listed again');
+  console.log('freezer ok');
+}

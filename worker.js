@@ -6,6 +6,9 @@ import { traffic } from './cfstats.js';
 const J = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'public, max-age=120', 'access-control-allow-origin': '*', ...extra } });
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
 const MAX_ITEMS = 1500;
+// The freezer: listed voices with nothing new for QUIET_DAYS leave the public site (status frozen). Their feeds are still
+// checked once a week, and a frozen voice that publishes again is listed again automatically.
+const QUIET_DAYS = 90, FROZEN_CHECK_DAYS = 7;
 
 async function getJson(env, key, dflt) { const v = await env.STORE.get(key, 'json'); return v ?? dflt; }
 const putJson = (env, key, v) => env.STORE.put(key, JSON.stringify(v));
@@ -34,14 +37,14 @@ export async function ingestFeed(env, feed, voice, fetcher = fetch) {
 }
 
 export async function runIngest(env, fetcher = fetch) {
-  const voices = (await listVoices(env)).filter(v => v.status === 'listed');
+  const allV = await listVoices(env), voices = allV.filter(v => v.status === 'listed' || v.status === 'frozen');
   const feeds = await listFeeds(env);
-  const byId = Object.fromEntries(voices.map(v => [v.id, v]));
+  const byId = Object.fromEntries(voices.map(v => [v.id, v])), weekAgo = new Date(Date.now() - FROZEN_CHECK_DAYS * 864e5).toISOString();
   const existing = await getJson(env, 'items', []);
   const seen = new Map(existing.map(i => [i.id, i]));
   let added = 0;
   // Free plans allow about 50 subrequests per call: take the feeds checked longest ago, 35 at a time.
-  const due = feeds.filter(f => byId[f.voice_id] && f.status !== 'paused' && f.kind !== 'x' && (f.url || f.external_id)).sort((a, b) => String(a.last_checked || '').localeCompare(String(b.last_checked || '')));
+  const due = feeds.filter(f => byId[f.voice_id] && f.status !== 'paused' && f.kind !== 'x' && (f.url || f.external_id) && (byId[f.voice_id].status === 'listed' || String(f.last_checked || '') < weekAgo)).sort((a, b) => String(a.last_checked || '').localeCompare(String(b.last_checked || '')));
   const batch = new Set(due.slice(0, 35).map(f => f.id));
   for (const f of feeds) {
     const v = byId[f.voice_id];
@@ -57,7 +60,40 @@ export async function runIngest(env, fetcher = fetch) {
   const all = [...seen.values()].sort((a, b) => b.published_at.localeCompare(a.published_at)).slice(0, MAX_ITEMS);
   await putJson(env, 'items', all);
   await putJson(env, 'feeds', feeds);
-  return { added, total: all.length, remaining: Math.max(0, due.length - batch.size) };
+  const thawed = thaw(allV, feeds); if (thawed.length) await putJson(env, 'voices', allV);
+  return { added, total: all.length, remaining: Math.max(0, due.length - batch.size), thawed };
+}
+
+// Newest item date for a voice: from its feeds (kept even after old items leave the store) and its stored items.
+export function lastActivity(v, feeds, items) {
+  let last = '';
+  for (const f of feeds) if (f.voice_id === v.id && f.last_item_at && f.last_item_at > last) last = f.last_item_at;
+  for (const i of items || []) if (i.voice_id === v.id && i.published_at > last) last = i.published_at;
+  return last;
+}
+// A voice is quiet when nothing has appeared for QUIET_DAYS. Voices whose feeds have not been fetched even once are left alone until they have been.
+export function quietVoices(voices, feeds, items, now = Date.now()) {
+  const cut = new Date(now - QUIET_DAYS * 864e5).toISOString(), out = [];
+  for (const v of voices) {
+    if (v.status !== 'listed') continue;
+    const vf = feeds.filter(f => f.voice_id === v.id && f.kind !== 'x' && (f.url || f.external_id) && f.status !== 'paused');
+    const last = lastActivity(v, feeds, items);
+    if (last && last >= cut) continue;
+    if (vf.length && vf.some(f => !f.last_checked && !f.checked_at)) continue;
+    out.push({ id: v.id, name: v.name, last, reason: !vf.length ? 'no feed' : last ? 'nothing new since ' + last.slice(0, 10) : 'no items found' });
+  }
+  return out;
+}
+export async function freezeQuiet(env, dry = false, now = Date.now()) {
+  const voices = await listVoices(env), feeds = await listFeeds(env), items = await getJson(env, 'items', []);
+  const q = quietVoices(voices, feeds, items, now);
+  if (!dry && q.length) { const ids = new Set(q.map(x => x.id)), day = new Date(now).toISOString().slice(0, 10); for (const v of voices) if (ids.has(v.id)) { v.status = 'frozen'; v.frozen_on = day; } await putJson(env, 'voices', voices); }
+  return { frozen: dry ? 0 : q.length, quiet: q };
+}
+function thaw(voices, feeds, now = Date.now()) {
+  const cut = new Date(now - QUIET_DAYS * 864e5).toISOString(), out = [];
+  for (const v of voices) if (v.status === 'frozen') { const last = lastActivity(v, feeds, null); if (last && last >= cut) { v.status = 'listed'; v.thawed_on = new Date(now).toISOString().slice(0, 10); delete v.frozen_on; out.push(v.id); } }
+  return out;
 }
 
 const PER_VOICE = 3;
@@ -433,6 +469,7 @@ const W = {
         if (b.log) { o.log = (o.log || []).concat([{ at: new Date().toISOString(), via: String(b.log.via || '').slice(0, 30), what: String(b.log.what || '').slice(0, 120) }]).slice(-50); if (!o.status) o.status = 'contacted'; }
         await putJson(env, 'outreach', O); return J({ ok: true, outreach: o }, 200, { 'cache-control': 'no-store' });
       }
+      if (p === '/api/admin/freeze' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await freezeQuiet(env, b.dry === true), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/outreach/find' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await contactBatch(env, b.ids, getOk, b.force === true && Array.isArray(b.ids) && b.ids.length <= 3), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/items') { const it = await getJson(env, 'items', []); return J({ items: it.slice(0, 200), total: it.length }, 200, { 'cache-control': 'no-store' }); }
@@ -503,7 +540,7 @@ const W = {
       if (p === '/api/admin/listall' && req.method === 'POST') {
         // Bulk publish. Lists every pending voice, stamps the listing date, and keeps the consent note honest.
         const b = await req.json().catch(() => ({})); const day = new Date().toISOString().slice(0, 10); let n = 0;
-        for (const v of voices) if (v.status !== 'listed' && v.status !== 'removed') { v.status = 'listed'; v.listed_on = day; v.consent = { ...(v.consent || {}), excerpt_ok: true, full_text_ok: false, note: ((v.consent && v.consent.note) || '') + ' Listed in bulk ' + day + ' on public feeds. Link-out and excerpts only. Opt-out honored within 48 hours.' }; n++; }
+        for (const v of voices) if (v.status !== 'listed' && v.status !== 'removed' && v.status !== 'frozen') { v.status = 'listed'; v.listed_on = day; v.consent = { ...(v.consent || {}), excerpt_ok: true, full_text_ok: false, note: ((v.consent && v.consent.note) || '') + ' Listed in bulk ' + day + ' on public feeds. Link-out and excerpts only. Opt-out honored within 48 hours.' }; n++; }
         await putJson(env, 'voices', voices); return J({ ok: true, listed: n }, 200, { 'cache-control': 'no-store' });
       }
       if (p === '/api/admin/resolve' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J({ ok: true, ...(await resolveBatch(env, !!b.retry)) }, 200, { 'cache-control': 'no-store' }); }
@@ -525,7 +562,7 @@ const W = {
     }
     return J({ error: 'not found' }, 404);
   },
-  async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { await runIngest(env); for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
+  async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { await runIngest(env); if (new Date().getUTCHours() === 3) { try { await freezeQuiet(env); } catch { /* tomorrow */ } } for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
 };
 
 // Edge cache for the public read endpoints. Visitors get a stored copy at once, and any copy older than 45 seconds is rebuilt in the background.
