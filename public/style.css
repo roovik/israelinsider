@@ -333,6 +333,7 @@ body[data-route=home] .sec .grid>*{flex:0 0 82%;scroll-snap-align:start}
 .jump a{padding:8px 14px;background:var(--card);border:1px solid var(--line);font-weight:700;font-size:13px;color:var(--bluedk)}
 .jump a.on{background:var(--bluedk);color:#fff;border-color:var(--bluedk)}
 .jump a i{font-style:normal;opacity:.65;margin-left:4px}
+.jump.who{margin-top:-12px}.jump.who a{font-weight:600;background:transparent}.jump.who a.on{background:var(--bluedk)}
 .vdir{gap:3px}
 .vcard{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);padding:12px 14px;color:inherit}
 .vcard:hover{text-decoration:none;background:#dfe9f6}

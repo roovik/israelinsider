@@ -217,6 +217,7 @@ export async function planOutreach(env, b = {}, now = Date.now()) {
   await putJson(env, 'outreach', O);
   return { planned: Object.values(plan).reduce((a, c) => a + c, 0), unplanned: Math.max(0, todo.length - per * days.length), per_day: per, days: plan };
 }
+const SEGS = ['individual', 'jewish', 'israeli', 'christian', 'other'];
 const OSTAT = ['', 'contacted', 'replied', 'blessed', 'linked', 'guest', 'declined', 'no-contact'];
 const OFIELDS = ['email', 'x', 'instagram', 'facebook', 'linkedin', 'telegram', 'whatsapp', 'youtube', 'contact_url', 'next', 'notes'];
 // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
@@ -563,6 +564,12 @@ const W = {
       if (p === '/api/admin/response/log' && req.method === 'POST') { const b = await req.json(); const r = await recordResponse(env, b.voice_id, b); return J(r, r.error ? 422 : 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/outreach/settings' && req.method === 'POST') { const b = await req.json(); const a = String(b.alert || '').trim().slice(0, 200); if (a && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(a)) return J({ error: 'That alert address does not look like an email address' }, 422); await putJson(env, 'outreach_settings', { alert: a, at: new Date().toISOString() }); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/outreach/plan' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await planOutreach(env, b), 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/segments' && req.method === 'POST') {
+        // Who each voice is: individual, or a Jewish, Israeli or Christian group. One write for many voices.
+        const b = await req.json(); let n = 0;
+        for (const v of voices) { const g = (b.map || {})[v.id]; if (g !== undefined && (g === '' || SEGS.includes(g)) && (v.segment || '') !== g) { v.segment = g; n++; } }
+        if (n) await putJson(env, 'voices', voices); return J({ ok: true, changed: n }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/freeze' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await freezeQuiet(env, b.dry === true), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/probe' && req.method === 'POST') {
         // Media check: what this server actually gets from a feed or page address. Admin only, nothing is stored.
@@ -607,7 +614,7 @@ const W = {
       if (p === '/api/admin/submissions') return J({ submissions: await getJson(env, 'submissions', []) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/voice' && req.method === 'POST') {
         const b = await req.json(); const id = b.id || slug(b.name); const i = voices.findIndex(v => v.id === id);
-        const rec = { id, slug: slug(b.slug || b.name), name: b.name, short_bio: b.short_bio || '', bio: String(b.bio || '').slice(0, 2000), avatar: b.avatar || '', website: b.website || '', topics: b.topics || [], position_tag: b.position_tag || '', status: b.status || 'pending', listed_on: b.status === 'listed' ? (voices[i]?.listed_on || new Date().toISOString().slice(0, 10)) : '', consent: { excerpt_ok: b.consent?.excerpt_ok !== false, full_text_ok: b.consent?.full_text_ok === true, date: b.consent?.date || '', note: b.consent?.note || '' } };
+        const rec = { id, slug: slug(b.slug || b.name), name: b.name, short_bio: b.short_bio || '', bio: String(b.bio || '').slice(0, 2000), avatar: b.avatar || '', website: b.website || '', topics: b.topics || [], position_tag: b.position_tag || '', segment: SEGS.includes(b.segment) ? b.segment : (voices[i]?.segment || ''), status: b.status || 'pending', listed_on: b.status === 'listed' ? (voices[i]?.listed_on || new Date().toISOString().slice(0, 10)) : '', consent: { excerpt_ok: b.consent?.excerpt_ok !== false, full_text_ok: b.consent?.full_text_ok === true, date: b.consent?.date || '', note: b.consent?.note || '' } };
         if (i >= 0) voices[i] = { ...voices[i], ...rec }; else voices.push(rec);
         await putJson(env, 'voices', voices); return J({ ok: true, voice: rec }, 200, { 'cache-control': 'no-store' });
       }

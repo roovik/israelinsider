@@ -328,3 +328,14 @@ console.log('taxonomy ok');
   const nm = needsMedia(JSON.parse(kv3.get('voices')), JSON.parse(kv3.get('feeds'))); assert.equal(nm.length, 4); assert.match(nm.find(x => x.id === 'v0').reason, /slow down/);
   console.log('polite ok');
 }
+
+// Segments: who each voice is, set in bulk and shown publicly
+{
+  await call('/api/admin/voice', { method: 'POST', body: JSON.stringify({ name: 'Seg Group', status: 'listed', segment: 'christian' }) });
+  let pub = (await (await call('/api/voices', {}, false)).json()).voices; assert.equal(pub.find(v => v.id === 'seg-group').segment, 'christian');
+  await call('/api/admin/voice', { method: 'POST', body: JSON.stringify({ id: 'seg-group', name: 'Seg Group', status: 'listed' }) });
+  pub = (await (await call('/api/voices', {}, false)).json()).voices; assert.equal(pub.find(v => v.id === 'seg-group').segment, 'christian', 'an edit without a segment keeps it');
+  const r = await (await call('/api/admin/segments', { method: 'POST', body: JSON.stringify({ map: { 'seg-group': 'israeli', 'sample-writer': 'bogus' } }) })).json(); assert.equal(r.changed, 1);
+  pub = (await (await call('/api/voices', {}, false)).json()).voices; assert.equal(pub.find(v => v.id === 'seg-group').segment, 'israeli');
+  console.log('segments ok');
+}

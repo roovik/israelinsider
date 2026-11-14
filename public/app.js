@@ -327,18 +327,24 @@
       });
     },
     voices: function () {
-      var only = secParam(CURQ);
+      var only = secParam(CURQ), who = whoParam(CURQ);
       return api('/api/voices').then(function (r) {
+        var allV = r.voices; if (who) r = { voices: allV.filter(function (v) { return whoOf(v) === who; }) };
+        var qs = function (sec, w) { var a = []; if (sec) a.push('section=' + sec); if (w) a.push('who=' + w); return '#/voices' + (a.length ? '?' + a.join('&') : ''); };
+        var whoNav = '<nav class="jump who" aria-label="Who"><a' + (who ? '' : ' class="on"') + ' href="' + qs(only, '') + '">Everyone</a>' + WHO.map(function (w) { var n = allV.filter(function (v) { return whoOf(v) === w[0] && (!only || (v.sections || []).indexOf(only) > -1); }).length; return n ? '<a' + (who === w[0] ? ' class="on"' : '') + ' href="' + qs(only, w[0]) + '">' + w[1] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>';
         var order = ['blog', 'substack', 'oped', 'editorial', 'podcast', 'vlog'], TY = { blog: 'read', substack: 'read', oped: 'read', editorial: 'read', podcast: 'listen', vlog: 'watch' };
         if (!r.voices.length) return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Every listed writer, show and channel') + empty('No voices listed yet.') + '</section>';
-        var jump = '<nav class="jump" aria-label="Directory sections"><a' + (only ? '' : ' class="on"') + ' href="#/voices">All</a>' + order.map(function (s) { var n = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).length; return n ? '<a' + (only === s ? ' class="on"' : '') + ' href="#/voices?section=' + s + '">' + SL[s] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>';
+        var jump = '<nav class="jump" aria-label="Directory sections"><a' + (only ? '' : ' class="on"') + ' href="' + qs('', who) + '">All</a>' + order.map(function (s) { var n = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).length; return n ? '<a' + (only === s ? ' class="on"' : '') + ' href="' + qs(s, who) + '">' + SL[s] + ' <i>' + n + '</i></a>' : ''; }).join('') + '</nav>' + whoNav;
         var blocks = order.filter(function (s) { return !only || only === s; }).map(function (s) {
           var l = r.voices.filter(function (v) { return (v.sections || []).indexOf(s) > -1; }).sort(function (x, y) { var dx = ((x.latest || [])[0] || {}).d || '', dy = ((y.latest || [])[0] || {}).d || ''; return dx === dy ? x.name.localeCompare(y.name) : (dx < dy ? 1 : -1); });
           if (!l.length) return '';
           var gl = { toi: 'Times of Israel bloggers', jj: 'Jewish Journal writers' }, own = l.filter(function (v) { return !v.group; }), sub = Object.keys(gl).map(function (g) { var m = l.filter(function (v) { return v.group === g; }); return m.length ? '<h3 class="vgrp" id="dir-' + s + '-' + g + '">' + gl[g] + ' <i>' + m.length + '</i></h3><div class="grid g3 vdir">' + m.map(vcard).join('') + '</div>' : ''; }).join('');
           return '<section class="sec ' + TY[s] + '" id="dir-' + s + '">' + sech(TY[s], SL[s], SDESC[s] + ' (' + l.length + ')', ['#/' + TY[s] + '?section=' + s, 'Latest ' + SL[s].toLowerCase()]) + (own.length ? '<div class="grid g3 vdir">' + own.map(vcard).join('') + '</div>' : '') + sub + '</section>';
         }).join('');
+        if (!r.voices.length) return '<section class="sec" style="padding-top:26px">' + sech('', 'Voices', 'Latest posts first, then every voice') + jump + empty('No voices here yet.') + '</section>';
+        var inWho = {}; r.voices.forEach(function (v) { inWho[v.slug] = 1; });
         return items('limit=100' + (only ? '&section=' + only : '')).then(function (its) {
+          if (who) its = its.filter(function (i) { return i.voice && inWho[i.voice.slug]; });
           var lp = its.length ? '<section class="sec">' + sech('', 'Latest posts', 'Newest first, from every voice', ['#/read', 'All posts']) + '<ul class="lpl">' + its.slice(0, 25).map(function (i) {
             var x = i.voice || {};
             return '<li><a class="face" href="#/voice/' + esc(x.slug) + '" tabindex="-1" aria-hidden="true">' + fi(x) + '</a><div><a class="t" href="#/item/' + esc(i.id) + '">' + esc(i.title) + '</a><span class="meta"><a href="#/voice/' + esc(x.slug) + '">' + esc(x.name) + '</a> &middot; ' + ago(i.published_at) + '</span></div></li>';
@@ -389,6 +395,10 @@
     return '<a class="vcard vmin" href="#/voice/' + esc(v.slug) + '"><span class="big">' + fi(v) + '</span><span class="vb"><span class="vn">' + esc(v.name) + '</span><span class="vs">' + esc(oneLine(v.short_bio)) + '</span></span></a>';
   }
   function secParam(q) { var m = /[?&]section=([a-z]+)/.exec(q || ''); return m ? m[1] : ''; }
+  // Who a voice is: an individual, or a Jewish, Israeli, Christian or other group. Set by the editor; unset counts as an individual.
+  var WHO = [['individual', 'Individuals'], ['jewish', 'Jewish groups'], ['israeli', 'Israeli groups'], ['christian', 'Christian groups'], ['other', 'Other groups']];
+  function whoParam(q) { var m = /[?&]who=([a-z]+)/.exec(q || ''); return m && WHO.some(function (w) { return w[0] === m[1]; }) ? m[1] : ''; }
+  function whoOf(v) { return v.segment || 'individual'; }
   // a strip of voices that belong to a tab, shown on the tab page
   function voiceStrip(type, sec) {
     return api('/api/voices').then(function (r) {
@@ -443,7 +453,7 @@
     var h = location.hash.replace(/^#\/?/, '');
     var parts = h.split('?')[0].split('/');
     var name = parts[0] || 'home', arg = parts[1] ? decodeURIComponent(parts[1]) : '';
-    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), cm = /[?&]cat=([^&]*)/.exec(h), sm = /[?&]section=([a-z]+)/.exec(h), q = (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '') + (cm ? '&cat=' + cm[1] : '') + (sm ? '&section=' + sm[1] : '');
+    var qm = /[?&]q=([^&]*)/.exec(h), tm = /[?&]topic=([^&]*)/.exec(h), km = /[?&]kind=([^&]*)/.exec(h), cm = /[?&]cat=([^&]*)/.exec(h), sm = /[?&]section=([a-z]+)/.exec(h), wm = /[?&]who=([a-z]+)/.exec(h), q = (wm ? '&who=' + wm[1] : '') + (qm ? '&q=' + qm[1] : '') + (tm ? '&topic=' + tm[1] : '') + (km ? '&kind=' + km[1] : '') + (cm ? '&cat=' + cm[1] : '') + (sm ? '&section=' + sm[1] : '');
     CURARG = arg; CURQ = q;
     if (name === 'social') name = 'share';
     if (!routes[name]) name = 'home';
