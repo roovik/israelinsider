@@ -542,6 +542,19 @@ const W = {
       if (p === '/api/admin/outreach/settings' && req.method === 'POST') { const b = await req.json(); const a = String(b.alert || '').trim().slice(0, 200); if (a && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(a)) return J({ error: 'That alert address does not look like an email address' }, 422); await putJson(env, 'outreach_settings', { alert: a, at: new Date().toISOString() }); return J({ ok: true }, 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/outreach/plan' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await planOutreach(env, b), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/freeze' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await freezeQuiet(env, b.dry === true), 200, { 'cache-control': 'no-store' }); }
+      if (p === '/api/admin/probe' && req.method === 'POST') {
+        // Media check: what this server actually gets from a feed or page address. Admin only, nothing is stored.
+        const b = await req.json(); const urls = (b.urls || []).slice(0, 12), ua = b.ua === 'browser' ? { 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36', accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'accept-language': 'en' } : BOT;
+        const out = await Promise.all(urls.map(async x => {
+          try {
+            const r = await fetch(x, { headers: ua, redirect: 'follow' }), t = await r.text(), ty = r.headers.get('content-type') || '';
+            const items = looksLikeFeed(t) ? parseFeed(t) : [], newest = items.map(i => i.date || '').filter(Boolean).map(d => { try { return new Date(d).toISOString(); } catch { return ''; } }).sort().pop() || '';
+            const ch = (t.match(/"channelId":"(UC[\w-]{22})"/) || t.match(/channel\/(UC[\w-]{22})/) || [])[1] || '';
+            return { url: x, status: r.status, final: r.url, type: ty.split(';')[0], feed: items.length > 0, n: items.length, newest, title: ((t.match(/<title[^>]*>([^<]{0,140})/i) || [])[1] || '').trim(), channel_id: ch, alt: (discoverFeed(t, r.url) || '') };
+          } catch (e) { return { url: x, error: String(e).slice(0, 120) }; }
+        }));
+        return J({ results: out }, 200, { 'cache-control': 'no-store' });
+      }
       if (p === '/api/admin/outreach/find' && req.method === 'POST') { const b = await req.json().catch(() => ({})); return J(await contactBatch(env, b.ids, getOk, b.force === true && Array.isArray(b.ids) && b.ids.length <= 3), 200, { 'cache-control': 'no-store' }); }
       if (p === '/api/admin/feeds') return J({ feeds: await listFeeds(env) }, 200, { 'cache-control': 'no-store' });
       if (p === '/api/admin/items') { const it = await getJson(env, 'items', []); return J({ items: it.slice(0, 200), total: it.length }, 200, { 'cache-control': 'no-store' }); }
