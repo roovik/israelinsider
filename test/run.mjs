@@ -271,11 +271,11 @@ console.log('taxonomy ok');
   const { quietVoices, freezeQuiet, runIngest } = await import('../worker.js');
   const now = Date.parse('2026-11-14T12:00:00Z'), old = '2026-06-01T00:00:00.000Z', fresh = '2026-11-01T00:00:00.000Z';
   const V = [{ id: 'a', name: 'Active', status: 'listed' }, { id: 'q', name: 'Quiet', status: 'listed' }, { id: 'n', name: 'No feed', status: 'listed' }, { id: 'u', name: 'Unchecked', status: 'listed' }, { id: 'p', name: 'Pending', status: 'pending' }];
-  const F = [{ voice_id: 'a', url: 'x', last_checked: fresh, last_item_at: fresh }, { voice_id: 'q', url: 'y', last_checked: fresh, last_item_at: old }, { voice_id: 'u', url: 'z' }];
-  assert.deepEqual(quietVoices(V, F, [], now).map(x => x.id), ['q', 'n'], 'quiet and feedless voices are frozen, active and never-checked ones are not');
-  assert.deepEqual(quietVoices(V, F, [{ voice_id: 'q', published_at: fresh }], now).map(x => x.id), ['n'], 'a recent stored item counts as activity');
+  const F = [{ voice_id: 'a', url: 'x', last_checked: fresh, last_ok: fresh, last_item_at: fresh }, { voice_id: 'q', url: 'y', last_checked: fresh, last_ok: fresh, last_item_at: old }, { voice_id: 'u', url: 'z' }, { voice_id: 'p', url: 'w', last_checked: fresh, last_status: 429 }];
+  assert.deepEqual(quietVoices(V, F, [], now).map(x => x.id), ['q'], 'only a voice whose working feed shows nothing new is frozen; no feed or failing feeds are not proof');
+  assert.deepEqual(quietVoices(V, F, [{ voice_id: 'q', published_at: fresh }], now).map(x => x.id), [], 'a recent stored item counts as activity');
   const kv2 = new Map(), env2 = { STORE: { get: async (k, t) => kv2.has(k) ? (t === 'json' ? JSON.parse(kv2.get(k)) : kv2.get(k)) : null, put: async (k, v) => kv2.set(k, v) } };
-  kv2.set('voices', JSON.stringify([{ id: 'q', slug: 'q', name: 'Quiet', status: 'listed', consent: {} }])); kv2.set('feeds', JSON.stringify([{ id: 'fq', voice_id: 'q', kind: 'blog', url: 'https://q.test/feed', last_checked: old, last_item_at: old }])); kv2.set('items', '[]');
+  kv2.set('voices', JSON.stringify([{ id: 'q', slug: 'q', name: 'Quiet', status: 'listed', consent: {} }])); kv2.set('feeds', JSON.stringify([{ id: 'fq', voice_id: 'q', kind: 'blog', url: 'https://q.test/feed', last_checked: old, last_ok: old, last_item_at: old }])); kv2.set('items', '[]');
   const dry = await freezeQuiet(env2, true); assert.equal(dry.quiet.length, 1); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'listed', 'a dry run changes nothing');
   await freezeQuiet(env2); assert.equal(JSON.parse(kv2.get('voices'))[0].status, 'frozen');
   const today = new Date().toUTCString();
@@ -313,4 +313,18 @@ console.log('taxonomy ok');
   for (const d of Object.keys(r.days)) assert.ok(![5, 6].includes(new Date(d + 'T12:00:00Z').getUTCDay()), 'no Friday or Saturday: ' + d);
   assert.ok(r.planned >= 1);
   console.log('plan ok');
+}
+
+// Politeness: a 429 is not an error, waits out Retry-After, and no more than 4 feeds per site per run
+{
+  const { runIngest, needsMedia } = await import('../worker.js');
+  const kv3 = new Map(), env3 = { STORE: { get: async (k, t) => kv3.has(k) ? (t === 'json' ? JSON.parse(kv3.get(k)) : kv3.get(k)) : null, put: async (k, v) => kv3.set(k, v) } };
+  kv3.set('voices', JSON.stringify(Array.from({ length: 8 }, (_, i) => ({ id: 'v' + i, slug: 'v' + i, name: 'V' + i, status: 'listed', consent: {} }))));
+  kv3.set('feeds', JSON.stringify(Array.from({ length: 8 }, (_, i) => ({ id: 'f' + i, voice_id: 'v' + i, kind: 'blog', url: 'https://same.example.com/a' + i + '/feed' }))));
+  let calls = 0; const r = await runIngest(env3, async () => { calls++; return new Response('', { status: 429, headers: { 'retry-after': '120' } }); });
+  assert.equal(calls, 4, 'at most 4 feeds per site per run'); const fs = JSON.parse(kv3.get('feeds'));
+  assert.ok(fs.filter(f => f.retry_after).length === 4 && fs.every(f => !f.error_count), '429 waits and is not counted as a failure');
+  calls = 0; await runIngest(env3, async () => { calls++; return new Response('<rss><channel></channel></rss>'); }); assert.equal(calls, 4, 'feeds still waiting are skipped');
+  const nm = needsMedia(JSON.parse(kv3.get('voices')), JSON.parse(kv3.get('feeds'))); assert.equal(nm.length, 4); assert.match(nm.find(x => x.id === 'v0').reason, /slow down/);
+  console.log('polite ok');
 }

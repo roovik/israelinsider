@@ -25,12 +25,13 @@ export async function ingestFeed(env, feed, voice, fetcher = fetch) {
   if (feed.last_modified) headers['if-modified-since'] = feed.last_modified;
   const url = (feed.kind === 'youtube' || feed.kind === 'vlog') && feed.external_id && !feed.url ? youtubeFeedUrl(feed.external_id) : feed.url;
   const res = await fetcher(url, { headers });
-  feed.last_checked = new Date().toISOString();
-  if (res.status === 304) { feed.error_count = 0; return []; }
+  feed.last_checked = new Date().toISOString(); feed.last_status = res.status;
+  if (res.status === 429 || res.status === 503) { const ra = parseInt(res.headers.get('retry-after') || '', 10); feed.retry_after = new Date(Date.now() + (ra > 0 && ra < 86400 ? ra * 1000 : 6 * 3600e3)).toISOString(); return []; }
+  if (res.status === 304) { feed.error_count = 0; feed.last_ok = feed.last_checked; return []; }
   if (!res.ok) { feed.error_count = (feed.error_count || 0) + 1; feed.status = feed.error_count >= 7 * 24 ? 'failing' : feed.status; return []; }
   feed.etag = res.headers.get('etag') || ''; feed.last_modified = res.headers.get('last-modified') || '';
   const raw = parseFeed(await res.text()).slice(0, feed.backfilled ? 30 : 20);
-  feed.backfilled = true; feed.error_count = 0;
+  feed.backfilled = true; feed.error_count = 0; feed.last_ok = feed.last_checked; delete feed.retry_after;
   const items = await toItems(feed, voice, raw);
   if (items.length) feed.last_item_at = items.map(i => i.published_at).sort().pop();
   return items;
@@ -45,7 +46,15 @@ export async function runIngest(env, fetcher = fetch) {
   let added = 0;
   // Free plans allow about 50 subrequests per call: take the feeds checked longest ago, 35 at a time.
   const due = feeds.filter(f => byId[f.voice_id] && f.status !== 'paused' && f.kind !== 'x' && (f.url || f.external_id) && (byId[f.voice_id].status === 'listed' || String(f.last_checked || '') < weekAgo)).sort((a, b) => String(a.last_checked || '').localeCompare(String(b.last_checked || '')));
-  const batch = new Set(due.slice(0, 35).map(f => f.id));
+  // Be a polite reader: at most a few feeds per site in one run, and wait as long as a site asks after "too many requests".
+  const nowIso = new Date().toISOString(), perHost = {}, pick = [];
+  for (const f of due) {
+    if (pick.length >= 35) break; if (f.retry_after && f.retry_after > nowIso) continue;
+    let h = ''; try { h = new URL(f.url || 'https://youtube.com').hostname.replace(/^www\./, '').split('.').slice(-2).join('.'); } catch { }
+    if ((perHost[h] = (perHost[h] || 0) + 1) > (h === 'youtube.com' ? 15 : 4)) continue;
+    pick.push(f.id);
+  }
+  const batch = new Set(pick);
   for (const f of feeds) {
     const v = byId[f.voice_id];
     if (!batch.has(f.id)) continue;
@@ -61,7 +70,7 @@ export async function runIngest(env, fetcher = fetch) {
   await putJson(env, 'items', all);
   await putJson(env, 'feeds', feeds);
   const thawed = thaw(allV, feeds); if (thawed.length) await putJson(env, 'voices', allV);
-  return { added, total: all.length, remaining: Math.max(0, due.length - batch.size), thawed };
+  return { added, total: all.length, remaining: Math.max(0, due.length - batch.size), thawed, waiting: due.filter(f => f.retry_after && f.retry_after > nowIso).length };
 }
 
 // Newest item date for a voice: from its feeds (kept even after old items leave the store) and its stored items.
@@ -79,8 +88,21 @@ export function quietVoices(voices, feeds, items, now = Date.now()) {
     const vf = feeds.filter(f => f.voice_id === v.id && f.kind !== 'x' && (f.url || f.external_id) && f.status !== 'paused');
     const last = lastActivity(v, feeds, items);
     if (last && last >= cut) continue;
-    if (vf.length && vf.some(f => !f.last_checked && !f.checked_at)) continue;
-    out.push({ id: v.id, name: v.name, last, reason: !vf.length ? 'no feed' : last ? 'nothing new since ' + last.slice(0, 10) : 'no items found' });
+    // Only a feed that has been read successfully can prove a voice is quiet. No feed, or feeds that keep failing, means we have work to do, not that they stopped.
+    const good = vf.filter(f => f.last_ok);
+    if (!good.length || good.length < vf.length) continue;
+    out.push({ id: v.id, name: v.name, last, reason: last ? 'nothing new since ' + last.slice(0, 10) : 'feed works but has no items' });
+  }
+  return out;
+}
+export function needsMedia(voices, feeds, now = Date.now()) {
+  const out = [];
+  for (const v of voices) {
+    if (v.status !== 'listed') continue;
+    const vf = feeds.filter(f => f.voice_id === v.id && f.kind !== 'x');
+    const addr = vf.filter(f => f.url || f.external_id), ok = addr.filter(f => f.last_ok);
+    if (!addr.length) out.push({ id: v.id, name: v.name, website: v.website || '', reason: 'no feed address' });
+    else if (!ok.length) out.push({ id: v.id, name: v.name, website: v.website || '', reason: addr.some(f => f.last_status === 429 || f.retry_after) ? 'site asked us to slow down' : 'feed has not worked yet' + (addr[0].last_status ? ' (' + addr[0].last_status + ')' : '') });
   }
   return out;
 }
@@ -88,7 +110,7 @@ export async function freezeQuiet(env, dry = false, now = Date.now()) {
   const voices = await listVoices(env), feeds = await listFeeds(env), items = await getJson(env, 'items', []);
   const q = quietVoices(voices, feeds, items, now);
   if (!dry && q.length) { const ids = new Set(q.map(x => x.id)), day = new Date(now).toISOString().slice(0, 10); for (const v of voices) if (ids.has(v.id)) { v.status = 'frozen'; v.frozen_on = day; } await putJson(env, 'voices', voices); }
-  return { frozen: dry ? 0 : q.length, quiet: q };
+  return { frozen: dry ? 0 : q.length, quiet: q, needs_media: needsMedia(voices, feeds, now) };
 }
 function thaw(voices, feeds, now = Date.now()) {
   const cut = new Date(now - QUIET_DAYS * 864e5).toISOString(), out = [];
