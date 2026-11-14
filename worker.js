@@ -230,8 +230,8 @@ export async function runDigest(env, opts = {}) {
   return { ok: res.ok, recipients: msgs.length, sent: res.sent, note: res.note };
 }
 
-export default {
-  async fetch(req, env, ctx) {
+const W = {
+  async route(req, env, ctx) {
     const u = new URL(req.url); const p = u.pathname;
     if (req.method === 'OPTIONS') return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type' } });
     if (p === '/unsubscribe') return unsubscribeRoute(req, env);
@@ -427,4 +427,29 @@ export default {
     return J({ error: 'not found' }, 404);
   },
   async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { await runIngest(env); for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
+};
+
+// Edge cache for the public read endpoints. Visitors get a stored copy at once, and any copy older than 45 seconds is rebuilt in the background.
+const CACHEABLE = /^\/api\/(items|voices|voice\/[^/]+|taxonomy|nowlej|rss)$/;
+export default {
+  async fetch(req, env, ctx) {
+    const u = new URL(req.url);
+    if (req.method !== 'GET' || !CACHEABLE.test(u.pathname) || typeof caches === 'undefined') return W.route(req, env, ctx);
+    const cache = caches.default, ck = new Request(u.origin + u.pathname + u.search);
+    const pub = h => { h.set('cache-control', 'public, max-age=60, stale-while-revalidate=300'); return h; };
+    const build = async () => {
+      const r = await W.route(req, env, ctx);
+      if (r.status !== 200) return r;
+      const body = await r.arrayBuffer(), h = new Headers(r.headers);
+      try { const sh = new Headers(h); sh.set('cache-control', 'public, max-age=300'); sh.set('x-built', String(Date.now())); await cache.put(ck, new Response(body, { status: 200, headers: sh })); } catch { /* cache unavailable */ }
+      return new Response(body, { status: 200, headers: pub(h) });
+    };
+    let hit = null; try { hit = await cache.match(ck); } catch { /* none */ }
+    if (hit) {
+      if (Date.now() - Number(hit.headers.get('x-built') || 0) > 45000) ctx.waitUntil(build().catch(() => { }));
+      return new Response(hit.body, { status: 200, headers: pub(new Headers(hit.headers)) });
+    }
+    return build();
+  },
+  scheduled(evt, env, ctx) { return W.scheduled(evt, env, ctx); },
 };

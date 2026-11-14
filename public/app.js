@@ -432,7 +432,7 @@
     document.querySelectorAll('#tabs a').forEach(function (a) { if (a.dataset.r === (name === 'voice' ? 'voices' : name)) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
     renderSub(name, km ? decodeURIComponent(km[1]) : (cm ? decodeURIComponent(cm[1]) : (tm ? decodeURIComponent(tm[1]) : '')), sm ? sm[1] : '');
     var t = ++token;
-    view.innerHTML = '<div class="empty" style="margin-top:26px">Loading</div>';
+    view.innerHTML = '<div class="ldg" role="status"><span class="ldt">Loading<i></i><i></i><i></i></span><span class="ldb"></span></div>';
     taxData().then(function () { return Promise.all([routes[name](name === 'voice' ? arg : q), sideCol()]); }).then(function (r) {
       if (t !== token) return;
       var html = r[0];
