@@ -218,6 +218,45 @@ export async function planOutreach(env, b = {}, now = Date.now()) {
   return { planned: Object.values(plan).reduce((a, c) => a + c, 0), unplanned: Math.max(0, todo.length - per * days.length), per_day: per, days: plan };
 }
 const SEGS = ['individual', 'jewish', 'israeli', 'christian', 'other'];
+// One-time update, Nov 15, 2026: strong YouTube channels from the YouTube search, and missing channels for voices already listed.
+// Runs once from the hourly job and records that it ran, so nothing is added twice.
+export const YT_NOV15 = {
+  add: [
+    ['CBN News', 'UCYI_ychRnL7sJrG6PUSBpQA', 'christian', 'Christian news network with a Jerusalem bureau.'],
+    ['TBN Israel', 'UC73H5p3GP8b5N1f3hozIXyQ', 'christian', 'Daily news from Israel by the Christian broadcaster TBN.'],
+    ['TV7 Israel News', 'UCGs-yDFkfHDbeQcApWkTtxg', 'christian', 'News from a Christian broadcaster\u2019s Jerusalem bureau.'],
+    ['All Israel News', 'UCu6O9MhKi6m7pgJcchrkxjA', 'christian', 'News and analysis from near Jerusalem.'],
+    ['Erick Stakelbeck', 'UCD8YGIxFCnVqv-ZGqgtVWAg', 'individual', 'Host of The Watchman on TBN: Middle East and security news.'],
+    ['Tal Oran', 'UCVZAfsaiMUbv50gz9TvMrZQ', 'individual', 'Mizrahi Jewish creator and Israel advocate.'],
+    ['Joseph Cohen', 'UCckMqUWHVwFWJwSVE9FQJaA', 'individual', 'Israel Advocacy Movement: debates and street interviews on Israel.'],
+    ['Unpacked', 'UCU63EiU7Y-8xcRntPIRVrzA', 'jewish', 'Explainers on Israel, Zionism and Jewish history.'],
+    ['J-TV', 'UC1gxxeC0elWutUUmPEr74NA', 'jewish', 'The global Jewish channel: interviews and explainers.'],
+    ['Campaign Against Antisemitism', 'UCBEL77dzB2EmeHS0RbxyNCw', 'jewish', 'UK charity fighting antisemitism.'],
+    ['ILTV Israel News', 'UCuxgEyMeaks7HS5gAw6Tt7w', 'israeli', 'English-language daily news from Tel Aviv.'],
+    ['State of Israel', 'UCt6Fq64J2rTswe4uhZtxNtg', 'israeli', 'Official YouTube channel of the State of Israel.'],
+    ['Israel National News', 'UC7DjcEEX7zUSvS3IWWX_nmw', 'israeli', 'Arutz Sheva, Israeli news in English.'],
+    ['IDSF', 'UC8fvwrRvttdIgGShkCrqSMA', 'israeli', 'Israel\u2019s Defense and Security Forum.']
+  ],
+  attach: [
+    ['bari-weiss', 'UCSRRURbKlPf1HwPUhjmufTg'], ['call-me-back', 'UCxDmjhiSTRbCE9QOFSKmykg'], ['eylon-levy', 'UCq0ljDYIe-OQ2PNw-3geA0w'], ['eylon-levy', 'UC1882cH2CyNOOx0deS-OraA'],
+    ['haviv-rettig-gur', 'UChe9rqjuht3i8oluHE9Pb8w'], ['unholy', 'UCGlvtS7As7WHh7YtmU5SMUQ'], ['israel-update', 'UCG7Vh-hy0I0N5g3ZVpdwXmQ'],
+    ['unpacking-israeli-history', 'UCYxHYf2SRKM-2GkxNmN7W8A'], ['the-israel-guys', 'UCeo_C70miHEJDp7T_WELURw'], ['israel365-news', 'UCHozc12sJqIB2bWnqRvJhFw']
+  ]
+};
+export async function applyYouTubeNov15(env) {
+  const flag = 'migr/yt-2026-11-15'; if (await env.STORE.get(flag)) return { skipped: true };
+  const voices = await listVoices(env), feeds = await listFeeds(env), day = new Date().toISOString().slice(0, 10); let nv = 0, nf = 0;
+  const addFeed = (vid, ch) => { if (feeds.some(f => f.external_id === ch)) return; feeds.push({ id: slug(vid + '-vlog-' + ch.slice(-14)), voice_id: vid, kind: 'vlog', section: 'vlog', url: '', external_id: ch, site: 'https://www.youtube.com/channel/' + ch, format: feedFormat('vlog'), status: 'active', error_count: 0, unverified: true }); nf++; };
+  for (const [name, ch, seg, bio] of YT_NOV15.add) {
+    const id = slug(name); let v = voices.find(x => x.id === id);
+    if (!v) { v = { id, slug: id, name, short_bio: bio, avatar: '', website: 'https://www.youtube.com/channel/' + ch, topics: [], position_tag: '', segment: seg, status: 'listed', listed_on: day, consent: { excerpt_ok: true, full_text_ok: false, date: '', note: 'Listed Nov 15, 2026 from the YouTube search: public channel, embeds and links only.' } }; voices.push(v); nv++; }
+    else if (!v.segment) v.segment = seg;
+    addFeed(id, ch);
+  }
+  for (const [vid, ch] of YT_NOV15.attach) if (voices.some(v => v.id === vid)) addFeed(vid, ch);
+  await putJson(env, 'voices', voices); await putJson(env, 'feeds', feeds); await env.STORE.put(flag, new Date().toISOString());
+  return { voices_added: nv, feeds_added: nf };
+}
 const OSTAT = ['', 'contacted', 'replied', 'blessed', 'linked', 'guest', 'declined', 'no-contact'];
 const OFIELDS = ['email', 'x', 'instagram', 'facebook', 'linkedin', 'telegram', 'whatsapp', 'youtube', 'contact_url', 'next', 'notes'];
 // Small batches keep one request under the subrequest limit. Each feed is tried once unless retry is set.
@@ -677,7 +716,7 @@ const W = {
     }
     return J({ error: 'not found' }, 404);
   },
-  async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { await runIngest(env); if (new Date().getUTCHours() === 3) { try { await freezeQuiet(env); } catch { /* tomorrow */ } } for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
+  async scheduled(_evt, env, ctx) { ctx.waitUntil(runDigest(env).catch(() => { })); ctx.waitUntil((async () => { try { await applyYouTubeNov15(env); } catch { /* next hour */ } await runIngest(env); if (new Date().getUTCHours() === 3) { try { await freezeQuiet(env); } catch { /* tomorrow */ } } for (const f of [resolveBatch, avatarBatch, discoverBatch]) { try { await f(env); } catch { /* next hour */ } } })()); },
 };
 
 // Edge cache for the public read endpoints. Visitors get a stored copy at once, and any copy older than 45 seconds is rebuilt in the background.

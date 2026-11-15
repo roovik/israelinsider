@@ -339,3 +339,13 @@ console.log('taxonomy ok');
   pub = (await (await call('/api/voices', {}, false)).json()).voices; assert.equal(pub.find(v => v.id === 'seg-group').segment, 'israeli');
   console.log('segments ok');
 }
+
+// One-time YouTube update: adds the channels once, never twice
+{
+  const { applyYouTubeNov15, YT_NOV15 } = await import('../worker.js');
+  const a = await applyYouTubeNov15(env); assert.equal(a.voices_added, YT_NOV15.add.length); assert.ok(a.feeds_added >= YT_NOV15.add.length);
+  const b = await applyYouTubeNov15(env); assert.equal(b.skipped, true);
+  const pub = (await (await call('/api/voices', {}, false)).json()).voices; const cbn = pub.find(v => v.id === 'cbn-news'); assert.equal(cbn.segment, 'christian'); assert.equal(cbn.status, 'listed');
+  const fs = (await (await call('/api/admin/feeds')).json()).feeds; assert.ok(fs.some(f => f.voice_id === 'cbn-news' && f.kind === 'vlog' && f.external_id === 'UCYI_ychRnL7sJrG6PUSBpQA'));
+  console.log('youtube nov15 ok');
+}
