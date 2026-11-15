@@ -71,7 +71,7 @@
     if (t === 'watch') {
       return '<article class="card watch"><div class="art" data-vid="' + esc(i.embed_id) + '">' + thumb(i) + (i.duration_seconds ? '<span class="dur">' + dur(i.duration_seconds) + '</span>' : '') + '<button class="pl" type="button" data-watch="' + esc(i.id) + '" aria-label="Watch ' + esc(i.title) + '">' + PLAY + '</button></div><div class="bd">' + kick(v) + '<h3>' + esc(i.title) + '</h3><div class="meta"><span>' + ago(i.published_at) + '</span><span>Video</span></div></div></article>';
     }
-    var sx = String(i.excerpt || i.title || ''); if (sx.length > 160) sx = sx.slice(0, 157).replace(/\s+\S*$/, '') + '...';
+    var sx = String(i.excerpt || i.title || '');
     return '<article class="card social"><div class="post"><div class="by"><span class="av">' + fi(v) + '</span><span>' + esc(v.name) + '</span></div><p class="tx">' + esc(sx) + '</p><div class="meta"><span>' + ago(i.published_at) + '</span><a href="#/item/' + esc(i.id) + '">Open post</a></div></div></article>';
   }
   var MTI = { read: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2h8l2 2v10H3zM5 6h6M5 9h6M5 12h4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>', listen: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 9V8a5 5 0 0 1 10 0v1M3 9h2v4H3zM11 9h2v4h-2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>', watch: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 5-10 5z" fill="currentColor"/></svg>', social: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3h12v8H7l-3 3v-3H2z" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>' };

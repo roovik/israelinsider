@@ -111,7 +111,10 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
       id: await sha(feed.id + '|' + (r.guid || url)),
       voice_id: voice.id, feed_id: feed.id, format: fixFormat(feed.format, !!r.audio, !!r.videoId), section: sectionOf(feed),
       title: r.title, url, published_at: new Date(published).toISOString(),
-      excerpt: excerpt(src, 300),
+      // Nov 15, 2026: keep everything the feed offers as the summary. The publisher's own description is kept whole.
+      // When the text comes from the article body (content:encoded), the whole body is shown only for voices who
+      // allowed full text; otherwise the opening (about 200 words) is shown, with the link to read the rest.
+      excerpt: (src === d1 || full) ? stripHtml(src) : excerpt(src, 1200),
       rel: RELEVANT.test(String(r.title) + ' ' + String(r.desc || '') + ' ' + String(r.encoded || '')),
       thumbnail_url: r.thumb || '',
       duration_seconds: r.duration || 0,
