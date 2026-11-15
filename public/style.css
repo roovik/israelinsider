@@ -477,3 +477,4 @@ body.outopen{overflow:hidden}
 
 .fc a.go,.fine a{color:var(--orange);font-weight:700}
 .fc a.go:hover,.fine a:hover{text-decoration:underline}
+.itempage .itemfull p{font-size:18px;line-height:1.6;margin:0 0 14px}

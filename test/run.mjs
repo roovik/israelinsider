@@ -4,7 +4,7 @@ import { DEFAULT_TAXONOMY, classify, buildTaxonomy, validTaxonomy } from '../tax
 import { parseFeed, toItems, excerpt, canonicalUrl, parseDuration, discoverFeed, sectionOf, feedFormat, fixFormat, feedGuesses, looksLikeFeed, itunesFeed, isRelevant, RELEVANT, channelImage, ogImage, firstImg } from '../lib.js';
 
 const blog = `<?xml version="1.0"?><rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Sample Blog</title>
-<item><title><![CDATA[Sample &amp; essay on Israel]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on.</p>]]></description><content:encoded><![CDATA[<p>FULL TEXT HERE</p>]]></content:encoded></item></channel></rss>`;
+<item><title><![CDATA[Sample &amp; essay on Israel]]></title><link>https://example.org/p/1?utm_source=x&amp;id=2</link><guid>g1</guid><pubDate>Mon, 09 Nov 2026 10:00:00 GMT</pubDate><dc:creator>Sample Writer</dc:creator><description><![CDATA[<p>First paragraph of the essay. It goes on and on, long enough to stand as the summary.</p>]]></description><content:encoded><![CDATA[<p>First paragraph of the essay. It goes on and on.</p><p>FULL TEXT HERE, the second paragraph, with the rest of the argument laid out at some length.</p>]]></content:encoded></item></channel></rss>`;
 const pod = `<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" version="2.0"><channel><item><title>Episode 7 on Israel</title><link>https://example.org/e7</link><guid>e7</guid><pubDate>Sun, 08 Nov 2026 08:00:00 GMT</pubDate><description>Talk about politics.</description><enclosure url="https://cdn.example.org/e7.mp3" length="1" type="audio/mpeg"/><itunes:duration>41:08</itunes:duration><itunes:image href="https://example.org/a.jpg"/></item></channel></rss>`;
 const yt = `<feed xmlns:yt="x" xmlns:media="y" xmlns="http://www.w3.org/2005/Atom"><entry><id>yt:video:abc123</id><yt:videoId>abc123</yt:videoId><title>Video title on Israel</title><link rel="alternate" href="https://www.youtube.com/watch?v=abc123"/><author><name>Map Minutes</name></author><published>2026-11-09T12:00:00+00:00</published><media:group><media:thumbnail url="https://i.ytimg.com/vi/abc123/hq.jpg" width="480" height="360"/><media:description>A five minute explainer.</media:description></media:group></entry></feed>`;
 
@@ -13,7 +13,8 @@ const voice = { id: 'v1', slug: 'v1', name: 'V1', status: 'listed', topics: ['se
 let items = await toItems({ id: 'f1', kind: 'blog', format: 'read' }, voice, b, Date.parse('2026-11-10'));
 assert.equal(items[0].url, 'https://example.org/p/1?id=2'); assert.ok(!('full_text' in items[0])); assert.match(items[0].excerpt, /^First paragraph/);
 items = await toItems({ id: 'f1', kind: 'blog', format: 'read' }, { ...voice, consent: { full_text_ok: true } }, b);
-assert.match(items[0].full_text, /FULL TEXT/);
+assert.match(items[0]._full, /FULL TEXT/); assert.match(items[0]._full, /\n\n/);
+items = await toItems({ id: 'f1', kind: 'blog', format: 'read' }, { ...voice, consent: { full_text_off: true } }, b); assert.ok(!items[0]._full);
 const p = await toItems({ id: 'f2', kind: 'podcast', format: 'listen' }, voice, parseFeed(pod));
 assert.equal(p[0].audio_url, 'https://cdn.example.org/e7.mp3'); assert.equal(p[0].duration_seconds, 2468); assert.equal(p[0].thumbnail_url, 'https://example.org/a.jpg');
 const y = await toItems({ id: 'f3', kind: 'youtube', format: 'watch' }, voice, parseFeed(yt));

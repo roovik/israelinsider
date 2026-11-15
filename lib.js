@@ -13,6 +13,12 @@ function unwrap(s) {
 export function stripHtml(s) {
   return decode(String(s || '').replace(/<(script|style)[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
 }
+// Article HTML to plain text with paragraph breaks (blank line between paragraphs).
+export function paraText(html) {
+  const t = String(html || '').replace(/<(script|style|figure|figcaption|iframe|form)[\s\S]*?<\/\1>/gi, ' ')
+    .replace(/<\/(p|h[1-6]|li|blockquote|div)>|<br\s*\/?>/gi, '\n\n').replace(/<[^>]+>/g, ' ');
+  return decode(t).split(/\n\s*\n/).map(x => x.replace(/\s+/g, ' ').trim()).filter(x => x && !/^(subscribe|share|leave a comment|continue reading|read more)\b/i.test(x)).join('\n\n');
+}
 export function excerpt(s, max = 300) {
   const t = stripHtml(s);
   if (t.length <= max) return t;
@@ -103,7 +109,8 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
     if (!url || !r.title) continue;
     const t = Date.parse(r.date);
     const published = isNaN(t) ? now : Math.min(t, now);
-    const full = voice?.consent?.full_text_ok === true;
+    // Nov 15, 2026: full text shown for every voice unless the author asked for excerpts only (consent.full_text_off).
+    const full = voice?.consent?.full_text_off !== true;
     const clean = x => stripHtml(x).replace(/^(continue reading|read more)\b.*$/i, '').trim();
     const d1 = clean(r.desc), d2 = clean(r.encoded);
     const src = d1.length >= 80 || !d2 ? d1 : (d2.startsWith(d1) || !d1 ? d2 : d1 + ' ' + d2);
@@ -114,7 +121,7 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
       // Nov 15, 2026: keep everything the feed offers as the summary. The publisher's own description is kept whole.
       // When the text comes from the article body (content:encoded), the whole body is shown only for voices who
       // allowed full text; otherwise the opening (about 200 words) is shown, with the link to read the rest.
-      excerpt: (src === d1 || full) ? stripHtml(src) : excerpt(src, 1200),
+      excerpt: src === d1 ? stripHtml(src) : excerpt(src, 1200),
       rel: RELEVANT.test(String(r.title) + ' ' + String(r.desc || '') + ' ' + String(r.encoded || '')),
       thumbnail_url: r.thumb || '',
       duration_seconds: r.duration || 0,
@@ -123,7 +130,8 @@ export async function toItems(feed, voice, raw, now = Date.now()) {
       topics: voice.topics || [],
       hidden: false, featured: false,
     };
-    if (full && r.encoded) item.full_text = r.encoded;
+    // The whole post, as paragraphs, kept apart from the item list (the store would grow too large) and served on the post page.
+    if (full && r.encoded) { const ft = paraText(r.encoded); if (ft.length > item.excerpt.length + 40) item._full = ft; }
     out.push(item);
   }
   return out;

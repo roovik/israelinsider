@@ -40,6 +40,7 @@ export async function ingestFeed(env, feed, voice, fetcher = fetch) {
 export async function runIngest(env, fetcher = fetch) {
   const allV = await listVoices(env), voices = allV.filter(v => v.status === 'listed' || v.status === 'frozen');
   const feeds = await listFeeds(env);
+  if (!(await env.STORE.get('migr/fulltext-2026-11-15'))) { for (const f of feeds) { f.etag = ''; f.last_modified = ''; } await env.STORE.put('migr/fulltext-2026-11-15', new Date().toISOString()); }
   const byId = Object.fromEntries(voices.map(v => [v.id, v])), weekAgo = new Date(Date.now() - FROZEN_CHECK_DAYS * 864e5).toISOString();
   const existing = await getJson(env, 'items', []);
   const seen = new Map(existing.map(i => [i.id, i]));
@@ -62,6 +63,8 @@ export async function runIngest(env, fetcher = fetch) {
       for (const it of await ingestFeed(env, f, v, fetcher)) {
         const old = seen.get(it.id);
         if (old) { it.hidden = old.hidden; it.featured = old.featured; } else added++;
+        if (it._full) { if (!(old && old.has_full && old.full_len === it._full.length)) { try { await env.STORE.put('ft:' + it.id, it._full); } catch { } } it.has_full = true; it.full_len = it._full.length; delete it._full; }
+        else if (old && old.has_full) { it.has_full = true; it.full_len = old.full_len; }
         seen.set(it.id, it);
       }
     } catch (e) { f.error_count = (f.error_count || 0) + 1; }
@@ -397,6 +400,7 @@ export async function recordResponse(env, voiceId, r) {
   if (rec.choice === 'yes') o.status = 'blessed';
   else if (rec.choice === 'remove') { o.status = 'declined'; if (v.status !== 'removed') { v.status = 'removed'; v.removed_on = rec.at.slice(0, 10); await putJson(env, 'voices', voices); } }
   else if (!before || before === 'contacted') o.status = 'replied';
+  if (r.excerpt) { rec.excerpt_only = true; v.consent = { ...(v.consent || {}), full_text_off: true, note: ((v.consent && v.consent.note) || '') + ' Asked for excerpts only on ' + rec.at.slice(0, 10) + '.' }; await putJson(env, 'voices', voices); }
   if (rec.link) o.wants_link = true; if (rec.guest) o.wants_guest = true; if (rec.venture) o.wants_venture = true;
   if (rec.choice === 'yes' && !rec.text && !rec.guest && !rec.venture) rec.handled = true; // a plain yes needs nothing from you
   olog(o, rec.via, 'Reply: ' + RCHOICE[rec.choice] + (rec.link ? ', will link' : '') + (rec.guest ? ', open to guest or topic' : '') + (rec.venture ? ', interested in a joint venture or sponsorship' : '') + (rec.text ? ', with a note' : ''));
@@ -417,7 +421,7 @@ async function replyRoute(req, env) {
     if (f.get('website_url')) return pageHtml('Thank you', '<p>Received.</p>'); // bots fill the hidden field
     if ((o.rday === day ? o.rcount || 0 : 0) >= 5) return pageHtml('Thank you', '<p>We already have your answers for today. Reply to our email if you need anything else.</p>');
     o.rday = day; o.rcount = (o.rday === day ? (o.rcount || 0) : 0) + 1; await putJson(env, 'outreach', O);
-    const r = await recordResponse(env, id, { via: 'reply page', choice: f.get('choice'), link: f.get('link') === '1', guest: f.get('guest') === '1', venture: f.get('venture') === '1', text: f.get('text'), contact: f.get('contact') });
+    const r = await recordResponse(env, id, { via: 'reply page', choice: f.get('choice'), link: f.get('link') === '1', guest: f.get('guest') === '1', venture: f.get('venture') === '1', excerpt: f.get('excerpt') === '1', text: f.get('text'), contact: f.get('contact') });
     const done = r.status === 'declined' ? '<p>We have taken your page down. Thank you for letting us know.</p>' : '<p>Your answer is with Richard, who reads every one himself.' + (f.get('text') ? ' He will get back to you about your note.' : '') + '</p><p><a href="' + SITE + '/#/voice/' + e(v.slug) + '">See your page</a></p>';
     return pageHtml('Thank you, ' + e(v.name), done);
   }
@@ -427,6 +431,7 @@ async function replyRoute(req, env) {
     [['yes', 'Happy to be included as it is'], ['changes', 'Happy to be included, with some changes (tell us below)'], ['question', 'I have a question or comment'], ['remove', 'Please remove my page']].map((x, i) => '<label style="display:block;margin:6px 0"><input type="radio" name="choice" value="' + x[0] + '"' + (i ? '' : ' checked') + '> ' + x[1] + '</label>').join('') + '</fieldset>' +
     '<label style="display:block;margin:6px 0"><input type="checkbox" name="link" value="1"> I’m glad to link to my page or mention Israel Insider or Israel NOWlej</label>' +
     '<label style="display:block;margin:6px 0"><input type="checkbox" name="guest" value="1"> I’d like to talk about having Richard Koret as a guest, or a topic</label>' +
+    '<label style="display:block;margin:6px 0"><input type="checkbox" name="excerpt" value="1"> Please show only a short excerpt of my posts, not the full text</label>' +
     '<label style="display:block;margin:6px 0 14px"><input type="checkbox" name="venture" value="1"> I’m interested in a joint venture or sponsorship with Israel Insider’s news or Israel NOWlej’s maps, timelines and tours</label>' +
     '<label for="t" style="display:block;font-weight:700">Corrections, additions or a note (optional)</label><textarea id="t" name="text" rows="5" style="width:100%;font:16px system-ui;padding:8px;box-sizing:border-box" placeholder="A better photo or bio, a podcast or channel to add, anything else"></textarea>' +
     '<label for="c" style="display:block;font-weight:700;margin-top:10px">Best way to reach you (optional)</label><input id="c" name="contact" style="width:100%;font:16px system-ui;padding:8px;box-sizing:border-box" placeholder="Email or handle">' +
@@ -484,6 +489,13 @@ const W = {
     if (!p.startsWith('/api/')) return env.ASSETS.fetch(req);
     const voices = await listVoices(env); const vb = Object.fromEntries(voices.map(v => [v.id, v]));
 
+    if (p === '/api/item/text') {
+      // Full text of a post, from the creator's public feed; withheld when the author asked for excerpts only.
+      const id = u.searchParams.get('id') || '', it = (await getJson(env, 'items', [])).find(x => x.id === id), v = it && vb[it.voice_id];
+      if (!it || !v || it.hidden || !it.has_full || (v.consent && v.consent.full_text_off)) return J({ error: 'not available' }, 404);
+      const text = await env.STORE.get('ft:' + id); if (!text) return J({ error: 'not available' }, 404);
+      return J({ text }, 200, { 'cache-control': 'public, max-age=1800' });
+    }
     if (p === '/api/items') { const items = filter(await itemsC(env, vb), u.searchParams, vb); return J({ items: items.map(i => publicItem(i, vb[i.voice_id])) }); }
     if (p === '/api/voices') {
       const fs = await listFeeds(env), sec = {}, last = {};
