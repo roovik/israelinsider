@@ -91,6 +91,14 @@ console.log('entries ok');
   assert.ok(validTaxonomy({ cats: [{ slug: 'a', name: 'A', subs: [{ slug: 'a', name: 'A2' }] }] }));
   assert.equal((await call('/api/contact', { method: 'POST', body: JSON.stringify({ message: 'hi' }) }, false)).status, 422);
   assert.equal((await call('/api/contact', { method: 'POST', body: JSON.stringify({ email: 'a@b.co', message: 'hi', topic: 'Correction' }) }, false)).status, 201);
+  { // a contact message alerts the editor inbox, with Reply-To set to the sender
+    const sent = [], of = globalThis.fetch; globalThis.fetch = async (u, o) => { sent.push({ u: String(u), b: JSON.parse(o.body) }); return new Response('{}'); };
+    env.RESEND_KEY = 'r'; env.MAIL_FROM = 'Israel Insider <news@israelinsider.org>';
+    try { assert.equal((await call('/api/contact', { method: 'POST', body: JSON.stringify({ name: 'Ann', email: 'ann@b.co', message: 'hello', topic: 'Press' }) }, false)).status, 201); }
+    finally { globalThis.fetch = of; delete env.RESEND_KEY; delete env.MAIL_FROM; }
+    const m = sent.find(x => x.u.includes('resend.com'))?.b?.[0];
+    assert.ok(m, 'contact alert sent'); assert.equal(m.to[0], 'editor@israelinsider.org'); assert.equal(m.reply_to, 'ann@b.co'); assert.match(m.subject, /^\[Contact\] Press: Ann/); assert.match(m.text, /hello/);
+  }
   assert.equal((await (await call('/api/admin/messages', {}, true)).json()).messages[0].topic, 'Correction');
   assert.equal((await call('/api/taxonomy', {}, false)).status, 200);
   assert.equal((await call('/api/admin/taxonomy', { method: 'POST', body: JSON.stringify({ taxonomy: { cats: [] } }) }, true)).status, 422);

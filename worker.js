@@ -358,12 +358,14 @@ export async function discoverNowlej(env) {
 
 // ---------------------------------------------------------------- email: welcome, unsubscribe, weekly digest
 // Needs the secret RESEND_KEY and the variable MAIL_FROM (an address on a domain verified with Resend). Without them nothing is sent.
+// Replies to anything the site sends go to the editor address (EDITOR_EMAIL overrides), which forwards to Richard's Gmail.
 const SITE = 'https://israelinsider.org';
+export const editorEmail = env => (env && env.EDITOR_EMAIL) || 'editor@israelinsider.org';
 async function sendBatch(env, msgs) {
   if (!env.RESEND_KEY || !env.MAIL_FROM) return { ok: false, sent: 0, note: 'Mail is not set up yet.' };
   let sent = 0, note = '';
   for (let i = 0; i < msgs.length; i += 100) {
-    const chunk = msgs.slice(i, i + 100).map(m => ({ from: env.MAIL_FROM, to: [m.to], subject: m.subject, text: m.text, ...(m.headers ? { headers: m.headers } : {}) }));
+    const chunk = msgs.slice(i, i + 100).map(m => ({ from: env.MAIL_FROM, to: [m.to], subject: m.subject, text: m.text, reply_to: m.replyTo || editorEmail(env), ...(m.headers ? { headers: m.headers } : {}) }));
     try {
       const r = await fetch('https://api.resend.com/emails/batch', { method: 'POST', headers: { Authorization: 'Bearer ' + env.RESEND_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(chunk) });
       if (r.ok) sent += chunk.length; else note = 'Mail service said ' + r.status;
@@ -441,7 +443,7 @@ async function replyRoute(req, env) {
 async function unsubscribeRoute(req, env) {
   const u = new URL(req.url), email = String(u.searchParams.get('e') || '').trim().toLowerCase().slice(0, 200), tok = u.searchParams.get('t') || '';
   const safe = email.replace(/[<>&"]/g, '');
-  if (!email || !tok || tok !== await unsubToken(env, email)) return pageHtml('That link is not valid', '<p>Reply to any email from us and we will remove you by hand, or use the contact page at <a href="/#/contact">israelinsider.org</a>.</p>');
+  if (!email || !tok || tok !== await unsubToken(env, email)) return pageHtml('That link is not valid', '<p>Reply to any email from us and we will remove you by hand, write to <a href="mailto:editor@israelinsider.org">editor@israelinsider.org</a>, or use the contact page at <a href="/#/contact">israelinsider.org</a>.</p>');
   if (req.method === 'POST') {
     const s = await getJson(env, 'subscribers', []), r = s.find(x => x.email === email);
     if (r) { r.status = 'unsubscribed'; r.unsubscribed_at = new Date().toISOString(); await putJson(env, 'subscribers', s); }
@@ -549,8 +551,12 @@ const W = {
       const topics = ['General', 'Correction', 'Opt out', 'Sponsorship and advertising', 'Press', 'Technical problem'];
       if (!String(b.message || '').trim() || !/^\S+@\S+\.\S+$/.test(b.email || '')) return J({ error: 'A valid email and a message are required' }, 422);
       const m = await getJson(env, 'messages', []); if (m.length > 500) return J({ error: 'inbox full' }, 429);
-      m.push({ id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name || '').slice(0, 120), email: String(b.email).slice(0, 200), topic: topics.includes(b.topic) ? b.topic : 'General', message: String(b.message).slice(0, 3000) });
-      await putJson(env, 'messages', m); return J({ ok: true }, 201, { 'cache-control': 'no-store' });
+      const rec = { id: crypto.randomUUID(), at: new Date().toISOString(), name: String(b.name || '').replace(/[\r\n<>]/g, ' ').slice(0, 120), email: String(b.email).replace(/[\r\n\s<>,;]/g, '').slice(0, 200), topic: topics.includes(b.topic) ? b.topic : 'General', message: String(b.message).slice(0, 3000) };
+      m.push(rec); await putJson(env, 'messages', m);
+      // Alert the editor inbox; replying to the alert answers the sender directly.
+      const job = sendBatch(env, [{ to: env.NOTIFY_TO || editorEmail(env), replyTo: rec.email, subject: '[Contact] ' + rec.topic + ': ' + (rec.name || rec.email), text: 'From: ' + (rec.name ? rec.name + ' ' : '') + '<' + rec.email + '>\nTopic: ' + rec.topic + '\nSent: ' + rec.at.replace('T', ' ').slice(0, 16) + ' UTC\n\n' + rec.message + '\n\nReply to this email to answer them. The message is also in the admin under Messages: ' + SITE + '/admin.html\n' }]).catch(() => {});
+      if (ctx && ctx.waitUntil) ctx.waitUntil(job); else await job;
+      return J({ ok: true }, 201, { 'cache-control': 'no-store' });
     }
     if (p === '/api/entries') {
       const type = u.searchParams.get('type'), kind = u.searchParams.get('kind'), lim = Math.min(+u.searchParams.get('limit') || 30, 100), today = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
