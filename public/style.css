@@ -478,3 +478,18 @@ body.outopen{overflow:hidden}
 .fc a.go,.fine a{color:var(--orange);font-weight:700}
 .fc a.go:hover,.fine a:hover{text-decoration:underline}
 .itempage .itemfull p{font-size:18px;line-height:1.6;margin:0 0 14px}
+
+.hbx{position:relative}
+.hbb{position:absolute;display:flex;gap:6px}
+.hbb a{font:700 12px/1 var(--logo,sans-serif);text-align:center;text-decoration:none;white-space:nowrap}
+.hbb .hbk{background:#E8A317;color:#16284d;border:1px solid #E8A317}
+.hbb .hbp{background:transparent;color:#fff;border:1px solid #fff}
+.hbb a:hover{filter:brightness(1.08);text-decoration:none}
+.hbx.lb .hbb{right:8px;top:50%;transform:translateY(-50%);flex-direction:column;width:104px}
+.hbx.lb .hbb a{padding:8px 0}
+.hbx.mb .hbb{right:6px;top:50%;transform:translateY(-50%);flex-direction:column;gap:3px;width:62px}
+.hbx.mb .hbb a{padding:4px 0;font-size:10.5px}
+.hbx.rect .hbb{left:14px;bottom:13px}
+.hbx.rect .hbb a{padding:10px 0;width:92px;font-size:13px}
+.adslot .hbx.rect{width:320px}
+.admb .hbx{width:320px}

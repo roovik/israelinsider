@@ -92,6 +92,27 @@
   function houseAd(slot, size) {
     return '<a class="adbox" data-slot="' + slot + '" style="' + size + '" href="https://israelinmaps.com" target="_blank" rel="noopener sponsored"><small>Advertisement</small><b>Israel\'s Story in Maps</b><span>Preview the book</span></a>';
   }
+  var ADB = [
+    { k: 'nowlej', n: 'Israel NOWlej', kin: 'https://www.amazon.com/dp/B0HPCSV4WC/', pb: 'https://www.amazon.com/dp/B0HPCTLJX7/' },
+    { k: 'maps', n: 'Israel in Maps', kin: 'https://www.amazon.com/dp/B0HRS75LW2/', pb: 'https://www.amazon.com/dp/B0HRJX879T/' },
+    { k: 'time', n: 'Israel in Time', kin: 'https://www.amazon.com/dp/B0HSLCHHG9/', pb: 'https://www.amazon.com/dp/B0HRZ494QT/' },
+    { k: 'zion', n: 'Welcome to Zion', kin: 'https://www.amazon.com/dp/B0HRSPPVQD/', pb: 'https://www.amazon.com/dp/B0HRSP41KS/' }
+  ];
+  var ADN = Math.floor(Math.random() * ADB.length);
+  function adHtml(kind, off) {
+    var b = ADB[(ADN + off) % ADB.length], v = '?v=4', P = '/img/ad/israel-' + b.k + '-', rel = ' target="_blank" rel="noopener sponsored"';
+    var alt = b.n + ' by Richard J. Koret. Get it on Amazon';
+    var btn = '<div class="hbb"><a class="hbk" href="' + b.kin + '"' + rel + '>Kindle</a><a class="hbp" href="' + b.pb + '"' + rel + '>' + (kind === 'mb' ? 'Print' : 'Paperback') + '</a></div>';
+    if (kind === 'lb') return '<div class="hbx lb"><a class="hb" href="' + b.kin + '"' + rel + '><picture><source media="(max-width:1199px)" srcset="' + P + '728x90.webp' + v + '"><img src="' + P + '970x90.webp' + v + '" width="970" height="90" alt="' + alt + '"></picture></a>' + btn + '</div>';
+    if (kind === 'mb') return '<div class="hbx mb"><a class="hb" href="' + b.kin + '"' + rel + '><img src="' + P + '320x50.webp' + v + '" width="320" height="50" alt="' + alt + '"></a>' + btn + '</div>';
+    return '<div class="hbx rect"><a class="hb" href="' + b.kin + '"' + rel + '><img src="' + P + '320x250.webp' + v + '" width="320" height="250" alt="' + alt + '" loading="lazy"></a>' + btn + '</div>';
+  }
+  function paintAds() {
+    var q = document.querySelectorAll('[data-ad]');
+    for (var i = 0; i < q.length; i++) { q[i].innerHTML = adHtml(q[i].getAttribute('data-ad'), +q[i].getAttribute('data-off')); }
+  }
+  paintAds();
+  setInterval(function () { if (document.hidden) return; ADN++; paintAds(); }, 15000);
   var SUBKEY = 'ii_sub';
   function subMe() { try { return JSON.parse(localStorage.getItem(SUBKEY) || 'null'); } catch (e) { return null; } }
   function subSave(o) { try { localStorage.setItem(SUBKEY, JSON.stringify(o)); } catch (e) { /* private mode */ } }
@@ -131,12 +152,12 @@
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         browsePanel() + tagsPanel() +
         '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place') + '</div></div>' +
-        '<div class="adslot" data-slot="rect-320x250-a"><a class="hb" href="https://www.amazon.com/ISRAEL-NOWLEJ-Graphs-Timelines-Knowledge/dp/B0HPCTLJX7/" target="_blank" rel="noopener"><img src="/img/ad/israel-nowlej-320x250.webp?v=3" width="320" height="250" alt="Israel NOWlej by Richard J. Koret. Get it on Amazon" loading="lazy"></a></div>' +
+        '<div class="adslot" data-slot="rect-320x250-a" data-ad="rect" data-off="1">' + adHtml('rect', 1) + '</div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
         (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
         recentVoices(d.voices) +
         '<div class="panel"><h3>from israel nowlej</h3><div class="pb"><span>News, views, media and sources.</span><a class="btn line sm" href="https://israelnowlej.com" target="_blank" rel="noopener">Visit Israel NOWlej</a></div></div>' +
-        '<div class="adslot" data-slot="rect-320x250-b"><a class="hb" href="https://www.amazon.com/dp/B0HRJX879T/" target="_blank" rel="noopener"><img src="/img/ad/israel-maps-320x250.webp?v=3" width="320" height="250" alt="Israel in Maps by Richard J. Koret. Get the paperback on Amazon" loading="lazy"></a></div>' +
+        '<div class="adslot" data-slot="rect-320x250-b" data-ad="rect" data-off="2">' + adHtml('rect', 2) + '</div>' +
         '</aside>';
     }).catch(function (e) { console.error('sideCol', e); return ''; });
   }
