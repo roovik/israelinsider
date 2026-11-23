@@ -100,7 +100,7 @@
   ];
   var ADN = Math.floor(Math.random() * ADB.length);
   function adHtml(kind, off) {
-    var b = ADB[(ADN + off) % ADB.length], v = '?v=4', P = '/img/ad/israel-' + b.k + '-', rel = ' target="_blank" rel="noopener sponsored"';
+    var b = ADB[(ADN + off) % ADB.length], v = '?v=5', P = '/img/ad/israel-' + b.k + '-', rel = ' target="_blank" rel="noopener sponsored"';
     var alt = b.n + ' by Richard J. Koret. Get it on Amazon';
     var btn = '<div class="hbb"><a class="hbk" href="' + b.kin + '"' + rel + '>Kindle</a><a class="hbp" href="' + b.pb + '"' + rel + '>' + (kind === 'mb' ? 'Print' : 'Paperback') + '</a></div>';
     if (kind === 'lb') return '<div class="hbx lb"><a class="hb" href="' + b.kin + '"' + rel + '><picture><source media="(max-width:1199px)" srcset="' + P + '728x90.webp' + v + '"><img src="' + P + '970x90.webp' + v + '" width="970" height="90" alt="' + alt + '"></picture></a>' + btn + '</div>';
