@@ -641,7 +641,7 @@
   /* sliders: one row per section, drifting to the next card until the reader takes over (touch, scroll, arrows) */
   (function () {
     var mq = window.matchMedia('(max-width:700px)'), calm = window.matchMedia('(prefers-reduced-motion:reduce)');
-    var ALL = 'body[data-route=home] .sec .grid, .nlcols, .cols .side, .posters', HOME = 'body[data-route=home] .sec .grid';
+    var ALL = 'body[data-route=home] .sec .grid, .nlcols, .cols .side, .posters', HOME = 'body[data-route=home] .sec .grid, body[data-route=home] .sec .posters';
     var held = new WeakSet(), over = new WeakSet();
     function hold(e) { held.add(e.currentTarget); }
     function gapOf(el) { return parseFloat(getComputedStyle(el).columnGap) || 0; }
@@ -659,7 +659,7 @@
     function controls() {
       var secs = document.querySelectorAll('body[data-route=home] .sec');
       for (var i = 0; i < secs.length; i++) {
-        var s = secs[i], g = s.querySelector('.grid'), h = s.querySelector('.sech');
+        var s = secs[i], g = s.querySelector('.grid, .posters'), h = s.querySelector('.sech');
         if (!g || !h || h.querySelector('.slc')) continue;
         var c = document.createElement('span'); c.className = 'slc';
         c.innerHTML = '<button type="button" aria-label="Previous">&#8249;</button><button type="button" aria-label="Next">&#8250;</button>';
