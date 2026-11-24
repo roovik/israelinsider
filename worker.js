@@ -8,7 +8,7 @@ const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^
 const MAX_ITEMS = 1500;
 // The freezer: listed voices with nothing new for QUIET_DAYS leave the public site (status frozen). Their feeds are still
 // checked once a week, and a frozen voice that publishes again is listed again automatically.
-const QUIET_DAYS = 90, FROZEN_CHECK_DAYS = 7;
+const QUIET_DAYS = 30, FROZEN_CHECK_DAYS = 7;
 
 async function getJson(env, key, dflt) { const v = await env.STORE.get(key, 'json'); return v ?? dflt; }
 const putJson = (env, key, v) => env.STORE.put(key, JSON.stringify(v));
