@@ -493,3 +493,15 @@ body.outopen{overflow:hidden}
 .hbx.rect .hbb a{padding:10px 0;width:92px;font-size:13px}
 .adslot .hbx.rect{width:320px}
 .admb .hbx{width:320px}
+
+/* mobile sliders: the long stacked blocks become swipeable rows */
+@media(max-width:700px){
+.nlcols{display:flex!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:0 -20px;padding:0 20px 8px;scroll-padding-left:20px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start}
+.nlcols::-webkit-scrollbar{display:none}
+.nlcols>.panel{flex:0 0 86%;scroll-snap-align:start;min-width:0}
+.nlcols .nlist li:nth-child(n+6){display:none}
+.cols .side{flex-direction:row!important;overflow-x:auto;scroll-snap-type:x mandatory;gap:10px;margin:10px -20px 0;padding:0 20px 8px;scroll-padding-left:20px;scrollbar-width:none;-webkit-overflow-scrolling:touch;align-items:flex-start;max-width:none;flex:1 1 100%}
+.cols .side::-webkit-scrollbar{display:none}
+.cols .side>*{flex:0 0 86%;scroll-snap-align:start;min-width:0}
+.cols .side>.adslot{flex:0 0 320px}
+}
