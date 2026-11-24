@@ -151,7 +151,7 @@
         '<div class="cta"><b>Have a voice on Israel?</b><span>Get your content listed.</span><a class="btn big" href="#/submit">Submit Content</a></div>' +
         '<div class="panel subp"><h3>subscribe</h3><div class="pb"><span>The best new voices in your inbox.</span>' + subForm() + '<div class="rw"><a href="/api/rss">Or follow by RSS</a></div></div></div>' +
         browsePanel() + tagsPanel() +
-        '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place') + '</div></div>' +
+        '<div class="panel"><h3>share</h3><div class="pb">' + shareRow(SITE, 'Israel Insider: Voices & Views of Israel') + '</div></div>' +
         '<div class="adslot" data-slot="rect-320x250-a" data-ad="rect" data-off="1">' + adHtml('rect', 1) + '</div>' +
         (latest ? '<div class="panel"><h3>latest voices</h3><div class="pb">' + latest + '</div></div>' : '') +
         (pod ? '<div class="panel"><h3>listen now</h3><div class="pb"><span class="kick" style="color:var(--listen)">' + esc((pod.voice || {}).name) + '</span><b>' + esc(pod.title) + '</b><button class="btn sm" type="button" data-play="' + esc(pod.id) + '" style="background:var(--listen)">Play</button></div></div>' : '') +
@@ -161,7 +161,7 @@
         '</aside>';
     }).catch(function (e) { console.error('sideCol', e); return ''; });
   }
-  function shareHome(posts) { return '<section class="sec social">' + sech('social', 'Share', 'Spread the word on every network', ['#/share', 'All sharing']) + '<div class="panel"><div class="pb">' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place', true) + '</div></div>' + (posts.length ? '<div style="margin-top:18px">' + grid(posts, 'g3').replace(/^/, '') + '</div>' : '') + '</section>'; }
+  function shareHome(posts) { return '<section class="sec social">' + sech('social', 'Share', 'Spread the word on every network', ['#/share', 'All sharing']) + '<div class="panel"><div class="pb">' + shareRow(SITE, 'Israel Insider: Voices & Views of Israel', true) + '</div></div>' + (posts.length ? '<div style="margin-top:18px">' + grid(posts, 'g3').replace(/^/, '') + '</div>' : '') + '</section>'; }
   var KIND = { petition: 'Petition', event: 'Event', donate: 'Donate', campus: 'Campus', volunteer: 'Volunteer', factcheck: 'Fact-check', correction: 'Correction', tracker: 'Tracker' };
   var KPLURAL = { petition: 'Petitions', event: 'Events', donate: 'Donate', campus: 'Campus', volunteer: 'Volunteer', factcheck: 'Fact-checks', correction: 'Corrections', tracker: 'Trackers' };
   var ACTK = ['event', 'petition', 'donate', 'campus', 'volunteer'], MONK = ['factcheck', 'correction', 'tracker'];
@@ -284,7 +284,7 @@
         var uniq = function (l) { var seen = {}; return l.filter(function (i) { var k = i.voice && i.voice.slug; if (!k || seen[k]) return false; seen[k] = 1; return true; }).slice(0, 6); };
         var vids = uniq(a[3]), reads = uniq(a[4]), pods = uniq(a[5]);
         if (!all.length && !voices.length) {
-          return '<section class="sec"><h1>Voices on Israel, in one place</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Content</a></section>' + nlBlock(nl);
+          return '<section class="sec"><h1>Voices &amp; Views of Israel</h1><p class="ex" style="margin:10px 0 18px;max-width:60ch">Israel Insider gathers writers, podcasters, video creators and public voices who support Israel. Every item links to the creator\'s own page. The first voices are being added now.</p><a class="btn big" href="#/submit">Submit Content</a></section>' + nlBlock(nl);
         }
         var by = function (t) { return all.filter(function (i) { return i.format === t; }); };
         var vo = voices.length ? '<section class="sec">' + sech('', 'Voices', 'Writers, shows and channels', ['#/voices', 'All voices']) + '<div class="voices">' + voices.slice(0, 12).map(voiceTile).join('') + '</div></section>' : '';
@@ -329,7 +329,7 @@
       return Promise.all([items('limit=60'), items('format=social&limit=12' + q)]).then(function (a) {
         var mix = a[0].filter(function (i) { return i.format !== 'social'; }).slice(0, 6), posts = a[1];
         return '<section class="sec social" style="padding-top:26px">' + sech('social', 'Share', 'Spread the word on every network') +
-          '<div class="panel" style="margin-bottom:18px"><h3>share israel insider</h3><div class="pb"><p class="ex">Know someone who should hear these voices? Share the site.</p>' + shareRow(SITE, 'Israel Insider: Pro-Israel voices in one place', true) + '</div></div>' +
+          '<div class="panel" style="margin-bottom:18px"><h3>share israel insider</h3><div class="pb"><p class="ex">Know someone who should hear these voices? Share the site.</p>' + shareRow(SITE, 'Israel Insider: Voices & Views of Israel', true) + '</div></div>' +
           (mix.length ? sech('', 'Share these now', 'Every item has its own share buttons') + grid(mix, 'g3') : '') +
           (posts.length ? sech('social', 'Voices on social', 'Short posts from voices') + grid(posts, 'g3') : '') + '</section>';
       });
@@ -448,7 +448,7 @@
   function openSitePop(btn) {
     var pop = document.getElementById('sitepop');
     if (!pop.hidden) { closeSitePop(); return; }
-    var u = encodeURIComponent(SITE), t = encodeURIComponent('Israel Insider: Pro-Israel voices in one place via Israel Insider'), by = {};
+    var u = encodeURIComponent(SITE), t = encodeURIComponent('Israel Insider: Voices & Views of Israel via Israel Insider'), by = {};
     NET.forEach(function (n) { by[n[0]] = '<a class="sh ' + n[0] + '" href="' + esc(n[3](u, t)) + '" target="_blank" rel="noopener" aria-label="Share on ' + n[1] + '"><b>' + ico(n[0]) + '</b>' + n[1] + '</a>'; });
     var ig = siteExtras().split('</button>');
     var order = [by.whatsapp, by.x, ig[0] + '</button>', ig[1] + '</button>', by.facebook, by.telegram, by.threads, by.bluesky, by.linkedin, by.reddit, by.email, '<button class="sh copy" type="button" data-copy="' + SITE + '"><b>' + ico('link') + '</b>Copy link</button>'];
@@ -490,7 +490,7 @@
     taxData().then(function () { return Promise.all([routes[name](name === 'voice' || name === 'item' ? arg : q), sideCol()]); }).then(function (r) {
       if (t !== token) return;
       var html = r[0];
-      view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = name === 'home' ? 'Israel Insider: Pro-Israel voices in one place' : name.charAt(0).toUpperCase() + name.slice(1) + ' · Israel Insider';
+      view.innerHTML = r[1] ? '<div class="cols"><div class="main">' + html + '</div>' + r[1] + '</div>' : html; window.scrollTo(0, 0); document.title = name === 'home' ? 'Israel Insider: Voices & Views of Israel' : name.charAt(0).toUpperCase() + name.slice(1) + ' · Israel Insider';
       if (name === 'submit') wireSubmit();
       if (name === 'voice') wireVoice();
       if (name === 'item' && ITEMS[arg]) document.title = ITEMS[arg].title + ' · Israel Insider';
