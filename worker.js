@@ -52,7 +52,7 @@ export async function runIngest(env, fetcher = fetch) {
   for (const f of due) {
     if (pick.length >= 35) break; if (f.retry_after && f.retry_after > nowIso) continue;
     let h = ''; try { h = new URL(f.url || 'https://youtube.com').hostname.replace(/^www\./, '').split('.').slice(-2).join('.'); } catch { }
-    if ((perHost[h] = (perHost[h] || 0) + 1) > (h === 'youtube.com' ? 15 : 4)) continue;
+    if ((perHost[h] = (perHost[h] || 0) + 1) > (h === 'youtube.com' ? 15 : h === 'timesofisrael.com' ? 24 : 4)) continue;
     pick.push(f.id);
   }
   const batch = new Set(pick);
