@@ -505,3 +505,15 @@ body.outopen{overflow:hidden}
 .cols .side>*{flex:0 0 86%;scroll-snap-align:start;min-width:0}
 .cols .side>.adslot{flex:0 0 320px}
 }
+
+/* desktop sliders: one row per home section */
+.slc{display:inline-flex;gap:4px;margin-left:12px;flex:none}
+.slc button{width:28px;height:28px;border-radius:50%;border:1px solid #b9c6dc;background:#fff;color:var(--ink);font:700 18px/1 var(--sans);padding:0 0 3px;cursor:pointer}
+.slc button:hover{background:#eef3fb}
+@media(max-width:700px){.slc{display:none}}
+@media(min-width:701px){
+body[data-route=home] .sec .grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;scrollbar-width:none;padding-bottom:6px}
+body[data-route=home] .sec .grid::-webkit-scrollbar{display:none}
+body[data-route=home] .sec .grid>*{flex:0 0 calc((100% - 28px)/3);min-width:0;scroll-snap-align:start}
+}
+@media(min-width:701px) and (max-width:1100px){body[data-route=home] .sec .grid>*{flex-basis:calc((100% - 14px)/2)}}

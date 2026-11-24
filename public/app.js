@@ -638,30 +638,54 @@
   topGreet();
   route();
 
-  /* mobile sliders drift to the next card every few seconds until the reader swipes one themselves */
+  /* sliders: one row per section, drifting to the next card until the reader takes over (touch, scroll, arrows) */
   (function () {
     var mq = window.matchMedia('(max-width:700px)'), calm = window.matchMedia('(prefers-reduced-motion:reduce)');
-    var SEL = 'body[data-route=home] .sec .grid, .nlcols, .cols .side, .posters';
-    var held = new WeakSet();
+    var ALL = 'body[data-route=home] .sec .grid, .nlcols, .cols .side, .posters', HOME = 'body[data-route=home] .sec .grid';
+    var held = new WeakSet(), over = new WeakSet();
     function hold(e) { held.add(e.currentTarget); }
-    function step(el) {
-      var kids = el.children; if (kids.length < 2) return;
-      var r = el.getBoundingClientRect(), pad = parseFloat(getComputedStyle(el).paddingLeft) || 0, next = null;
-      if (el.scrollWidth <= el.clientWidth + 4) return;
-      for (var i = 0; i < kids.length; i++) { if (kids[i].getBoundingClientRect().left > r.left + pad + 6) { next = kids[i]; break; } }
-      if (!next || el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) { el.scrollTo({ left: 0, behavior: 'smooth' }); return; }
-      el.scrollBy({ left: next.getBoundingClientRect().left - r.left - pad, behavior: 'smooth' });
+    function gapOf(el) { return parseFloat(getComputedStyle(el).columnGap) || 0; }
+    function go(el, dir, auto) {
+      var kids = el.children; if (kids.length < 2 || el.scrollWidth <= el.clientWidth + 4) return;
+      var atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4, atStart = el.scrollLeft <= 2;
+      if (dir > 0 && atEnd) { el.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+      if (dir < 0 && atStart) { el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' }); return; }
+      var r = el.getBoundingClientRect(), pad = parseFloat(getComputedStyle(el).paddingLeft) || 0, i, target = null;
+      if (dir > 0) { for (i = 0; i < kids.length; i++) { if (kids[i].getBoundingClientRect().left > r.left + pad + 6) { target = kids[i]; break; } } }
+      else { for (i = kids.length - 1; i >= 0; i--) { if (kids[i].getBoundingClientRect().left < r.left + pad - 6) { target = kids[i]; break; } } }
+      if (!target) { el.scrollTo({ left: dir > 0 ? 0 : el.scrollWidth, behavior: 'smooth' }); return; }
+      el.scrollBy({ left: target.getBoundingClientRect().left - r.left - pad, behavior: 'smooth' });
     }
+    function controls() {
+      var secs = document.querySelectorAll('body[data-route=home] .sec');
+      for (var i = 0; i < secs.length; i++) {
+        var s = secs[i], g = s.querySelector('.grid'), h = s.querySelector('.sech');
+        if (!g || !h || h.querySelector('.slc')) continue;
+        var c = document.createElement('span'); c.className = 'slc';
+        c.innerHTML = '<button type="button" aria-label="Previous">&#8249;</button><button type="button" aria-label="Next">&#8250;</button>';
+        (function (grid, box) {
+          box.children[0].addEventListener('click', function () { held.add(grid); go(grid, -1); });
+          box.children[1].addEventListener('click', function () { held.add(grid); go(grid, 1); });
+        })(g, c);
+        h.appendChild(c);
+      }
+    }
+    setInterval(controls, 700);
     setInterval(function () {
-      if (!mq.matches || calm.matches || document.hidden) return;
-      var q = document.querySelectorAll(SEL);
+      if (calm.matches || document.hidden) return;
+      var q = document.querySelectorAll(mq.matches ? ALL : HOME);
       for (var i = 0; i < q.length; i++) {
         var el = q[i];
-        if (!el.__auto) { el.__auto = 1; ['touchstart', 'pointerdown', 'wheel', 'keydown'].forEach(function (t) { el.addEventListener(t, hold, { passive: true }); }); }
-        if (held.has(el)) continue;
+        if (!el.__auto) {
+          el.__auto = 1;
+          ['touchstart', 'pointerdown', 'wheel', 'keydown'].forEach(function (t) { el.addEventListener(t, hold, { passive: true }); });
+          el.addEventListener('mouseenter', function (e) { over.add(e.currentTarget); });
+          el.addEventListener('mouseleave', function (e) { over.delete(e.currentTarget); });
+        }
+        if (held.has(el) || over.has(el)) continue;
         var b = el.getBoundingClientRect();
         if (b.bottom < 0 || b.top > innerHeight) continue;
-        step(el);
+        go(el, 1, true);
       }
     }, 4500);
   })();
