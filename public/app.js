@@ -637,4 +637,32 @@
 
   topGreet();
   route();
+
+  /* mobile sliders drift to the next card every few seconds until the reader swipes one themselves */
+  (function () {
+    var mq = window.matchMedia('(max-width:700px)'), calm = window.matchMedia('(prefers-reduced-motion:reduce)');
+    var SEL = 'body[data-route=home] .sec .grid, .nlcols, .cols .side, .posters';
+    var held = new WeakSet();
+    function hold(e) { held.add(e.currentTarget); }
+    function step(el) {
+      var kids = el.children; if (kids.length < 2) return;
+      var r = el.getBoundingClientRect(), pad = parseFloat(getComputedStyle(el).paddingLeft) || 0, next = null;
+      if (el.scrollWidth <= el.clientWidth + 4) return;
+      for (var i = 0; i < kids.length; i++) { if (kids[i].getBoundingClientRect().left > r.left + pad + 6) { next = kids[i]; break; } }
+      if (!next || el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) { el.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+      el.scrollBy({ left: next.getBoundingClientRect().left - r.left - pad, behavior: 'smooth' });
+    }
+    setInterval(function () {
+      if (!mq.matches || calm.matches || document.hidden) return;
+      var q = document.querySelectorAll(SEL);
+      for (var i = 0; i < q.length; i++) {
+        var el = q[i];
+        if (!el.__auto) { el.__auto = 1; ['touchstart', 'pointerdown', 'wheel', 'keydown'].forEach(function (t) { el.addEventListener(t, hold, { passive: true }); }); }
+        if (held.has(el)) continue;
+        var b = el.getBoundingClientRect();
+        if (b.bottom < 0 || b.top > innerHeight) continue;
+        step(el);
+      }
+    }, 4500);
+  })();
 })();
