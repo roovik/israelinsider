@@ -69,7 +69,12 @@ export async function runIngest(env, fetcher = fetch) {
       }
     } catch (e) { f.error_count = (f.error_count || 0) + 1; }
   }
-  const all = [...seen.values()].sort((a, b) => b.published_at.localeCompare(a.published_at)).slice(0, MAX_ITEMS);
+  // The same episode or post can arrive through two voices that share a feed. Keep one copy per audio or page address, from the voice listed first.
+  const rank = i => { const v = byId[i.voice_id] || {}; return (v.listed_on || '9999') + '|' + i.voice_id; };
+  const keyOf = i => String(i.audio_url || i.url || '').toLowerCase().replace(/^https?:\/\/(www\.)?/, '').replace(/#.*$/, '').replace(/[?&]utm_[^&]*/g, '').replace(/\/+$/, '');
+  const best = new Map();
+  for (const i of seen.values()) { const k = keyOf(i); if (!k) continue; const b = best.get(k); if (!b || rank(i) < rank(b)) best.set(k, i); }
+  const all = [...seen.values()].filter(i => { const k = keyOf(i); return !k || best.get(k) === i; }).sort((a, b) => b.published_at.localeCompare(a.published_at)).slice(0, MAX_ITEMS);
   await putJson(env, 'items', all);
   await putJson(env, 'feeds', feeds);
   const thawed = thaw(allV, feeds); if (thawed.length) await putJson(env, 'voices', allV);
